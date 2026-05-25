@@ -1,0 +1,83 @@
+# visual_friends.yaml — Friends World visual configuration
+version: 1
+
+tilemaps:
+  central_perk:
+    tileset: "assets/cafe_floor.png"
+    tile_size: 16
+    wall_color: "#8d6e63"
+  monicas_apt:
+    tileset: "assets/apartment_floor.png"
+    tile_size: 16
+    wall_color: "#a1887f"
+  street:
+    tileset: "assets/street_floor.png"
+    tile_size: 16
+    wall_color: "#78909c"
+
+sprites:
+  # Agents
+  rachel:
+    sheet: "assets/characters_friends.png"
+    frame: [0, 0, 32, 32]
+  ross:
+    sheet: "assets/characters_friends.png"
+    frame: [32, 0, 32, 32]
+  monica:
+    sheet: "assets/characters_friends.png"
+    frame: [64, 0, 32, 32]
+  chandler:
+    sheet: "assets/characters_friends.png"
+    frame: [96, 0, 32, 32]
+  joey:
+    sheet: "assets/characters_friends.png"
+    frame: [128, 0, 32, 32]
+  phoebe:
+    sheet: "assets/characters_friends.png"
+    frame: [160, 0, 32, 32]
+  gunther:
+    sheet: "assets/characters_friends.png"
+    frame: [192, 0, 32, 32]
+  # Items
+  bar_counter:
+    sheet: "assets/furniture.png"
+    frame: [0, 64, 32, 16]
+    type: item
+  notice_board:
+    sheet: "assets/furniture.png"
+    frame: [32, 64, 32, 16]
+    type: item
+  table_01:
+    sheet: "assets/furniture.png"
+    frame: [64, 64, 32, 16]
+    type: item
+
+colors:
+  rachel: "#e91e63"
+  ross: "#2196f3"
+  monica: "#4caf50"
+  chandler: "#9c27b0"
+  joey: "#ff9800"
+  phoebe: "#00bcd4"
+  gunther: "#795548"
+  bar_counter: "#8d6e63"
+  notice_board: "#78909c"
+
+movement:
+  interpolation: "ease_out"
+  max_framerate: 60
+
+dialogue:
+  font: "12px monospace"
+  bubble_bg: "#ffffff"
+  bubble_border: "#e2e8f0"
+  max_duration: 5
+  offset_y: -20
+
+gates:
+  highlight_color: "#ffd700"
+  pulse: true
+
+zone_transition:
+  type: "fade"
+  duration: 300

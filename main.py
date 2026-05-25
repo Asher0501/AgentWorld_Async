@@ -35,6 +35,8 @@ def parse_args():
                         help="Start Gateway API on given port (0=disabled)")
     parser.add_argument("--dashboard", type=int, default=0,
                         help="Start Live Dashboard on given port (0=disabled)", dest="dashboard_port")
+    parser.add_argument("--visual", type=int, default=0,
+                        help="Start pixel visual frontend on given port (0=disabled)", dest="visual_port")
     return parser.parse_args()
 
 

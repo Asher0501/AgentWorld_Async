@@ -55,15 +55,20 @@ async def cmd_test(args):
         api_task = asyncio.create_task(api_server.serve())
         print(f"  Gateway API: http://0.0.0.0:{args.api_port}")
 
-    # ── Dashboard emitter ──
-    dash_emit = None
+    # ── EventBus ──
+    event_emit = None
     dash_task = None
-    if getattr(args, 'dashboard_port', 0):
-        from dashboard.emitter import DashboardEmitter
-        from dashboard.server import start_dashboard
-        dash_emitter = DashboardEmitter()
-        dash_emit = dash_emitter.emit
-        dash_task = asyncio.create_task(start_dashboard(dash_emitter, director, args.dashboard_port))
+    visual_task = None
+    if getattr(args, 'dashboard_port', 0) or getattr(args, 'visual_port', 0):
+        from event_bus import EventBus
+        event_bus = EventBus()
+        event_emit = event_bus.emit
+        if getattr(args, 'dashboard_port', 0):
+            from dashboard.server import start_dashboard
+            dash_task = asyncio.create_task(start_dashboard(event_bus, director, args.dashboard_port))
+        if getattr(args, 'visual_port', 0):
+            from visual.server import start_visual
+            visual_task = asyncio.create_task(start_visual(event_bus, director, args.visual_port))
 
     print(f"\n{'='*60}")
     print(f"  AgentWorld Async — {cfg['world']['world']['name']}")
@@ -84,21 +89,21 @@ async def cmd_test(args):
     await run_concurrent(agents, world, brain, cfg["assembler"],
                          systems, args.runtime, loop_cfg,
                          trace_fn=tracer.callback(), director=director,
-                         dashboard_emit=dash_emit)
+                         dashboard_emit=event_emit)
 
     if api_task:
         api_server.should_exit = True
         api_task.cancel()
-        try:
-            await api_task
-        except (asyncio.CancelledError, Exception):
-            pass
+        try: await api_task
+        except (asyncio.CancelledError, Exception): pass
     if dash_task:
         dash_task.cancel()
-        try:
-            await dash_task
-        except (asyncio.CancelledError, Exception):
-            pass
+        try: await dash_task
+        except (asyncio.CancelledError, Exception): pass
+    if visual_task:
+        visual_task.cancel()
+        try: await visual_task
+        except (asyncio.CancelledError, Exception): pass
 
     elapsed = time.time() - t_start
     gate_stats = {pname: gate.stats() for pname, gate in cfg["concurrency_gates"].items()}

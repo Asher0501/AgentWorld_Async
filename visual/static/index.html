@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AgentWorld — Visual</title>
+<script src="https://pixijs.download/v7.3.3/pixi.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;overflow:hidden;font-family:monospace}
+#hud{position:fixed;top:0;left:0;right:0;height:32px;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:10}
+#hud .zone-name{font-size:14px;font-weight:700;color:#e2e8f0}
+#hud .controls{display:flex;gap:8px;align-items:center}
+#hud button{padding:4px 12px;border:1px solid #30363d;border-radius:4px;background:#161b22;color:#e2e8f0;cursor:pointer;font-size:11px;font-family:inherit}
+#hud button:hover{border-color:#d29922;color:#d29922}
+#hud button.freeze-btn{border-color:#d97706;color:#d97706}
+#hud .clock{font-size:12px;color:#8b949e}
+#status{position:fixed;bottom:0;left:0;right:0;height:22px;background:rgba(0,0,0,0.7);display:flex;align-items:center;padding:0 12px;z-index:10;font-size:11px;color:#8b949e}
+#status .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
+#tooltip{position:fixed;background:rgba(0,0,0,0.85);color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:20;display:none;white-space:pre-line}
+</style>
+</head>
+<body>
+<div id="hud">
+  <span class="zone-name">AgentWorld</span>
+  <div class="controls">
+    <button class="freeze-btn" id="btn-freeze" onclick="freezeWorld()">⏸ Freeze</button>
+    <button id="btn-unfreeze" onclick="unfreezeWorld()" style="display:none">▶ Unfreeze</button>
+    <span class="clock" id="clock">⏱ 00:00</span>
+  </div>
+</div>
+<div id="status"><span class="dot" style="background:#ef4444"></span> Connecting...</div>
+<div id="tooltip"></div>
+
+<script>
+// ═══════ CONFIG ═══════
+const PORT = location.port || '8767';
+const TILE_SIZE = 16;
+const ZOOM = 2; // 2x pixel scale
+let app, stage, zoneContainer, entitiesContainer, bubblesContainer;
+let sprites = {}, bubblePool = [], zoneWidth = 0, zoneHeight = 0, currentZone = '';
+let eventCount = 0, clockEl, statusEl, tooltipEl, frozen = false;
+
+// ═══ DIRECTOR API ═══
+async function api(method, path, body) {
+  const r = await fetch('/api' + path, {method, headers:body?{'Content-Type':'application/json'}:{}, body:body?JSON.stringify(body):undefined});
+  return r.json();
+}
+async function freezeWorld() {
+  await api('POST','/freeze'); frozen=true;
+  document.getElementById('btn-freeze').style.display='none';
+  document.getElementById('btn-unfreeze').style.display='';
+  setStatus('FROZEN');
+}
+async function unfreezeWorld() {
+  await api('POST','/unfreeze'); frozen=false;
+  document.getElementById('btn-freeze').style.display='';
+  document.getElementById('btn-unfreeze').style.display='none';
+  setStatus('Live');
+}
+
+// ═══ PIXIJS INIT ═══
+function initPixiJS() {
+  app = new PIXI.Application({
+    width: window.innerWidth,
+    height: window.innerHeight - 54,
+    backgroundColor: 0x0d1117,
+    antialias: false,
+    resolution: 1,
+    autoDensity: true,
+  });
+  document.body.appendChild(app.view);
+  app.view.style.position = 'fixed';
+  app.view.style.top = '32px';
+  app.view.style.left = '0';
+
+  stage = app.stage;
+  zoneContainer = new PIXI.Container();
+  entitiesContainer = new PIXI.Container();
+  bubblesContainer = new PIXI.Container();
+  stage.addChild(zoneContainer);
+
+  clockEl = document.getElementById('clock');
+  statusEl = document.getElementById('status');
+  tooltipEl = document.getElementById('tooltip');
+}
+
+function initZone(zone, width, height) {
+  if (zone === currentZone) return;
+  currentZone = zone;
+  zoneWidth = width; zoneHeight = height;
+  zoneContainer.removeChildren();
+  entitiesContainer.removeChildren();
+  bubblesContainer.removeChildren();
+  sprites = {};
+  bubblePool = [];
+
+  // Floor
+  const g = new PIXI.Graphics();
+  g.beginFill(0x1a3a1a);
+  g.drawRect(0, 0, width * TILE_SIZE * ZOOM, height * TILE_SIZE * ZOOM);
+  g.endFill();
+  // Grid lines
+  g.lineStyle(1, 0x2a4a2a, 0.3);
+  for (let x = 0; x <= width; x++) { g.moveTo(x * TILE_SIZE * ZOOM, 0); g.lineTo(x * TILE_SIZE * ZOOM, height * TILE_SIZE * ZOOM); }
+  for (let y = 0; y <= height; y++) { g.moveTo(0, y * TILE_SIZE * ZOOM); g.lineTo(width * TILE_SIZE * ZOOM, y * TILE_SIZE * ZOOM); }
+  zoneContainer.addChild(g);
+  zoneContainer.addChild(entitiesContainer);
+  zoneContainer.addChild(bubblesContainer);
+
+  document.getElementById('hud').querySelector('.zone-name').textContent = zone;
+}
+
+// ═══ ENTITY RENDERING ═══
+const agentColors = {};
+
+function getColor(name) {
+  if (!agentColors[name]) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+    agentColors[name] = '#' + ((h & 0x00FFFFFF) | 0x66000000).toString(16).slice(1);
+  }
+  return parseInt(agentColors[name].replace('#',''), 16);
+}
+
+function updateEntities(entities) {
+  for (const e of entities) {
+    if (!e.id || !e.pos) continue;
+    const x = e.pos[0] * TILE_SIZE * ZOOM;
+    const y = e.pos[1] * TILE_SIZE * ZOOM;
+
+    if (!sprites[e.id]) {
+      const c = new PIXI.Container();
+      const circle = new PIXI.Graphics();
+      if (e.type === 'gate') {
+        circle.lineStyle(2, 0xffd700); circle.drawRoundedRect(-6, -6, 12, 12, 2);
+      } else if (e.type === 'item') {
+        circle.beginFill(0x8d6e63); circle.drawRoundedRect(-5, -5, 10, 10, 2); circle.endFill();
+      } else {
+        circle.beginFill(getColor(e.name)); circle.drawCircle(0, 0, 6); circle.endFill();
+        circle.interactive = true; circle.cursor = 'pointer';
+        circle.on('pointerover', () => showTooltip(e, x, y));
+        circle.on('pointerout', () => tooltipEl.style.display = 'none');
+      }
+      c.addChild(circle);
+      const label = new PIXI.Text(e.name, {fontSize:9, fontFamily:'monospace', fill:0xe2e8f0});
+      label.anchor.set(0.5, 0); label.y = 8;
+      c.addChild(label);
+      entitiesContainer.addChild(c);
+      sprites[e.id] = c;
+    }
+    sprites[e.id].x = x; sprites[e.id].y = y;
+  }
+}
+
+function showTooltip(e, sx, sy) {
+  tooltipEl.style.display = 'block';
+  tooltipEl.style.left = (sx + 20) + 'px';
+  tooltipEl.style.top = (sy + 50) + 'px';
+  tooltipEl.textContent = e.name + '\n' + (e.type || 'agent');
+}
+
+// ═══ DIALOGUE BUBBLES ═══
+function showBubble(agent, text) {
+  const sprite = sprites[agent];
+  if (!sprite || !text) return;
+  const bubble = new PIXI.Container();
+  const bg = new PIXI.Graphics();
+  bg.beginFill(0xffffff, 0.9); bg.drawRoundedRect(-text.length*2.5, -16, text.length*5, 14, 6); bg.endFill();
+  bubble.addChild(bg);
+  const t = new PIXI.Text(text, {fontSize:8, fontFamily:'monospace', fill:0x1e293b});
+  t.anchor.set(0.5, 0.5);
+  bubble.addChild(t);
+  bubble.x = sprite.x; bubble.y = sprite.y - 20;
+  bubblesContainer.addChild(bubble);
+  bubblePool.push({bubble, timer: 5});
+}
+
+function updateBubbles(dt) {
+  for (let i = bubblePool.length-1; i >= 0; i--) {
+    bubblePool[i].timer -= dt;
+    if (bubblePool[i].timer <= 0) {
+      if (bubblePool[i].bubble.parent) bubblesContainer.removeChild(bubblePool[i].bubble);
+      bubblePool.splice(i, 1);
+    }
+  }
+}
+
+// ═══ EVENT HANDLER ═══
+function handleEvent(evt) {
+  eventCount++;
+  if (evt.ts != null) {
+    const m = Math.floor(evt.ts/60), s = Math.floor(evt.ts%60);
+    clockEl.textContent = '⏱ ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  if (evt.zone && (evt.zone_width || evt.zone_height)) {
+    initZone(evt.zone, evt.zone_width || 40, evt.zone_height || 30);
+  }
+  if (evt.entities) updateEntities(evt.entities);
+  if (evt.dialogue && evt.agent) showBubble(evt.agent, evt.dialogue);
+  setStatus('Live · ' + eventCount + ' events');
+}
+
+function setStatus(text, ok) {
+  const dot = ok ? 'background:#22c55e' : 'background:#ef4444';
+  statusEl.innerHTML = '<span class="dot" style="' + dot + '"></span> ' + text;
+}
+
+// ═══ WEBSOCKET ═══
+function connect() {
+  setStatus('Connecting...');
+  const ws = new WebSocket('ws://' + location.hostname + ':' + PORT + '/ws');
+  ws.onopen = () => setStatus('Connected', true);
+  ws.onmessage = (msg) => {
+    try { const evt = JSON.parse(msg.data); if (evt.agent !== '_meta') handleEvent(evt); }
+    catch(e) { console.error(e); }
+  };
+  ws.onclose = (e) => {
+    const reason = e.code === 1006 ? 'Server stopped' : 'Disconnected';
+    setStatus(reason + ' — retrying...');
+    setTimeout(connect, 2000);
+  };
+}
+
+// ═══ APP TICK ═══
+app && app.ticker.add(dt => {
+  updateBubbles(dt / 60);
+  // Position tooltip follow cursor
+  if (tooltipEl.style.display === 'block') {
+    // tooltip position handled in showTooltip
+  }
+});
+
+// ═══ START ═══
+initPixiJS();
+connect();
+window.addEventListener('resize', () => {
+  if (app) app.renderer.resize(window.innerWidth, window.innerHeight - 54);
+});
+</script>
+</body>
+</html>
