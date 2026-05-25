@@ -93,10 +93,12 @@ tr:hover{background:#f8f9fa}
   <a href="#dashboard-layout">› 布局设计</a>
   <div class="sep"></div>
   <a href="#visual">Visual 像素前端</a>
-  <a href="#visual-pipeline">› 声明式渲染管线</a>
-  <a href="#visual-yaml">› visual.yaml 设计</a>
-  <a href="#visual-vs-aitown">› 和 AI Town 对照</a>
-  <a href="#visual-layers">› Layer 图层系统</a>
+  <a href="#visual-pipeline">› 5 层渲染管线</a>
+  <a href="#visual-yaml">› visual.yaml 完整</a>
+  <a href="#visual-tween">› TweenEngine</a>
+  <a href="#visual-anim">› AnimationState</a>
+  <a href="#visual-layers">› Layer 系统</a>
+  <a href="#visual-vs-aitown">› AI Town 对齐度</a>
   <div class="sep"></div>
   <a href="#integration">引擎集成点</a>
   <a href="#delete-test">删除测试</a>
@@ -423,73 +425,127 @@ ws.onmessage = (msg) => {
 </code></pre>
 
 <!-- ════════ VISUAL ════════ -->
-<h2 id="visual">六、Visual — 声明式像素前端</h2>
+<h2 id="visual">六、Visual — AI Town 级像素前端</h2>
 
 <p>复用 slot 架构的核心理念——<strong>声明式 YAML + 通用转换器</strong>。换世界观 = 换 visual.yaml。不写一行 JS。</p>
 
-<h3 id="visual-pipeline">声明式渲染管线</h3>
+<h3 id="visual-pipeline">完整渲染管线 — 5 层流水线</h3>
 
 <div class="diagram">
-<svg width="880" height="260" viewBox="0 0 880 260" xmlns="http://www.w3.org/2000/svg">
+<svg width="920" height="520" viewBox="0 0 920 520" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <marker id="arrv1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#94a3b8"/></marker>
+    <marker id="arrv2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#94a3b8"/></marker>
   </defs>
 
-  <!-- world.yaml -->
-  <rect x="20" y="20" width="220" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
-  <text x="130" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">config/world_friends.yaml</text>
-  <line x1="50" y1="58" x2="210" y2="58" stroke="#93c5fd" stroke-width="1"/>
-  <text x="130" y="76" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">zones:  宽/高, id, name</text>
-  <text x="130" y="92" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">entities: id, name, pos, type</text>
-  <text x="130" y="106" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">（已有，不新增字段）</text>
+  <!-- Row 1: Config files -->
+  <rect x="20" y="15" width="200" height="65" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="120" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">world_friends.yaml</text>
+  <text x="120" y="58" text-anchor="middle" font-size="10" fill="#64748b">zones · entities · pos</text>
+  <text x="120" y="72" text-anchor="middle" font-size="10" fill="#64748b">（已有，不变）</text>
 
-  <!-- visual.yaml -->
-  <rect x="300" y="20" width="220" height="90" rx="6" fill="#faf5ff" stroke="#c4b5fd" stroke-width="2"/>
-  <text x="410" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#6d28d9">config/visual_friends.yaml</text>
-  <line x1="330" y1="58" x2="490" y2="58" stroke="#c4b5fd" stroke-width="1"/>
-  <text x="410" y="76" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">tilemaps: tileset, size, colors</text>
-  <text x="410" y="92" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">sprites: sheet, frame per entity</text>
-  <text x="410" y="106" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">dialogue: font, bubble style, duration</text>
+  <rect x="260" y="15" width="200" height="65" rx="6" fill="#faf5ff" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="360" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#6d28d9">visual_friends.yaml</text>
+  <text x="360" y="58" text-anchor="middle" font-size="10" fill="#64748b">tilemaps · sprites · animations</text>
+  <text x="360" y="72" text-anchor="middle" font-size="10" fill="#64748b">decorations · movement · tooltips</text>
 
-  <!-- generic_renderer -->
-  <rect x="580" y="20" width="260" height="90" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
-  <text x="710" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#c2410c">generic_renderer.js</text>
-  <line x1="610" y1="58" x2="810" y2="58" stroke="#fdba74" stroke-width="1"/>
-  <text x="710" y="76" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">读两个 YAML → PixiJS Scene</text>
-  <text x="710" y="92" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">init(visualCfg, worldCfg)</text>
-  <text x="710" y="106" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">update(event) — WebSocket 驱动</text>
+  <line x1="220" y1="47" x2="256" y2="47" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrv2)"/>
 
-  <!-- Arrows -->
-  <line x1="240" y1="65" x2="296" y2="65" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrv1)"/>
-  <line x1="520" y1="65" x2="576" y2="65" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrv1)"/>
+  <!-- Row 2: generic_renderer.js -->
+  <rect x="100" y="110" width="480" height="55" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="340" y="134" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">generic_renderer.js — 通用转换器</text>
+  <text x="340" y="154" text-anchor="middle" font-size="10" fill="#64748b">读两个 YAML → 初始化 PixiJS Stage → 每 60fps tick → 输出 Canvas</text>
+  <line x1="120" y1="80" x2="200" y2="106" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrv2)"/>
+  <line x1="360" y1="80" x2="340" y2="106" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrv2)"/>
 
-  <!-- Bottom: comparison -->
-  <text x="440" y="155" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">和世界 YAML 对照 — 声明式三件套</text>
+  <!-- Row 3: Sub-engines -->
+  <text x="340" y="190" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">内部子引擎</text>
 
-  <rect x="40" y="175" width="240" height="36" rx="4" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
-  <text x="160" y="197" text-anchor="middle" font-size="11" fill="#1e40af" font-family="monospace">world.yaml → 世界有什么</text>
+  <rect x="30" y="200" width="155" height="50" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="107" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">TweenEngine</text>
+  <text x="107" y="240" text-anchor="middle" font-size="9" fill="#64748b">60fps 坐标插值</text>
 
-  <rect x="320" y="175" width="240" height="36" rx="4" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1"/>
-  <text x="440" y="197" text-anchor="middle" font-size="11" fill="#6d28d9" font-family="monospace">visual.yaml → 世界长什么样</text>
+  <rect x="205" y="200" width="155" height="50" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="282" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">AnimationState</text>
+  <text x="282" y="240" text-anchor="middle" font-size="9" fill="#64748b">idle / walk / talk</text>
 
-  <rect x="600" y="175" width="240" height="36" rx="4" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
-  <text x="720" y="197" text-anchor="middle" font-size="11" fill="#c2410c" font-family="monospace">generic_renderer.js → 画出来</text>
+  <rect x="380" y="200" width="155" height="50" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="457" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">TilemapLoader</text>
+  <text x="457" y="240" text-anchor="middle" font-size="9" fill="#64748b">tileset → TilingSprite</text>
 
-  <text x="440" y="245" text-anchor="middle" font-size="10" fill="#64748b">三者都不针对特定世界观——新世界 = 新 world.yaml + 新 visual.yaml，转换器零改动</text>
+  <rect x="555" y="200" width="155" height="50" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="632" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">SpriteLoader</text>
+  <text x="632" y="240" text-anchor="middle" font-size="9" fill="#64748b">sheet → PIXI.Sprite</text>
+
+  <!-- Row 4: Layers -->
+  <text x="340" y="278" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">PixiJS Stage — 5 层 Container</text>
+
+  <rect x="20" y="290" width="170" height="36" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="105" y="312" text-anchor="middle" font-size="10" fill="#475569">Layer 0: 🏠 Tilemap</text>
+
+  <rect x="200" y="290" width="170" height="36" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="285" y="312" text-anchor="middle" font-size="10" fill="#475569">Layer 1: 🪴 Decorations</text>
+
+  <rect x="380" y="290" width="170" height="36" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="465" y="312" text-anchor="middle" font-size="10" fill="#475569">Layer 2: 👥 Entities</text>
+
+  <rect x="560" y="290" width="170" height="36" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="645" y="312" text-anchor="middle" font-size="10" fill="#475569">Layer 3: 💬 Bubbles</text>
+
+  <rect x="740" y="290" width="155" height="36" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="817" y="312" text-anchor="middle" font-size="10" fill="#475569">Layer 4: 🖥️ HUD</text>
+
+  <!-- Row 5: Output -->
+  <line x1="340" y1="338" x2="340" y2="365" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrv2)"/>
+  <rect x="230" y="370" width="220" height="40" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2"/>
+  <text x="340" y="395" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">requestAnimationFrame()</text>
+
+  <line x1="460" y1="390" x2="590" y2="390" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrv2)"/>
+
+  <!-- Browser -->
+  <rect x="600" y="370" width="160" height="40" rx="6" fill="#faf5ff" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="680" y="395" text-anchor="middle" font-size="13" font-weight="700" fill="#6d28d9">Browser Canvas</text>
+
+  <!-- Right side info -->
+  <rect x="780" y="15" width="120" height="380" rx="4" fill="#f8f9fa" stroke="#e2e8f0"/>
+  <text x="840" y="40" text-anchor="middle" font-size="9" font-weight="700" fill="#475569">数据流</text>
+  <line x1="795" y1="48" x2="885" y2="48" stroke="#e2e8f0"/>
+  <text x="840" y="70" text-anchor="middle" font-size="8" fill="#64748b">WS event</text>
+  <line x1="810" y1="76" x2="870" y2="76" stroke="#e2e8f0"/>
+  <text x="840" y="92" text-anchor="middle" font-size="8" fill="#64748b">→ entities pos</text>
+  <line x1="810" y1="98" x2="870" y2="98" stroke="#e2e8f0"/>
+  <text x="840" y="114" text-anchor="middle" font-size="8" fill="#64748b">→ TweenEngine</text>
+  <text x="840" y="130" text-anchor="middle" font-size="8" fill="#64748b">set targets</text>
+  <line x1="810" y1="136" x2="870" y2="136" stroke="#e2e8f0"/>
+  <text x="840" y="152" text-anchor="middle" font-size="8" fill="#64748b">→ Animation</text>
+  <text x="840" y="168" text-anchor="middle" font-size="8" fill="#64748b">setState</text>
+  <line x1="810" y1="174" x2="870" y2="174" stroke="#e2e8f0"/>
+  <text x="840" y="190" text-anchor="middle" font-size="8" fill="#64748b">→ Tick 60fps</text>
+  <text x="840" y="206" text-anchor="middle" font-size="8" fill="#64748b">interpolate</text>
+  <line x1="810" y1="212" x2="870" y2="212" stroke="#e2e8f0"/>
+  <text x="840" y="230" text-anchor="middle" font-size="8" fill="#64748b">→ draw frame</text>
+
+  <text x="340" y="435" text-anchor="middle" font-size="10" fill="#64748b">引擎只推 2-4 event/s。TweenEngine 在 event 之间做 60fps 插值。AnimationState 根据 entity 行为切换动画帧。</text>
+
+  <!-- Legend -->
+  <text x="20" y="470" font-size="10" font-weight="700" fill="#475569">5 层 Container 渲染顺序:</text>
+  <text x="20" y="488" font-size="9" fill="#64748b" font-family="monospace">Tilemap (底) → Decorations → Entities → Dialogue Bubbles → HUD (顶)</text>
+  <text x="20" y="504" font-size="9" fill="#64748b" font-family="monospace">每层独立 init / update / destroy。删掉一行 = 视觉效果消失。</text>
 </svg>
 </div>
 
 <div class="callout visual">
-<strong>核心思想：</strong>和 14 个 YAML slot 替代 730 行认知代码完全一致。<br>
-世界数据 (<code>world.yaml</code>) + 视觉配置 (<code>visual.yaml</code>) → 通用转换器 (<code>generic_renderer.js</code>) → PixiJS 画布。<br>
-<strong>换世界 = 换两行 YAML。不写一行 JS。</strong>
+<strong>核心思想：</strong>引擎代码零改动——它已经每秒推 2-4 次 entity 坐标。<br>
+<code>TweenEngine</code> 在两个 event 之间做 60fps 插值 → 从"跳坐标"变"平滑走"。<br>
+<code>AnimationState</code> 根据行为（走路/说话/发呆）切换精灵动画帧。<br>
+<strong>新世界 = 新建 world.yaml + visual.yaml。转换器不写一行代码。</strong>
 </div>
 
-<h3 id="visual-yaml">visual.yaml 设计</h3>
+<h3 id="visual-yaml">visual.yaml 完整设计 — 含动画 + 装饰 + 过渡</h3>
 
 <pre><code># config/visual_friends.yaml
 version: 1
 
+# ── 底图层 — tilemaps ──
 tilemaps:
   central_perk:
     tileset: "assets/cafe_floor.png"
@@ -499,6 +555,7 @@ tilemaps:
     tileset: "assets/apartment_floor.png"
     tile_size: 16
 
+# ── 角色层 — sprites + 动画帧 ──
 sprites:
   rachel:
     sheet: "assets/characters.png"
@@ -510,157 +567,203 @@ sprites:
     sheet: "assets/furniture.png"
     frame: [0, 64, 32, 16]
     type: item
-  # 未列出 → 自动生成彩色圆点 fallback
 
-colors:                          # fallback 圆点颜色
+# 未列出 → fallback 彩色圆点（name hash 自动生成颜色）
+colors:
   rachel: "#e91e63"
   ross: "#2196f3"
-  monica: "#4caf50"
-  # 未列出 → name hash 自动生成
 
+# ── 动画层 — 角色多帧动画 ──
+animations:
+  rachel:
+    idle:       [0, 1, 2, 3]
+    walk_right: [4, 5, 6, 7]
+    walk_left:  [8, 9, 10, 11]
+    talk:       [12, 13, 14, 15]
+    speed: 0.15
+  ross:
+    idle: [0, 1, 2, 3]
+    walk_right: [4, 5, 6, 7]
+    talk: [8, 9, 10, 11]
+    speed: 0.15
+  # 未列出 → 保持静态 sprite
+
+# ── 装饰层 — 纯视觉，不影响引擎 ──
+decorations:
+  - id: "plant_pot_01"
+    zone: central_perk
+    pos: [10, 8]
+    sprite: "assets/props.png"
+    frame: [0, 32, 16, 16]
+    layer: 1
+  - id: "rug_01"
+    zone: central_perk
+    pos: [18, 10]
+    sprite: "assets/props.png"
+    frame: [16, 32, 32, 32]
+    layer: 0
+
+# ── 运动层 — 插值 + 平滑 ──
+movement:
+  interpolation: "ease_out"       # ease_out | linear | snap
+  max_framerate: 60
+
+# ── UI 层 — 对话气泡 + tooltip ──
 dialogue:
   font: "12px monospace"
   bubble_bg: "#ffffff"
+  bubble_border: "#e2e8f0"
   max_duration: 5
+  fade_out: 1.0                  ← 新增：淡出时长(秒)
   offset_y: -20
+
+tooltips:
+  enabled: true
+  show_drives: true
+  show_mood: true
+  font: "11px monospace"
+  bg: "rgba(0,0,0,0.75)"
+  text_color: "#e2e8f0"
 
 gates:
   highlight_color: "#ffd700"
-  pulse: true</code></pre>
+  pulse: true
+  pulse_duration: 1.5            ← 新增：脉冲周期
 
-<div class="diagram">
-<svg width="880" height="360" viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg">
-  <!-- HUD layer -->
-  <rect x="20" y="8" width="840" height="24" rx="3" fill="rgba(0,0,0,0.6)"/>
-  <text x="40" y="25" font-size="11" font-weight="700" fill="#e2e8f0" font-family="monospace">Central Perk</text>
-  <text x="800" y="25" text-anchor="end" font-size="10" fill="#94a3b8" font-family="monospace">⏸ Freeze  |  ⏱ 3:12</text>
+zone_transition:
+  type: "fade"                   # fade | slide | instant
+  duration: 300                  # ms</code></pre>
 
-  <!-- Map area -->
-  <rect x="20" y="38" width="620" height="280" rx="4" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="1.5"/>
+<h3 id="visual-tween">TweenEngine — 60fps 插值引擎（~50 行）</h3>
 
-  <!-- TilingSprite -->
-  <g fill="#c8e6c9" opacity="0.5">
-    <rect x="40" y="56" width="16" height="16"/><rect x="58" y="56" width="16" height="16"/>
-    <rect x="76" y="56" width="16" height="16"/><rect x="94" y="56" width="16" height="16"/>
-    <rect x="40" y="74" width="16" height="16"/><rect x="58" y="74" width="16" height="16"/>
-    <rect x="76" y="74" width="16" height="16"/><rect x="94" y="74" width="16" height="16"/>
-  </g>
+<pre><code>// generic_renderer.js 内部
+// 原理：引擎每秒推 2-4 个 event。TweenEngine 在 event 之间做插值。
 
-  <!-- Walls (from world.yaml zone boundary) -->
-  <rect x="60" y="56" width="2" height="50" fill="#8d6e63"/>
-  <rect x="40" y="106" width="120" height="2" fill="#8d6e63"/>
+const TweenEngine = {
+  targets: {},
+  lastEventTs: 0,
 
-  <!-- Items with sprites -->
-  <rect x="340" y="130" width="14" height="14" fill="#8d6e63" rx="2"/><text x="357" y="143" font-size="8" fill="#5d4037" font-family="monospace">bar_counter</text>
-  <rect x="200" y="140" width="12" height="12" fill="#78909c" rx="2"/><text x="215" y="152" font-size="8" fill="#546e7a" font-family="monospace">notice</text>
+  onEvent(event) {
+    for (const e of event.entities || []) {
+      const sprite = this.getSprite(e.id);
+      if (!sprite) continue;
+      const duration = event.ts - this.lastEventTs > 0
+        ? (event.ts - this.lastEventTs) * 1000 : 300;  // ms
+      this.targets[e.id] = {
+        sprite,
+        fromX: sprite.x, fromY: sprite.y,
+        toX:   e.pos[0] * TILE_SIZE,
+        toY:   e.pos[1] * TILE_SIZE,
+        startTime: performance.now(),
+        duration
+      };
+      // 同时通知动画状态机：角色在移动
+      AnimationState.setState(e.id, 'walk_right');
+    }
+    this.lastEventTs = event.ts;
+  },
 
-  <!-- Gate with gold highlight -->
-  <rect x="450" y="200" width="14" height="14" fill="#ffd700" rx="2" stroke="#b8860b" stroke-width="2"/>
-  <text x="467" y="213" font-size="8" fill="#b8860b" font-family="monospace">village_gate</text>
+  tick(now) {
+    for (const [id, t] of Object.entries(this.targets)) {
+      const elapsed = now - t.startTime;
+      const progress = Math.min(1, elapsed / t.duration);
+      const eased = 1 - (1 - progress) ** 3;  // easeOutCubic
+      t.sprite.x = t.fromX + (t.toX - t.fromX) * eased;
+      t.sprite.y = t.fromY + (t.toY - t.fromY) * eased;
+      if (progress >= 1) {
+        delete this.targets[id];
+        AnimationState.setState(id, 'idle');  // 到达目标 → 静止
+      }
+    }
+  },
 
-  <!-- Agents with sprites -->
-  <circle cx="200" cy="150" r="7" fill="#e91e63"/><text x="212" y="153" font-size="9" font-weight="700" fill="#c2185b" font-family="monospace">Rachel</text>
-  <circle cx="230" cy="150" r="7" fill="#2196f3"/><text x="242" y="153" font-size="9" font-weight="700" fill="#1565c0" font-family="monospace">Ross</text>
-  <circle cx="260" cy="150" r="7" fill="#4caf50"/><text x="272" y="153" font-size="9" font-weight="700" fill="#2e7d32" font-family="monospace">Monica</text>
-  <circle cx="300" cy="150" r="7" fill="#9c27b0"/><text x="312" y="153" font-size="9" font-weight="700" fill="#7b1fa2" font-family="monospace">Chandler</text>
-  <circle cx="330" cy="150" r="7" fill="#ff9800"/><text x="342" y="153" font-size="9" font-weight="700" fill="#ef6c00" font-family="monospace">Joey</text>
-  <circle cx="180" cy="190" r="7" fill="#00bcd4"/><text x="192" y="193" font-size="9" font-weight="700" fill="#00838f" font-family="monospace">Phoebe</text>
-  <circle cx="150" cy="100" r="7" fill="#795548"/><text x="162" y="103" font-size="9" font-weight="700" fill="#5d4037" font-family="monospace">Gunther</text>
+  getSprite(id) { return /* 从 EntitiesLayer.sprites 查找 */; }
+};</code></pre>
 
-  <!-- Dialogue bubble -->
-  <rect x="210" y="166" width="130" height="26" rx="10" fill="white" stroke="#e2e8f0"/>
-  <text x="220" y="183" font-size="9" fill="#475569" font-family="monospace">"嘿Ross，想我了吗？"</text>
-  <text x="214" y="198" font-size="7" fill="#64748b" font-family="monospace">← Rachel · 12.3s</text>
+<h3 id="visual-anim">AnimationState — 动画状态机（~40 行）</h3>
 
-  <!-- Side panel -->
-  <rect x="660" y="38" width="200" height="280" rx="3" fill="#f8f9fa" stroke="#e2e8f0"/>
-  <text x="672" y="58" font-size="11" font-weight="700" fill="#475569">Zone: Central Perk</text>
-  <line x1="666" y1="64" x2="854" y2="64" stroke="#e2e8f0"/>
-  <text x="672" y="80" font-size="10" fill="#64748b" font-family="monospace">tilemap: cafe_floor</text>
-  <text x="672" y="96" font-size="10" fill="#64748b" font-family="monospace">agents: 7  items: 5  gates: 1</text>
-  <line x1="666" y1="104" x2="854" y2="104" stroke="#e2e8f0"/>
-  <text x="672" y="120" font-size="10" fill="#64748b" font-family="monospace">visual.yaml loaded</text>
-  <text x="672" y="136" font-size="10" fill="#64748b" font-family="monospace">generic_renderer v1</text>
-  <line x1="666" y1="144" x2="854" y2="144" stroke="#e2e8f0"/>
-  <text x="672" y="160" font-size="10" fill="#64748b" font-family="monospace">Sprites loaded:</text>
-  <text x="672" y="176" font-size="9" fill="#475569" font-family="monospace">✓ cafe_floor.png</text>
-  <text x="672" y="192" font-size="9" fill="#475569" font-family="monospace">✓ characters.png (6/7)</text>
-  <text x="672" y="208" font-size="9" fill="#475569" font-family="monospace">✓ furniture.png</text>
-  <text x="672" y="224" font-size="9" fill="#c2410c" font-family="monospace">○ Phoebe → fallback circle</text>
-</svg>
-</div>
+<pre><code>const AnimationState = {
+  states: {},
 
-<div class="callout visual">
-<strong>设计原则：</strong>PixiJS 渲染引擎 + 声明式 visual.yaml + 通用 generic_renderer.js。<br>
-换世界 = 新建 <code>visual_xxx.yaml</code>。和 14 个 slot 替代 730 行代码同一个核心理念。
-</div>
+  setState(entityId, newState, visualCfg) {
+    if (this.states[entityId]?.currentState === newState) return;
+    const animCfg = visualCfg.animations?.[entityId];
+    if (!animCfg) return;  // 无动画配置 → 保持静态 sprite
 
-<h3 id="visual-vs-aitown">和 AI Town 对照</h3>
+    const frames = animCfg[newState];
+    if (!frames) return;
 
-<table>
-  <tr><th>维度</th><th>AI Town</th><th>AgentWorld Visual</th></tr>
-  <tr><td>角色定义</td><td><code>characters.ts</code>（TS 代码）</td><td><code>visual.yaml → sprites:</code>（声明式）</td></tr>
-  <tr><td>地图加载</td><td>Tiled JSON → convertMap.js → gentle.js</td><td><code>world.yaml → zones:</code> 直接渲染</td></tr>
-  <tr><td>换世界</td><td>重写 JS + 重新 convertMap</td><td><strong>新建 visual_xxx.yaml</strong></td></tr>
-  <tr><td>渲染引擎</td><td>PixiJS（pixi-react）</td><td>PixiJS（原生，CDN 加载）</td></tr>
-  <tr><td>前端依赖</td><td>React + Vite + Convex</td><td><strong>零——纯 HTML + 1 个 CDN script</strong></td></tr>
-  <tr><td>精灵资产</td><td>手绘 32×32</td><td>免费 tileset + fallback 圆点</td></tr>
-</table>
+    const sheet = visualCfg.sprites[entityId]?.sheet;
+    const sprite = this.states[entityId]?.sprite;
+    if (sprite && sheet) {
+      sprite.textures = frames.map(f =>
+        new PIXI.Texture(
+          PIXI.BaseTexture.from(sheet),
+          new PIXI.Rectangle(f[0] * TILE_SIZE, f[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        )
+      );
+      if (sprite.play) { sprite.animationSpeed = animCfg.speed; sprite.play(); }
+    }
+    this.states[entityId] = { sprite, currentState: newState, frames };
+  },
 
-<!-- ════════ VISUAL LAYERS ════════ -->
-<h3 id="visual-layers">Layer 图层系统</h3>
+  // 触发时机:
+  //   event.action_text → setState(id, "talk")       // agent 在说话
+  //   event.phase==="sensory" → setState(id, "idle")  // 只是感官更新
+  //   TweenEngine 新坐标 → setState(id, "walk_right")  // 在移动
+};</code></pre>
 
-<pre><code>// visual/static/index.html 中的注册区:
-//
-// layers 列表 = 全部图层。generic_renderer 读 visual.yaml 配置每个图层的样式。
+<h3 id="visual-layers">Layer 图层系统（更新后）</h3>
 
-import { TilemapLayer }        from './layers/tilemap.js';
-import { EntitiesLayer }       from './layers/entities.js';
-import { DialogueBubblesLayer } from './layers/dialogue_bubbles.js';
-import { HudLayer }            from './layers/hud.js';
+<pre><code>// visual/static/index.html — 注册区。删一行 = 效果消失。
+
+import { TilemapLayer }    from './layers/tilemap.js';
+import { DecorationsLayer } from './layers/decorations.js';   // 新增
+import { EntitiesLayer }   from './layers/entities.js';
+import { DialogueLayer }   from './layers/dialogue_bubbles.js';
+import { HudLayer }        from './layers/hud.js';
 
 const layers = [
-  TilemapLayer,           // 底板 — 从 visual.yaml tilemaps 读 tileset
-  EntitiesLayer,          // 角色/物品 — 从 visual.yaml sprites 读精灵帧
-  DialogueBubblesLayer,   // 对话气泡 — 从 visual.yaml dialogue 读样式
-  HudLayer,               // HUD
+  TilemapLayer,        // Layer 0: 底板
+  DecorationsLayer,    // Layer 1: 环境装饰（可删）
+  EntitiesLayer,       // Layer 2: 角色/物品
+  DialogueLayer,       // Layer 3: 对话气泡
+  HudLayer,            // Layer 4: HUD + tooltip + freeze 按钮
 ];
 
 function init(app, visualCfg, worldCfg) {
   layers.forEach(l => l.init(app, visualCfg, worldCfg));
+  app.ticker.add(tick);  // 60fps render loop
 }
-function update(event) {
+function tick(dt) {
+  const now = performance.now();
+  TweenEngine.tick(now);
+  layers.forEach(l => l.tick && l.tick(dt));
+}
+function onEvent(event) {
+  TweenEngine.onEvent(event);
   layers.forEach(l => l.update && l.update(event));
-}
-</code></pre>
+}</code></pre>
 
-<p><span class="file-label">每个 Layer 的约定接口</span></p>
+<h3 id="visual-vs-aitown">和 AI Town 对齐度</h3>
 
-<pre><code>const EntitiesLayer = {
-  id: "entities",
-  init(app, visualCfg, worldCfg) {
-    this.sprites = {};
-    this.agents   = new PIXI.Container();
-    this.items    = new PIXI.Container();
-    this.gates    = new PIXI.Container();
-    app.stage.addChild(this.agents);
-    app.stage.addChild(this.items);
-    app.stage.addChild(this.gates);
-    // 从 visualCfg 加载精灵：
-    //   visualCfg.sprites[entityId] → sheet URL + frame → PIXI.Sprite
-    //   没找到 sprites → fallback 到 visualCfg.colors[name] → 彩色圆点
-  },
-  update(event) {
-    for (const e of event.entities) {
-      const s = this.sprites[e.id];
-      s.x = e.pos[0] * TILE_SIZE;
-      s.y = e.pos[1] * TILE_SIZE;
-    }
-  },
-  destroy() {
-    this.agents.destroy(); this.items.destroy(); this.gates.destroy();
-  },
-};</code></pre>
+<table>
+  <tr><th>AI Town 组件</th><th>AgentWorld 等价</th><th>状态</th><th>代码</th></tr>
+  <tr><td>60fps 平滑移动</td><td><code>TweenEngine</code>（坐标插值 + easeOutCubic）</td><td style="color:var(--teal)">设计完成</td><td>~50 行 JS</td></tr>
+  <tr><td>角色行走动画</td><td><code>AnimationState</code> + visual.yaml <code>animations:</code> section</td><td style="color:var(--teal)">设计完成</td><td>~40 行 JS + YAML</td></tr>
+  <tr><td>环境装饰</td><td><code>DecorationsLayer</code> + visual.yaml <code>decorations:</code> section</td><td style="color:var(--teal)">设计完成</td><td>~20 行 JS + YAML</td></tr>
+  <tr><td>对话气泡</td><td><code>DialogueLayer</code> + tween fadeOut</td><td style="color:var(amber)">已有基础，加动画</td><td>改 ~15 行</td></tr>
+  <tr><td>悬停信息</td><td><code>HudLayer</code> + tooltip（点击角色 → snap API → 显示 drives）</td><td style="color:var(amber)">设计完成</td><td>~15 行 JS</td></tr>
+  <tr><td>Zone 切换过渡</td><td><code>zone_transition:</code> in visual.yaml → fade effect</td><td style="color:var(amber)">设计完成</td><td>~10 行 JS</td></tr>
+  <tr><td>角色定义</td><td><code>sprites:</code> section（声明式，非 TS 代码）</td><td style="color:var(teal)">设计完成</td><td>YAML only</td></tr>
+  <tr><td>地图加载</td><td><code>world.yaml → zones:</code> 直接渲染（非 Tiled convertMap）</td><td style="color:var(teal)">设计完成</td><td>零额外步骤</td></tr>
+  <tr><td>前端依赖</td><td>纯 HTML + PixiJS CDN（非 React + Vite + Convex）</td><td style="color:var(teal)">设计完成</td><td>1 个 script 标签</td></tr>
+</table>
+
+<div class="callout visual">
+<strong>总增量：~150 行 JS + ~40 行 YAML。引擎零改动。</strong><br>
+7 个 AI Town 组件全部对齐——同等画质、声明式配置、零构建工具。
+</div>
 
 <!-- ════════ INTEGRATION ════════ -->
 <h2 id="integration">七、引擎集成点</h2>
@@ -723,9 +826,9 @@ function update(event) {
   <tr><td>2</td><td><code>dashboard/director_api.py</code></td><td style="color:var(--blue)"><strong>移动</strong> → <code>src/frontend_shared/director_api.py</code></td><td>0</td></tr>
   <tr><td>3</td><td><code>dashboard/server.py</code></td><td style="color:var(amber)"><strong>抽取</strong> 通用逻辑到 <code>src/frontend_shared/server.py</code>；自身变 3 行 wrapper</td><td>-45</td></tr>
   <tr><td>4</td><td><code>src/frontend_shared/server.py</code></td><td style="color:var(teal)"><strong>新建</strong></td><td>+50</td></tr>
-  <tr><td>5</td><td><code>visual/</code>（全部）</td><td style="color:var(teal)"><strong>新建</strong>：server.py (3行) + index.html + layers/*.js + generic_renderer.js</td><td>+250</td></tr>
-  <tr><td>6</td><td><code>config/visual_friends.yaml</code></td><td style="color:var(teal)"><strong>新建</strong> — tilemaps + sprites + colors + dialogue 声明式配置</td><td>+50</td></tr>
-  <tr><td>7</td><td><code>config/visual_witcher.yaml</code></td><td style="color:var(teal)"><strong>新建</strong></td><td>+50</td></tr>
+  <tr><td>5</td><td><code>visual/</code>（全部）</td><td style="color:var(teal)"><strong>新建</strong>：server.py (3行) + index.html + generic_renderer.js + layers/*.js + tween_engine.js + animation_state.js</td><td>+320</td></tr>
+  <tr><td>6</td><td><code>config/visual_friends.yaml</code></td><td style="color:var(teal)"><strong>新建</strong> — tilemaps + sprites + animations + decorations + movement + tooltips + gates + zone_transition</td><td>+70</td></tr>
+  <tr><td>7</td><td><code>config/visual_witcher.yaml</code></td><td style="color:var(teal)"><strong>新建</strong></td><td>+70</td></tr>
   <tr><td>8</td><td><code>dashboard/static/index.html</code></td><td style="color:var(amber)"><strong>重写</strong> 网管风格 + panels/*.js</td><td>-200 +150</td></tr>
   <tr><td>9</td><td><code>commands.py</code></td><td style="color:var(amber)"><strong>改</strong> import 路径；加 visual + visual-config 条件启动</td><td>12</td></tr>
   <tr><td>10</td><td><code>main.py</code></td><td style="color:var(amber)"><strong>加</strong> --visual + --visual-config flag</td><td>3</td></tr>
@@ -735,8 +838,8 @@ function update(event) {
 </table>
 
 <p style="margin-top:40px;padding:20px;background:var(--card);border-radius:6px;font-size:13px;color:var(--dim);text-align:center">
-  文档版本 v2 · AgentWorld Async · 前端模块架构设计<br>
-  visual.yaml 声明式视觉配置 + generic_renderer 通用转换器<br>
+  文档版本 v3 · AgentWorld Async · 前端模块架构设计<br>
+  TweenEngine + AnimationState + Decorations · AI Town 级画质对齐<br>
   所有 SVG 图表为纯矢量——缩放不失真，打印不变形
 </p>
 
