@@ -1,0 +1,1 @@
+# protocols/mcp — coming soon
