@@ -6,247 +6,238 @@
 <title>AgentWorld — Visual</title>
 <script src="https://pixijs.download/v7.3.3/pixi.min.js"></script>
 <style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #e6edf3; --dim: #8b949e;
+  --green: #22c55e; --gold: #d29922; --red: #ef4444;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;overflow:hidden;font-family:monospace}
-#hud{position:fixed;top:0;left:0;right:0;height:32px;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:10}
-#hud .zone-name{font-size:14px;font-weight:700;color:#e2e8f0}
-#hud .controls{display:flex;gap:8px;align-items:center}
-#hud button{padding:4px 12px;border:1px solid #30363d;border-radius:4px;background:#161b22;color:#e2e8f0;cursor:pointer;font-size:11px;font-family:inherit}
-#hud button:hover{border-color:#d29922;color:#d29922}
-#hud button.freeze-btn{border-color:#d97706;color:#d97706}
-#hud .clock{font-size:12px;color:#8b949e}
-#status{position:fixed;bottom:0;left:0;right:0;height:22px;background:rgba(0,0,0,0.7);display:flex;align-items:center;padding:0 12px;z-index:10;font-size:11px;color:#8b949e}
-#status .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
-#tooltip{position:fixed;background:rgba(0,0,0,0.85);color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:20;display:none;white-space:pre-line}
+body{background:var(--bg);font:13px 'DejaVu Sans',monospace;overflow:hidden}
+#hud{position:fixed;top:0;left:0;right:0;height:36px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:10}
+#hud .zone{font-size:14px;font-weight:700;color:var(--text)}
+#hud .right{display:flex;gap:10px;align-items:center}
+#hud button{padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:var(--card);color:var(--dim);cursor:pointer;font-size:11px;font-family:inherit}
+#hud button:hover{color:var(--text)}
+#hud button.frz{border-color:var(--gold);color:var(--gold)}
+#hud .clock{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:60px}
+#status{position:fixed;bottom:0;left:0;right:0;height:24px;background:rgba(0,0,0,0.8);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;font-size:11px;color:var(--dim);z-index:10}
+#status .dot{width:7px;height:7px;border-radius:50%;margin-right:7px;display:inline-block}
 </style>
 </head>
 <body>
 <div id="hud">
-  <span class="zone-name">AgentWorld</span>
-  <div class="controls">
-    <button class="freeze-btn" id="btn-freeze" onclick="freezeWorld()">⏸ Freeze</button>
-    <button id="btn-unfreeze" onclick="unfreezeWorld()" style="display:none">▶ Unfreeze</button>
-    <span class="clock" id="clock">⏱ 00:00</span>
+  <span class="zone" id="zone-name">AgentWorld</span>
+  <div class="right">
+    <button class="frz" id="btn-frz" onclick="toggleFreeze()">⏸ Freeze</button>
+    <span class="clock" id="clock">⏱ --</span>
+    <span style="font-size:10px;color:var(--dim)" id="agent-count">0 agents</span>
   </div>
 </div>
-<div id="status"><span class="dot" style="background:#ef4444"></span> Connecting...</div>
-<div id="tooltip"></div>
-
+<div id="status"><span class="dot" style="background:var(--red)"></span> Connecting...</div>
 <script>
-// ═══════ CONFIG ═══════
-const PORT = location.port || '8767';
-const TILE_SIZE = 16;
-const ZOOM = 2; // 2x pixel scale
-let app, stage, zoneContainer, entitiesContainer, bubblesContainer;
-let sprites = {}, bubblePool = [], zoneWidth = 0, zoneHeight = 0, currentZone = '';
-let eventCount = 0, clockEl, statusEl, tooltipEl, frozen = false;
+const PORT = location.port || '8767', T = 16, Z = 2, TZ = T * Z;
+let app, stage, zoneLayer, entityLayer, bubbleLayer;
+let sprites = {};
+let bubbles = [];
+let targets = {};   // TweenEngine
+let eventCount = 0, frozen = false;
+let zoneName = '', zoneW = 40, zoneH = 30;
+let clockEl, statusEl, zoneLabel, agentCountEl;
 
-// ═══ DIRECTOR API ═══
-async function api(method, path, body) {
-  const r = await fetch('/api' + path, {method, headers:body?{'Content-Type':'application/json'}:{}, body:body?JSON.stringify(body):undefined});
+// ═══ API ═══
+async function api(m, path, body) {
+  const r = await fetch('/api' + path, {method:m, headers:body?{'Content-Type':'application/json'}:undefined, body:body?JSON.stringify(body):undefined});
   return r.json();
 }
-async function freezeWorld() {
-  await api('POST','/freeze'); frozen=true;
-  document.getElementById('btn-freeze').style.display='none';
-  document.getElementById('btn-unfreeze').style.display='';
-  setStatus('FROZEN');
-}
-async function unfreezeWorld() {
-  await api('POST','/unfreeze'); frozen=false;
-  document.getElementById('btn-freeze').style.display='';
-  document.getElementById('btn-unfreeze').style.display='none';
-  setStatus('Live');
+async function toggleFreeze() {
+  frozen = !frozen;
+  await api('POST', frozen ? '/freeze' : '/unfreeze');
+  document.getElementById('btn-frz').textContent = frozen ? '▶ Unfreeze' : '⏸ Freeze';
+  setStatus(frozen ? 'FROZEN' : 'Live');
 }
 
-// ═══ PIXIJS INIT ═══
-function initPixiJS() {
+// ═══ PIXIJS ═══
+function init() {
   app = new PIXI.Application({
-    width: window.innerWidth,
-    height: window.innerHeight - 54,
-    backgroundColor: 0x0d1117,
-    antialias: false,
-    resolution: 1,
-    autoDensity: true,
+    width: window.innerWidth, height: window.innerHeight - 60,
+    backgroundColor: 0x0d1117, antialias: false, resolution: 1, autoDensity: true
   });
   document.body.appendChild(app.view);
-  app.view.style.position = 'fixed';
-  app.view.style.top = '32px';
-  app.view.style.left = '0';
+  app.view.style.cssText = 'position:fixed;top:36px;left:0';
 
   stage = app.stage;
-  zoneContainer = new PIXI.Container();
-  entitiesContainer = new PIXI.Container();
-  bubblesContainer = new PIXI.Container();
-  stage.addChild(zoneContainer);
+  zoneLayer = new PIXI.Container(); stage.addChild(zoneLayer);
+  entityLayer = new PIXI.Container(); zoneLayer.addChild(entityLayer);
+  bubbleLayer = new PIXI.Container(); zoneLayer.addChild(bubbleLayer);
 
   clockEl = document.getElementById('clock');
   statusEl = document.getElementById('status');
-  tooltipEl = document.getElementById('tooltip');
+  zoneLabel = document.getElementById('zone-name');
+  agentCountEl = document.getElementById('agent-count');
 
-  // Setup ticker — MUST be inside init after app is created
-  app.ticker.add(dt => {
-    updateBubbles(dt / 60);
-  });
+  // Floor grid
+  const floor = new PIXI.Graphics();
+  floor.name = '_floor';
+  zoneLayer.addChild(floor);
 
-  // Show waiting message
-  const waitText = new PIXI.Text('Waiting for world...\nStart agent run to see entities', {
+  // Wait text
+  const wait = new PIXI.Text('Waiting for world...', {
     fontSize: 16, fontFamily: 'monospace', fill: 0x8b949e, align: 'center'
   });
-  waitText.anchor.set(0.5);
-  waitText.x = app.screen.width / 2;
-  waitText.y = app.screen.height / 2;
-  waitText.name = '_waiting_text';
-  stage.addChild(waitText);
+  wait.anchor.set(0.5); wait.x = app.screen.width / 2; wait.y = app.screen.height / 2;
+  wait.name = '_wait'; stage.addChild(wait);
+
+  app.ticker.add(() => tick());
 }
 
-function initZone(zone, width, height) {
-  // Remove waiting text on first zone init
-  const wt = stage.getChildByName('_waiting_text');
-  if (wt) stage.removeChild(wt);
-
-  if (zone === currentZone) return;
-  currentZone = zone;
-  zoneWidth = width; zoneHeight = height;
-  zoneContainer.removeChildren();
-  entitiesContainer.removeChildren();
-  bubblesContainer.removeChildren();
-  sprites = {};
-  bubblePool = [];
-
-  // Floor
-  const g = new PIXI.Graphics();
-  g.beginFill(0x1a3a1a);
-  g.drawRect(0, 0, width * TILE_SIZE * ZOOM, height * TILE_SIZE * ZOOM);
-  g.endFill();
-  // Grid lines
-  g.lineStyle(1, 0x2a4a2a, 0.3);
-  for (let x = 0; x <= width; x++) { g.moveTo(x * TILE_SIZE * ZOOM, 0); g.lineTo(x * TILE_SIZE * ZOOM, height * TILE_SIZE * ZOOM); }
-  for (let y = 0; y <= height; y++) { g.moveTo(0, y * TILE_SIZE * ZOOM); g.lineTo(width * TILE_SIZE * ZOOM, y * TILE_SIZE * ZOOM); }
-  zoneContainer.addChild(g);
-  zoneContainer.addChild(entitiesContainer);
-  zoneContainer.addChild(bubblesContainer);
-
-  document.getElementById('hud').querySelector('.zone-name').textContent = zone;
+function drawFloor() {
+  const f = zoneLayer.getChildByName('_floor');
+  f.clear();
+  f.beginFill(0x1a2a1a);
+  f.drawRect(0, 0, zoneW * TZ, zoneH * TZ);
+  f.endFill();
+  f.lineStyle(1, 0x253525, 0.4);
+  for (let x = 0; x <= zoneW; x++) { f.moveTo(x * TZ, 0); f.lineTo(x * TZ, zoneH * TZ); }
+  for (let y = 0; y <= zoneH; y++) { f.moveTo(0, y * TZ); f.lineTo(zoneW * TZ, y * TZ); }
 }
 
-// ═══ ENTITY RENDERING ═══
-const agentColors = {};
-
-function getColor(name) {
-  if (!agentColors[name]) {
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
-    agentColors[name] = '#' + ((h & 0x00FFFFFF) | 0x66000000).toString(16).slice(1);
+function tick() {
+  const now = performance.now();
+  // TweenEngine
+  for (const [id, t] of Object.entries(targets)) {
+    const p = Math.min(1, (now - t.start) / Math.max(t.dur, 100));
+    const e = 1 - (1 - p) ** 3;  // easeOutCubic
+    const s = sprites[id];
+    if (s) { s.x = t.fx + (t.tx - t.fx) * e; s.y = t.fy + (t.ty - t.fy) * e; }
+    if (p >= 1) { delete targets[id]; }
   }
-  return parseInt(agentColors[name].replace('#',''), 16);
+  // Bubbles
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    bubbles[i].ttl -= 16.67;
+    if (bubbles[i].ttl <= 0) {
+      const c = bubbles[i].container;
+      if (c.parent) c.parent.removeChild(c);
+      c.destroy({children: true});
+      bubbles.splice(i, 1);
+    }
+  }
 }
 
-function updateEntities(entities) {
+// ═══ COLORS ═══
+const colors = {};
+function color(name) {
+  if (!colors[name]) {
+    let h = 0; for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+    colors[name] = (h & 0x00FFFFFF) | 0x66000000;
+  }
+  return colors[name];
+}
+
+// ═══ ENTITIES ═══
+function updateEntities(entities, zone, zw, zh) {
+  if (zone && zone !== zoneName) {
+    zoneName = zone; zoneW = zw || 40; zoneH = zh || 30;
+    zoneLabel.textContent = zoneName;
+    drawFloor();
+    // Clear old sprites
+    for (const s of Object.values(sprites)) { if (s.parent) s.parent.removeChild(s); s.destroy({children: true}); }
+    sprites = {}; targets = {};
+    // Remove wait text
+    const w = stage.getChildByName('_wait');
+    if (w) { stage.removeChild(w); w.destroy(); }
+  }
+  const seen = new Set();
   for (const e of entities) {
-    if (!e.id || !e.pos) continue;
-    const x = e.pos[0] * TILE_SIZE * ZOOM;
-    const y = e.pos[1] * TILE_SIZE * ZOOM;
+    seen.add(e.id);
+    const x = e.pos[0] * TZ, y = e.pos[1] * TZ;
 
     if (!sprites[e.id]) {
       const c = new PIXI.Container();
-      const circle = new PIXI.Graphics();
+      const g = new PIXI.Graphics();
       if (e.type === 'gate') {
-        circle.lineStyle(2, 0xffd700); circle.drawRoundedRect(-6, -6, 12, 12, 2);
+        g.lineStyle(2, 0xffd700, 1); g.drawRoundedRect(-8, -8, 16, 16, 3);
       } else if (e.type === 'item') {
-        circle.beginFill(0x8d6e63); circle.drawRoundedRect(-5, -5, 10, 10, 2); circle.endFill();
+        g.beginFill(0x4a3a2a); g.drawRoundedRect(-6, -6, 12, 12, 2); g.endFill();
       } else {
-        circle.beginFill(getColor(e.name)); circle.drawCircle(0, 0, 6); circle.endFill();
-        circle.interactive = true; circle.cursor = 'pointer';
-        circle.on('pointerover', () => showTooltip(e, x, y));
-        circle.on('pointerout', () => tooltipEl.style.display = 'none');
+        g.beginFill(color(e.name)); g.drawCircle(0, 0, 7); g.endFill();
+        g.interactive = true; g.cursor = 'pointer';
       }
-      c.addChild(circle);
-      const label = new PIXI.Text(e.name, {fontSize:9, fontFamily:'monospace', fill:0xe2e8f0});
-      label.anchor.set(0.5, 0); label.y = 8;
-      c.addChild(label);
-      entitiesContainer.addChild(c);
-      sprites[e.id] = c;
+      c.addChild(g);
+      if (e.type === 'agent') {
+        const lbl = new PIXI.Text(e.name, {fontSize: 10, fontFamily: 'monospace', fill: 0xe2e8f0});
+        lbl.anchor.set(0.5, 0); lbl.y = 9; c.addChild(lbl);
+      }
+      entityLayer.addChild(c);
+      sprites[e.id] = {container: c, lastX: x, lastY: y};
     }
-    sprites[e.id].x = x; sprites[e.id].y = y;
+    const s = sprites[e.id];
+    if (Math.abs(s.lastX - x) > 1 || Math.abs(s.lastY - y) > 1) {
+      targets[e.id] = {fx: s.container.x, fy: s.container.y, tx: x, ty: y, start: performance.now(), dur: 400};
+      s.lastX = x; s.lastY = y;
+    }
   }
+  // Remove gone entities
+  for (const id of Object.keys(sprites)) {
+    if (!seen.has(id)) {
+      const s = sprites[id];
+      if (s.container.parent) s.container.parent.removeChild(s.container);
+      s.container.destroy({children: true});
+      delete sprites[id]; delete targets[id];
+    }
+  }
+  agentCountEl.textContent = Object.values(sprites).length + ' entities';
 }
 
-function showTooltip(e, sx, sy) {
-  tooltipEl.style.display = 'block';
-  tooltipEl.style.left = (sx + 20) + 'px';
-  tooltipEl.style.top = (sy + 50) + 'px';
-  tooltipEl.textContent = e.name + '\n' + (e.type || 'agent');
-}
-
-// ═══ DIALOGUE BUBBLES ═══
+// ═══ BUBBLE ═══
 function showBubble(agent, text) {
-  const sprite = sprites[agent];
-  if (!sprite || !text) return;
-  const bubble = new PIXI.Container();
+  const s = sprites[agent];
+  if (!s || !text) return;
+  const c = new PIXI.Container();
+  const w = Math.min(Math.max(text.length * 5, 30), 200);
   const bg = new PIXI.Graphics();
-  bg.beginFill(0xffffff, 0.9); bg.drawRoundedRect(-text.length*2.5, -16, text.length*5, 14, 6); bg.endFill();
-  bubble.addChild(bg);
-  const t = new PIXI.Text(text, {fontSize:8, fontFamily:'monospace', fill:0x1e293b});
-  t.anchor.set(0.5, 0.5);
-  bubble.addChild(t);
-  bubble.x = sprite.x; bubble.y = sprite.y - 20;
-  bubblesContainer.addChild(bubble);
-  bubblePool.push({bubble, timer: 5});
+  bg.beginFill(0xffffff, 0.92);
+  bg.drawRoundedRect(-w/2, -20, w, 16, 6);
+  bg.endFill();
+  c.addChild(bg);
+  const t = new PIXI.Text(text, {fontSize: 9, fontFamily: 'monospace', fill: 0x1e293b, wordWrap: true, wordWrapWidth: w - 8});
+  t.anchor.set(0.5, 0.5); t.y = -12;
+  c.addChild(t);
+  c.x = s.container.x; c.y = s.container.y - 24;
+  bubbleLayer.addChild(c);
+  bubbles.push({container: c, ttl: 5000});
 }
 
-function updateBubbles(dt) {
-  for (let i = bubblePool.length-1; i >= 0; i--) {
-    bubblePool[i].timer -= dt;
-    if (bubblePool[i].timer <= 0) {
-      if (bubblePool[i].bubble.parent) bubblesContainer.removeChild(bubblePool[i].bubble);
-      bubblePool.splice(i, 1);
-    }
-  }
-}
-
-// ═══ EVENT HANDLER ═══
-function handleEvent(evt) {
+// ═══ EVENTS ═══
+function handle(evt) {
   eventCount++;
   if (evt.ts != null) {
     const m = Math.floor(evt.ts/60), s = Math.floor(evt.ts%60);
-    clockEl.textContent = '⏱ ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    clockEl.textContent = '⏱ ' + String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   }
-  if (evt.zone && (evt.zone_width || evt.zone_height)) {
-    initZone(evt.zone, evt.zone_width || 40, evt.zone_height || 30);
-  }
-  if (evt.entities) updateEntities(evt.entities);
+  if (evt.entities) updateEntities(evt.entities, evt.zone, evt.zone_width, evt.zone_height);
   if (evt.dialogue && evt.agent) showBubble(evt.agent, evt.dialogue);
-  setStatus('Live · ' + eventCount + ' events');
+  setStatus('Live · ' + eventCount + ' events', true);
 }
 
 function setStatus(text, ok) {
-  const dot = ok ? 'background:#22c55e' : 'background:#ef4444';
-  statusEl.innerHTML = '<span class="dot" style="' + dot + '"></span> ' + text;
+  statusEl.innerHTML = '<span class="dot" style="background:' + (ok ? 'var(--green)' : 'var(--red)') + '"></span> ' + text;
 }
 
-// ═══ WEBSOCKET ═══
+// ═══ WS ═══
 function connect() {
   setStatus('Connecting...');
   const ws = new WebSocket('ws://' + location.hostname + ':' + PORT + '/ws');
   ws.onopen = () => setStatus('Connected', true);
-  ws.onmessage = (msg) => {
-    try { const evt = JSON.parse(msg.data); if (evt.agent !== '_meta') handleEvent(evt); }
-    catch(e) { console.error(e); }
+  ws.onmessage = m => {
+    try { const d = JSON.parse(m.data); if (d.agent !== '_meta') handle(d); } catch(e) {}
   };
-  ws.onclose = (e) => {
-    const reason = e.code === 1006 ? 'Server stopped' : 'Disconnected';
-    setStatus(reason + ' — retrying...');
-    setTimeout(connect, 2000);
-  };
+  ws.onclose = () => { setStatus('Disconnected — retrying...'); setTimeout(connect, 2000); };
 }
 
 // ═══ START ═══
-initPixiJS();
+init();
 connect();
-window.addEventListener('resize', () => {
-  if (app) app.renderer.resize(window.innerWidth, window.innerHeight - 54);
-});
+window.addEventListener('resize', () => { if (app) app.renderer.resize(window.innerWidth, window.innerHeight - 60); });
 </script>
 </body>
 </html>
