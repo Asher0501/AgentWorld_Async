@@ -262,8 +262,17 @@ async def run_agent(agent, world, brain, assembler, systems,
             if dashboard_emit:
                 vis = sensory.channels.get("visual", {})
                 aud = sensory.channels.get("auditory", {})
+                zone_def = world.zones.get(agent.zone, {})
+                zone_entities = [e for e in world.entities.values() if e.zone == agent.zone]
+                entity_list = []
+                for e in zone_entities:
+                    etype = "agent" if e.has("agent") else "gate" if e.get("interaction") and e.get("interaction").gate else "item"
+                    entity_list.append({"id": e.id, "name": e.name, "type": etype, "pos": list(e.pos)})
                 dashboard_emit({"agent": name, "zone": agent.zone,
+                                "zone_width": zone_def.get("width", 40),
+                                "zone_height": zone_def.get("height", 30),
                                 "phase": "sensory",
+                                "entities": entity_list,
                                 "visual": [{"name": r.name, "distance": r.distance, "look": r.data.get("look", "")}
                                            for r in vis.values()],
                                 "auditory": [{"name": r.name, "speech": r.data.get("current_speech", "")}

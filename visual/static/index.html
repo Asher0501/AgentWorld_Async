@@ -83,9 +83,28 @@ function initPixiJS() {
   clockEl = document.getElementById('clock');
   statusEl = document.getElementById('status');
   tooltipEl = document.getElementById('tooltip');
+
+  // Setup ticker — MUST be inside init after app is created
+  app.ticker.add(dt => {
+    updateBubbles(dt / 60);
+  });
+
+  // Show waiting message
+  const waitText = new PIXI.Text('Waiting for world...\nStart agent run to see entities', {
+    fontSize: 16, fontFamily: 'monospace', fill: 0x8b949e, align: 'center'
+  });
+  waitText.anchor.set(0.5);
+  waitText.x = app.screen.width / 2;
+  waitText.y = app.screen.height / 2;
+  waitText.name = '_waiting_text';
+  stage.addChild(waitText);
 }
 
 function initZone(zone, width, height) {
+  // Remove waiting text on first zone init
+  const wt = stage.getChildByName('_waiting_text');
+  if (wt) stage.removeChild(wt);
+
   if (zone === currentZone) return;
   currentZone = zone;
   zoneWidth = width; zoneHeight = height;
@@ -221,15 +240,6 @@ function connect() {
     setTimeout(connect, 2000);
   };
 }
-
-// ═══ APP TICK ═══
-app && app.ticker.add(dt => {
-  updateBubbles(dt / 60);
-  // Position tooltip follow cursor
-  if (tooltipEl.style.display === 'block') {
-    // tooltip position handled in showTooltip
-  }
-});
 
 // ═══ START ═══
 initPixiJS();
