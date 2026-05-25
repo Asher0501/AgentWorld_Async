@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentWorld Async — 扩展层架构文档</title>
+<style>
+:root {
+  --bg: #fafbfc; --card: #ffffff; --border: #e2e8f0;
+  --text: #1e293b; --dim: #64748b; --link: #2563eb;
+  --blue: #2563eb; --teal: #059669; --amber: #d97706; --purple: #7c3aed; --red: #dc2626;
+  --code-bg: #f1f5f9;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 15px/1.7 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+  background: var(--card); border-right: 1px solid var(--border);
+  padding: 24px 20px; overflow-y: auto; font-size: 13px;
+}
+.sidebar h2 { font-size: 15px; margin-bottom: 16px; color: var(--blue); }
+.sidebar a { display: block; padding: 5px 8px; color: var(--dim); text-decoration: none; border-radius: 4px; margin: 2px 0; }
+.sidebar a:hover, .sidebar a.active { background: #eff6ff; color: var(--blue); }
+.sidebar .section { font-weight: 700; color: var(--text); margin-top: 14px; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.content { margin-left: 260px; padding: 32px 48px; max-width: 960px; }
+h1 { font-size: 28px; margin-bottom: 8px; color: var(--text); }
+.subtitle { font-size: 15px; color: var(--dim); margin-bottom: 32px; }
+h2 { font-size: 22px; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 17px; margin: 32px 0 12px; color: var(--blue); }
+h4 { font-size: 14px; margin: 20px 0 8px; color: var(--text); }
+p { margin: 12px 0; }
+img { max-width: 100%; margin: 20px 0; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+code { background: var(--code-bg); padding: 2px 6px; border-radius: 3px; font-size: 13px; font-family: 'Cascadia Code', 'Fira Code', 'DejaVu Sans Mono', monospace; }
+pre { background: var(--code-bg); padding: 16px 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 16px 0; border: 1px solid var(--border); }
+pre code { background: none; padding: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: var(--code-bg); font-weight: 700; color: var(--text); }
+tr:hover { background: #f8fafc; }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; transition: box-shadow 0.2s; }
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.card h4 { margin-top: 0; font-size: 14px; }
+.card .card-left { float: left; width: 4px; height: 100%; margin: -20px 16px -20px -20px; border-radius: 8px 0 0 8px; }
+.card p { font-size: 13px; color: var(--dim); }
+
+.summary-box { background: #eff6ff; border-left: 4px solid var(--blue); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; }
+.summary-box.teal { background: #ecfdf5; border-left-color: var(--teal); }
+.summary-box.amber { background: #fffbeb; border-left-color: var(--amber); }
+.summary-box.purple { background: #faf5ff; border-left-color: var(--purple); }
+.summary-box.red { background: #fef2f2; border-left-color: var(--red); }
+
+.protocol-flow { display: flex; gap: 24px; margin: 24px 0; align-items: flex-start; flex-wrap: wrap; }
+.flow-step { flex: 1; min-width: 220px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.flow-step .num { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; margin-right: 8px; }
+.flow-step .num.one { background: #dbeafe; color: var(--blue); }
+.flow-step .num.two { background: #fae8ff; color: var(--purple); }
+.flow-step .num.three { background: #d1fae5; color: var(--teal); }
+
+.toggle-section { border: 1px solid var(--border); border-radius: 8px; margin: 16px 0; overflow: hidden; }
+.toggle-header { padding: 14px 20px; background: var(--code-bg); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14px; user-select: none; }
+.toggle-header:hover { background: #e2e8f0; }
+.toggle-header .arrow { transition: transform 0.2s; }
+.toggle-header.open .arrow { transform: rotate(90deg); }
+.toggle-body { display: none; padding: 20px; }
+.toggle-body.open { display: block; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .content { margin-left: 0; padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <h2>📐 扩展层架构</h2>
+  <a href="#overview">总览</a>
+  <a href="#layer">三层架构</a>
+  <span class="section">协议层</span>
+  <a href="#mcp">MCP · Agent↔Tool</a>
+  <a href="#a2a">A2A · Agent↔Agent</a>
+  <span class="section">框架适配</span>
+  <a href="#autogen">AutoGen 集成</a>
+  <a href="#crewai">CrewAI 集成</a>
+  <a href="#langgraph">LangGraph SVA映射</a>
+  <span class="section">能力扩展</span>
+  <a href="#funcall">Function Calling</a>
+  <span class="section">端到端用例</span>
+  <a href="#witcher">猎魔人调查</a>
+  <a href="#coffee">咖啡店管理</a>
+  <a href="#cross">跨世界迁移</a>
+  <span class="section">实施</span>
+  <a href="#status">状态 & 优先级</a>
+</nav>
+
+<main class="content">
+
+<h1>AgentWorld Async — 扩展层架构</h1>
+<p class="subtitle">将 AgentWorld 从自主仿真引擎转化为生产级多 Agent 协作平台<br>标准协议 · 框架适配 · Function Calling · 端到端用例</p>
+
+<img src="img/ARCHITECTURE.png" alt="扩展层架构全景">
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<h2 id="overview">总览</h2>
+
+<div class="summary-box">
+<strong>核心定位：</strong>AgentWorld 不是 AutoGen/CrewAI/LangGraph 的竞品，而是它们缺失的<strong>物理层</strong>。AutoGen 决定<em>谁做什么</em>——AgentWorld 决定<em>在哪个位置、花多长时间、谁能看到</em>。
+</div>
+
+<div class="card-grid">
+  <div class="card">
+    <h4 style="color:var(--blue)">🔌 标准协议</h4>
+    <p>MCP（工具调用）、A2A（Agent间通信）——任何兼容的框架都能通过标准协议接入 AgentWorld 世界</p>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--purple)">🔗 框架适配</h4>
+    <p>AutoGen、CrewAI、LangGraph 三套适配器——把每个框架的概念映射到 AgentWorld 的原语</p>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--teal)">🧰 能力扩展</h4>
+    <p>Function Calling Schema——NPC 不只是"走向吧台"，还能调用外部 API、查询数据库</p>
+  </div>
+</div>
+
+<div class="summary-box teal">
+<strong>独立性保证：</strong><code>extension/</code> 目录删除后，<code>src/</code> 零影响——AgentWorld 仍然作为独立仿真引擎运行。
+</div>
+
+<!-- ═══════════ 3 LAYERS ═══════════ -->
+<h2 id="layer">三层架构</h2>
+
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  协作层 · COLLABORATION LAYER                                  │
+│  AutoGen · CrewAI · LangGraph · OpenAI SDK                    │
+│  任务委派 · 工作流 · 角色分配 · 工具调用                         │
+├──────────────────────────────────────────────────────────────┤
+│  协议层 · PROTOCOL LAYER (extension/protocols/)                │
+│  A2A: Agent Card · SendTask · GetTask                         │
+│  MCP: world_perceive · world_act · world_spawn · world_snap   │
+├──────────────────────────────────────────────────────────────┤
+│  仿真层 · SIMULATION LAYER (src/)                              │
+│  SpatialGrid · SensorySystem · DeltaGate · Drives             │
+│  14 YAML Slots · Per-Agent Traits · Intent Context            │
+│  Gateway API · Director · Dashboard · SessionManager          │
+└──────────────────────────────────────────────────────────────┘</code></pre>
+
+<!-- ═══════════ MCP ═══════════ -->
+<h2 id="mcp">MCP · Agent ↔ Tool（Anthropic 标准）</h2>
+
+<div class="summary-box red">
+<strong>角色：</strong>外部 Host（CLI/IDE/其他Agent）把 AgentWorld 当作一个<strong>工具集</strong>来调用。Host 不需要了解 AgentWorld 内部——它只看到一个扁平的 tool 列表。
+</div>
+
+<img src="img/MCP_FLOW.png" alt="MCP 数据流">
+
+<h3>注册的 6 个 MCP Tool</h3>
+<table>
+  <tr><th>Tool 名</th><th>描述</th><th>返回值</th></tr>
+  <tr><td><code>world_perceive</code></td><td>获取 Agent 的感官通道</td><td>{visual, auditory, interaction}</td></tr>
+  <tr><td><code>world_act</code></td><td>执行一个动作</td><td>{status, narrative, deltas}</td></tr>
+  <tr><td><code>world_spawn</code></td><td>运行时创建实体</td><td>{entity_id, zone, pos}</td></tr>
+  <tr><td><code>world_despawn</code></td><td>从世界移除实体</td><td>{agent_id, memory_saved}</td></tr>
+  <tr><td><code>world_state</code></td><td>全局仿真状态</td><td>{frozen, controlled, agents}</td></tr>
+  <tr><td><code>world_snap</code></td><td>Director 级快照</td><td>{name, zone, drives, sensory, memory}</td></tr>
+</table>
+
+<div class="toggle-section">
+  <div class="toggle-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+    <span>调用示例</span>
+    <span class="arrow">▶</span>
+  </div>
+  <div class="toggle-body">
+    <h4>1. 发现工具列表</h4>
+    <pre><code># MCP Client 发送
+list_tools()
+
+# 返回
+[world_perceive, world_act, world_spawn, world_despawn, world_state, world_snap]</code></pre>
+    <h4>2. 执行动作</h4>
+    <pre><code># 调用
+world_act(agent_id="geralt", decision={
+  "action": "走向吧台，跟酒馆老板打听狮鹫的事",
+  "dialogue": "听说郊外有狮鹫？悬赏多少？",
+  "target_name": "酒馆老板",
+  "duration": 5
+})
+
+# 返回
+{
+  "status": "ok",
+  "narrative": "杰洛特走到吧台前，酒馆老板正擦着杯子...",
+  "deltas": {"geralt": {"social": -5, "mood": 3}}
+}</code></pre>
+    <h4>3. 获取感知</h4>
+    <pre><code># 调用
+world_perceive(agent_id="geralt")
+
+# 返回
+{
+  "visual": [
+    {"name": "酒馆老板", "distance": 2, "look": "矮人老店主擦着吧台"},
+    {"name": "维瑟米尔", "distance": 5, "look": "灰白胡子的老猎魔人"}
+  ],
+  "auditory": [
+    {"name": "丹德里恩", "speech": "来一首新歌！"}
+  ]
+}</code></pre>
+  </div>
+</div>
+
+<div class="summary-box teal">
+<strong>为什么 AgentWorld + MCP 独特：</strong><br>
+· <strong>空间约束是真实的。</strong>world_act 不会传送——AgentWorld 计算距离、时间、Gate 穿越<br>
+· <strong>感官反馈是环境的。</strong>world_perceive 只返回 agent 在 view_radius 内实际看到的内容<br>
+· <strong>自主 NPC 共存。</strong>一个 agent 在 MCP 控制下时，其他 NPC 通过 KL gate 自主行动
+</div>
+
+<!-- ═══════════ A2A ═══════════ -->
+<h2 id="a2a">A2A · Agent ↔ Agent（Google 标准）</h2>
+
+<div class="summary-box purple">
+<strong>角色：</strong>外部 Agent 发现 AgentWorld 中的 NPC 并委派任务。<strong>和 MCP 不同——</strong>A2A 把每个 NPC 当作独立 agent，有自己的身份卡片。
+</div>
+
+<img src="img/A2A_FLOW.png" alt="A2A 数据流">
+
+<h3>三步流程</h3>
+
+<div class="protocol-flow">
+  <div class="flow-step">
+    <span class="num one">1</span><strong>发现</strong><br>
+    <code>GET /a2a/{agent_id}/card</code>
+    <p style="font-size:12px;margin-top:8px">返回 Agent Card：名字、能力、位置、欲望值、支持的 task 类型</p>
+  </div>
+  <div class="flow-step">
+    <span class="num two">2</span><strong>委派</strong><br>
+    <code>POST /a2a/{agent_id}/tasks</code>
+    <p style="font-size:12px;margin-top:8px">Body: {task, params, priority} → Handler 翻译为 decision dict → 注入 Agent Loop</p>
+  </div>
+  <div class="flow-step">
+    <span class="num three">3</span><strong>执行</strong><br>
+    Phase 4 ENQUEUE → duration → Phase 0.5 FLUSH
+    <p style="font-size:12px;margin-top:8px">动作到期执行 → 感官更新 → 所有观察者看到变化 → Handler 返回结果</p>
+  </div>
+</div>
+
+<h3>Agent Card 示例 — 杰洛特</h3>
+<pre><code>{
+  "name": "利维亚的杰洛特",
+  "capabilities": {
+    "skills": ["combat", "tracking", "alchemy"],
+    "location": {"zone": "bar_zone", "pos": [24, 17]},
+    "drives": {"thirst": 60, "hunger": 50, "mood": 50}
+  },
+  "supportedTasks": ["investigate", "negotiate", "combat"],
+  "url": "http://localhost:8766/a2a/geralt"
+}</code></pre>
+
+<div class="summary-box purple">
+<strong>Agent Card 自动生成：</strong>每个 NPC 的卡片从 <code>AgentLayer</code> 字段动态生成——不手动维护。NPC 移动区域 → 卡片自动更新。NPC 的欲望值变化 → 卡片实时反映。
+</div>
+
+<h3>SendTask 示例</h3>
+<pre><code>POST /a2a/geralt/tasks
+{
+  "task": "investigate_griffin",
+  "params": {
+    "location": "swamp_northeast",
+    "method": "track_footprints"
+  },
+  "priority": "high"
+}</code></pre>
+
+<!-- ═══════════ AUTOGEN ═══════════ -->
+<h2 id="autogen">AutoGen 集成</h2>
+
+<div class="summary-box red">
+<strong>场景：</strong>一个 AutoGen 团队（Planner、Executor、Analyst）协作调查白果园的狮鹫出没事件。
+</div>
+
+<h3>概念映射</h3>
+<table>
+  <tr><th>AutoGen 概念</th><th>AgentWorld 等价物</th></tr>
+  <tr><td><code>AssistantAgent</code></td><td>通过 Director/A2A 的外部控制</td></tr>
+  <tr><td><code>GroupChat</code></td><td>conversation_buffer + sensory channels</td></tr>
+  <tr><td><code>ToolAgent</code></td><td>MCP world_perceive / world_act</td></tr>
+  <tr><td><code>task.result()</code></td><td>A2A GetTask——NPC 完成动作后返回</td></tr>
+</table>
+
+<h3>完整流程</h3>
+<pre><code># AutoGen Planner 决定调查策略
+Planner: "狮鹫出没白果园。分三路——Executor 找杰洛特问酒馆，
+         Analyst 查公告板，Critic 评估风险。"
+
+# Executor 通过 A2A 委派给杰洛特
+POST /a2a/geralt/tasks
+{task: "ask_innkeeper_about_griffin", params: {...}}
+
+# AgentWorld 执行——杰洛特走向吧台 (duration 5s)
+# → 维瑟米尔在旁听到对话 → KL gate 触发 → 自主加入讨论
+# → 酒馆老板提到"沼泽东北角有足迹"
+
+# Executor 收到结果 → 反馈给 Planner
+# Planner: "杰洛特得到线索。下一步让 Analyst 分析足迹数据。"
+# → Analyst 通过 MCP world_snap(monster_tracks) 获取足迹实体状态</code></pre>
+
+<div class="summary-box red">
+<strong>AgentWorld 的价值：</strong>杰洛特不是"瞬间获得线索"——他走过去需要 5 秒。维瑟米尔<strong>自己听到对话</strong>后加入——不在 AutoGen 脚本里。AutoGen 只管"分配任务"——AgentWorld 管谁在附近、谁听见、行动花多久。
+</div>
+
+<!-- ═══════════ CREWAI ═══════════ -->
+<h2 id="crewai">CrewAI 集成</h2>
+
+<div class="summary-box purple">
+<strong>场景：</strong>CrewAI 管理 Central Perk 咖啡店——Gunther（经理）、Rachel（咖啡师）、Chandler（清洁工）。
+</div>
+
+<h3>概念映射</h3>
+<table>
+  <tr><th>CrewAI 概念</th><th>AgentWorld 等价物</th></tr>
+  <tr><td><code>Agent</code>（带角色）</td><td>通过 Director 控制的 NPC</td></tr>
+  <tr><td><code>Task</code></td><td>通过 A2A 注入的编排动作</td></tr>
+  <tr><td><code>Crew</code></td><td>A2A task queue + Agent Cards</td></tr>
+  <tr><td>自主 NPC</td><td>KL gate 驱动的 NPC（不在 CrewAI 管理下）</td></tr>
+</table>
+
+<h3>混合控制模式</h3>
+<pre><code># CrewAI 管理 Rachel 和 Chandler
+Manager (Gunther): "今天人多。Rachel 负责端咖啡，Chandler 清理桌子。"
+
+# Rachel 通过 MCP 执行:
+world_act("rachel", {action: "给三号桌端咖啡", duration: 5})
+
+# 同时——AgentWorld 的自主 NPC 仍然运行:
+# Joey: "有没有吃的？"（KL gate 自主触发）
+# Phoebe: 弹 Smelly Cat
+# Ross: 追 Rachel 聊恐龙
+
+# Gunther 通过 world_perceive 看到全局:
+world_perceive("gunther") → {visual: [Rachel在端咖啡, Ross在追Rachel, Joey在翻冰箱]}
+
+# Gunther (CrewAI Manager): "Ross 在影响 Rachel 的工作效率。我去处理。"</code></pre>
+
+<div class="summary-box purple">
+<strong>AgentWorld 的价值：</strong>CrewAI 不需要管理 Joey/Phoebe/Ross——它们在 AgentWorld 里自主运行。CrewAI 的 Manager 通过 <code>world_perceive</code> <strong>看到</strong>这些自主 NPC 的状态——然后决定是否干预。<strong>混合控制。</strong>
+</div>
+
+<!-- ═══════════ LANGGRAPH ═══════════ -->
+<h2 id="langgraph">LangGraph · SVA 映射（论文级）</h2>
+
+<div class="summary-box teal">
+<strong>这不是 "集成 AgentWorld 到 LangGraph"——这是证明 AgentWorld 的 Slot Vector Architecture 设计哲学可以在任何状态机框架上独立重实现。论文价值最高。</strong>
+</div>
+
+<h3>Slot → StateGraph 映射</h3>
+<table>
+  <tr><th>LangGraph 概念</th><th>AgentWorld SVA 等价物</th></tr>
+  <tr><td><code>StateGraph</code></td><td><code>prompts.yaml</code> 模板 + slot list</td></tr>
+  <tr><td><code>Node</code></td><td>单个 slot（渲染 safe_format 模板）</td></tr>
+  <tr><td><code>ConditionalEdge</code></td><td>slot <code>condition:</code> 字段</td></tr>
+  <tr><td><code>拓扑顺序</code></td><td>Slot 排列顺序（注意力优先级）</td></tr>
+  <tr><td><code>Checkpoint</code></td><td><code>snapshot_p()</code>（P-distribution 快照）</td></tr>
+</table>
+
+<pre><code># AgentWorld YAML:
+slots:
+  - main_thread    # condition: main_thread
+  - persona        # condition: name
+  - delta_gate     # condition: delta_text
+
+# LangGraph 等价:
+class SlotStateGraph(StateGraph):
+    node_main_thread = Node(render_main_thread)
+    node_persona     = Node(render_persona)
+    node_delta       = Node(render_delta)
+
+    graph.add_conditional_edges(
+        START,
+        lambda state: "main_thread" if state.main_thread else "skip",
+        {"main_thread": node_main_thread, "skip": node_persona}
+    )</code></pre>
+
+<!-- ═══════════ FUNCTION CALLING ═══════════ -->
+<h2 id="funcall">Function Calling Schema</h2>
+
+<div class="summary-box amber">
+<strong>角色：</strong>让 AgentWorld NPC 能够调用外部工具——不再仅限于世界内的实体交互。
+</div>
+
+<h3>新增输出字段</h3>
+<pre><code>{
+  "function_call": {
+    "name": "query_weather",
+    "params": {"city": "Novigrad", "days": 3}
+  }
+}</code></pre>
+
+<h3>数据流</h3>
+<pre><code>Agent 决策 → function_call 输出
+    │
+    ▼
+Agent Loop Phase 4 检测到 function_call
+    │
+    ▼
+→ 路由到 MCP tool handler（如果匹配）
+→ 执行 tool
+→ 结果注入 agent 的 prompt（新 slot: function_result）
+    │
+    ▼
+下一轮：agent 在 prompt 中看到 tool 的返回结果 → 决策下一步</code></pre>
+
+<div class="summary-box amber">
+<strong>设计要点：</strong>引擎不解释 tool 结果。结果作为原始文本注入——agent 自主判断如何使用。这符合 "引擎报告事实，LLM 判断" 的设计哲学。
+</div>
+
+<!-- ═══════════ USE CASES ═══════════ -->
+<h2 id="witcher">用例一：猎魔人调查（AutoGen + A2A）</h2>
+<pre><code>⏱ 0s    AutoGen Planner: "狮鹫出没白果园。Executor 找杰洛特问酒馆。"
+⏱ 0.5s  → POST /a2a/geralt/tasks  {task: "ask_innkeeper"}
+
+⏱ 1s    AgentWorld: 杰洛特走向吧台 (duration 5s)
+⏱ 3s    维瑟米尔 KL gate 触发 → 自主走向草药架（不在 AutoGen 脚本里）
+⏱ 6s    杰洛特到达吧台 → 和酒馆老板对话
+         → "狮鹫？公告板上有委托。沼泽东北有足迹。悬赏500金币。"
+⏱ 8s    → A2A 返回结果 → AutoGen Analyst 分析
+⏱ 10s   AutoGen Executor: "让 Analyst 用 MCP world_snap(monster_tracks)"
+         → 确认足迹"三天前，方向指向沼泽"
+
+⏱ 12s   Planner: "两路并行——杰洛特去沼泽，维瑟米尔调剑油。"
+⏱ 12.5s → POST /a2a/geralt/tasks  {task: "track_griffin"}
+         → POST /a2a/vesemir/tasks {task: "prepare_oils"}
+⏱ 20s   Planner: "全员就位。等待报告。"</code></pre>
+
+<h2 id="coffee">用例二：咖啡店管理（CrewAI + MCP）</h2>
+<pre><code>⏱ 0s    CrewAI Manager (Gunther): "客流高峰。Rachel 端咖啡，Chandler 擦吧台。"
+
+⏱ 0.5s  → MCP world_act(rachel, {action: "给三号桌端咖啡", duration: 5})
+⏱ 0.5s  → MCP world_act(chandler, {action: "擦吧台蒸汽嘴", duration: 4})
+
+⏱ 2s    AgentWorld 自主事件:
+         Joey: KL gate 触发 → "有没有吃的？" → 走向 Monica（不在 CrewAI 管理下）
+         Ross: 走向 Rachel → "你今天发型不错"
+
+⏱ 4s    Gunther → world_perceive("gunther")
+         → 看到: {Rachel 在三号桌, Ross 在追 Rachel, Joey 在翻冰箱}
+
+⏱ 5s    Gunther (Manager): "Ross 干扰 Rachel。"→ world_act(gunther, {action: "提醒 Ross 不要打扰员工", target_name: "Ross"})
+
+⏱ 8s    Crew 日常结束。所有 agent 恢复自主模式。</code></pre>
+
+<h2 id="cross">用例三：跨世界 Agent 迁移</h2>
+<pre><code># 杰洛特从"猎魔人世界"迁移到"老友记世界"
+
+⏱ 0s    猎魔人世界 → world_despawn("geralt") → 保存 memory 到磁盘
+⏱ 1s    老友记世界 → world_spawn(geralt_entity_def)
+         → SessionManager 恢复之前的 memory
+         → 杰洛特出现在 Central Perk
+
+⏱ 3s    Central Perk 的 NPC 看到新来的人:
+         Rachel:  👁 visual → "白发男人，背着两把剑，脸上有疤"
+         Phoebe:  👁 visual → "这人的 aura 很特别，像是来自别的世界"
+         Gunther: "先生，我们这里不提供麦酒。"
+
+⏱ 5s    杰洛特: KL gate 触发 → "这是什么地方？我在哪？"
+         → main_thread: "搞清楚这是哪里，找到回去的路"</code></pre>
+
+<!-- ═══════════ STATUS ═══════════ -->
+<h2 id="status">实施状态 & 优先级</h2>
+
+<table>
+  <tr><th>组件</th><th>状态</th><th>优先级</th></tr>
+  <tr><td><code>extension/README.md</code></td><td style="color:var(--teal)">✅ 完成</td><td>—</td></tr>
+  <tr><td><code>extension/ARCHITECTURE.md</code></td><td style="color:var(--teal)">✅ 完成</td><td>—</td></tr>
+  <tr><td><code>extension/img/</code>（3 张图）</td><td style="color:var(--teal)">✅ 完成</td><td>—</td></tr>
+  <tr><td>MCP Server（<code>protocols/mcp/server.py</code>）</td><td style="color:var(--amber)">📋 设计完成</td><td><strong>P0</strong></td></tr>
+  <tr><td>A2A 协议（<code>protocols/a2a/</code>）</td><td style="color:var(--amber)">📋 设计完成</td><td><strong>P0</strong></td></tr>
+  <tr><td>Function Calling Schema</td><td style="color:var(--amber)">📋 设计完成</td><td>P1</td></tr>
+  <tr><td>AutoGen 集成 + Demo</td><td style="color:var(--amber)">📋 设计完成</td><td>P1</td></tr>
+  <tr><td>CrewAI 集成 + Demo</td><td style="color:var(--amber)">📋 设计完成</td><td>P1</td></tr>
+  <tr><td>LangGraph SVA 映射</td><td style="color:var(--amber)">📋 设计完成</td><td>P2</td></tr>
+  <tr><td>端到端用例文档</td><td style="color:var(--amber)">📋 设计完成</td><td>P2</td></tr>
+</table>
+
+<div class="summary-box">
+<strong>下一步：</strong>实现 MCP Server——范围最小、即时可用（任何 MCP 兼容的 Host 都能调用）。然后是 Function Calling Schema——让 AgentWorld NPC 能调用外部 API。之后是 AutoGen Demo——最有演示价值。
+</div>
+
+</main>
+
+<script>
+// Highlight current section in sidebar on scroll
+const sections = document.querySelectorAll('h2[id], h3[id]');
+const links = document.querySelectorAll('.sidebar a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
+
+// Toggle sections
+document.querySelectorAll('.toggle-header').forEach(h => {
+  h.addEventListener('click', () => {
+    h.classList.toggle('open');
+    h.nextElementSibling.classList.toggle('open');
+  });
+});
+
+// Sidebar scroll spy
+const sidebar = document.getElementById('sidebar');
+links.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const id = link.getAttribute('href').substring(1);
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
