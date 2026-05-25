@@ -96,14 +96,6 @@ async def cmd_test(args):
         api_task.cancel()
         try: await api_task
         except (asyncio.CancelledError, Exception): pass
-    if dash_task:
-        dash_task.cancel()
-        try: await dash_task
-        except (asyncio.CancelledError, Exception): pass
-    if visual_task:
-        visual_task.cancel()
-        try: await visual_task
-        except (asyncio.CancelledError, Exception): pass
 
     elapsed = time.time() - t_start
     gate_stats = {pname: gate.stats() for pname, gate in cfg["concurrency_gates"].items()}
@@ -116,6 +108,13 @@ async def cmd_test(args):
         db.end_run(run_id)
         db.close()
         print(f"  Persisted to: {args.persist}")
+
+    if dash_task or visual_task:
+        print(f"\n  Agent run complete. Dashboard/Visual still live. Press Ctrl+C to exit.")
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            pass
 
 
 async def cmd_demo(args):
