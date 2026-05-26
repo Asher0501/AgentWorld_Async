@@ -72,5 +72,10 @@ async def main():
             return
 
 
+def main_sync():
+    """Entry point for console_scripts."""
+    asyncio.run(main())
+
+
 if __name__ == "__main__":
     asyncio.run(main())
