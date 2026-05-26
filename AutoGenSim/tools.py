@@ -1,5 +1,5 @@
 """Tools that AutoGen agents can call — wraps DirectorClient methods."""
-from .director_client import DirectorClient
+from director_client import DirectorClient
 
 
 def make_tools(director: DirectorClient):

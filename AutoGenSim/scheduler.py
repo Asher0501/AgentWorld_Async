@@ -9,8 +9,8 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_core.tools import FunctionTool
 
-from .director_client import DirectorClient
-from .personas import PLANNER_SYSTEM, CODER_SYSTEM, REVIEWER_SYSTEM
+from director_client import DirectorClient
+from personas import PLANNER_SYSTEM, CODER_SYSTEM, REVIEWER_SYSTEM
 
 
 class AgentWorldTeam:
@@ -36,7 +36,6 @@ class AgentWorldTeam:
         )
 
     async def _make_tools(self):
-        from autogen_core.tools import FunctionTool
         director = self.director
 
         async def order_npc(npc_id: str, action: str, dialogue: str = "") -> str:
