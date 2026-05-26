@@ -188,7 +188,8 @@ async def run_agent(agent, world, brain, assembler, systems,
     interaction = systems["interaction"]
     labels = cfg.labels
 
-    prompt1 = None  # scoped for trace_fn access across Phase 3→4
+    import agent_logging
+    prompt1 = None
     while time.time() < end:
         try:
             # ═══════════════════════════════════════════
@@ -248,6 +249,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                                                    channel_configs=labels.get("sensory_prompts"))
                 snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
                            cfg.thresholds, cfg.coin_epsilon)
+                agent_logging.debug(f"[{name}] FLUSH: {action_text[:50]}")
                 await asyncio.sleep(0)
                 continue
 
