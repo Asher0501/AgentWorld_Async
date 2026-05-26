@@ -103,12 +103,11 @@ function drawFloor() {
 
 function tick() {
   const now = performance.now();
-  // TweenEngine
   for (const [id, t] of Object.entries(targets)) {
     const p = Math.min(1, (now - t.start) / Math.max(t.dur, 100));
-    const e = 1 - (1 - p) ** 3;  // easeOutCubic
+    const e = 1 - (1 - p) ** 3;
     const s = sprites[id];
-    if (s) { s.x = t.fx + (t.tx - t.fx) * e; s.y = t.fy + (t.ty - t.fy) * e; }
+    if (s && s.container) { s.container.x = t.fx + (t.tx - t.fx) * e; s.container.y = t.fy + (t.ty - t.fy) * e; }
     if (p >= 1) { delete targets[id]; }
   }
   // Bubbles
@@ -153,6 +152,7 @@ function updateEntities(entities, zone, zw, zh) {
 
     if (!sprites[e.id]) {
       const c = new PIXI.Container();
+      c.x = x; c.y = y;  // set initial position
       const g = new PIXI.Graphics();
       if (e.type === 'gate') {
         g.lineStyle(2, 0xffd700, 1); g.drawRoundedRect(-8, -8, 16, 16, 3);
@@ -171,8 +171,9 @@ function updateEntities(entities, zone, zw, zh) {
       sprites[e.id] = {container: c, lastX: x, lastY: y};
     }
     const s = sprites[e.id];
-    if (Math.abs(s.lastX - x) > 1 || Math.abs(s.lastY - y) > 1) {
-      targets[e.id] = {fx: s.container.x, fy: s.container.y, tx: x, ty: y, start: performance.now(), dur: 400};
+    const dx = Math.abs(s.lastX - x), dy = Math.abs(s.lastY - y);
+    if (dx > 0 || dy > 0) {
+      targets[e.id] = {fx: s.container.x, fy: s.container.y, tx: x, ty: y, start: performance.now(), dur: Math.max(dx + dy, 300)};
       s.lastX = x; s.lastY = y;
     }
   }
