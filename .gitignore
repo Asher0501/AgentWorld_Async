@@ -9,3 +9,5 @@ bak/
 *.swo
 geralt_*.md
 docs/
+*.egg-info/
+.pytest_cache/
