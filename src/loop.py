@@ -250,6 +250,15 @@ async def run_agent(agent, world, brain, assembler, systems,
                 snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
                            cfg.thresholds, cfg.coin_epsilon)
                 agent_logging.debug(f"[{name}] FLUSH: {action_text[:50]}")
+                # NPC file output: write to disk as part of action execution
+                fo = enqueued_decision.get("file_output", {})
+                if fo and fo.get("filename") and fo.get("content"):
+                    import os as _os
+                    out_dir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "AutoGenSim", "output")
+                    _os.makedirs(out_dir, exist_ok=True)
+                    out_path = _os.path.join(out_dir, f"{agent.id}_{fo['filename']}")
+                    with open(out_path, "w") as _f:
+                        _f.write(fo["content"])
                 await asyncio.sleep(0)
                 continue
 
@@ -280,14 +289,32 @@ async def run_agent(agent, world, brain, assembler, systems,
                                 "auditory": [{"name": r.name, "speech": r.data.get("current_speech", "")}
                                             for r in aud.values()]})
 
-            # Controlled agent: execute external order or sleep
+            # Controlled agent: execute external order or skip Phase 2/3 entirely
             if director and director.is_controlled(agent.id):
                 decision = director.pending(agent.id)
                 if decision:
-                    pass  # go to Phase 4 to execute
+                    # Skip directly to Phase 4 — no KL gate, no LLM call
+                    target_name = decision.get("target_name")
+                    action_text = decision.get("action")
+                    if action_text:
+                        target = interaction.find_entity_by_name(
+                            agent.zone, target_name, world.entities,
+                            exclude_id=agent.id) if target_name else None
+                        if target and interaction.can_interact(agent, target):
+                            al._pending_action = (decision, target)
+                            al._action_complete_at = time.time() + max(0.5, decision.get("duration", 3.0))
+                        elif target and not interaction.can_interact(agent, target):
+                            agent.move_to(list(target.pos))
+                            agent.last_action_time = world.clock.now()
+                        else:
+                            al._pending_action = (decision, None)
+                            al._action_complete_at = time.time()
+                    snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
+                               cfg.thresholds, cfg.coin_epsilon)
+                    await asyncio.sleep(0)
                 else:
                     await asyncio.sleep(cfg.poll_interval)
-                    continue
+                continue
 
             # ═══════════════════════════════════════════
             #  PHASE 2: GATE
@@ -340,12 +367,11 @@ async def run_agent(agent, world, brain, assembler, systems,
             # ═══════════════════════════════════════════
             target_name = decision.get("target_name")
             action_text = decision.get("action")
-            if target_name and action_text:
+            if action_text:
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
-                    exclude_id=agent.id)
+                    exclude_id=agent.id) if target_name else None
                 if target and interaction.can_interact(agent, target):
-                    # Enqueue: Phase 0.5 FLUSH will execute when duration expires
                     al._pending_action = (decision, target)
                     al._action_complete_at = time.time() + max(0.5, decision.get("duration", 3.0))
                 elif target and not interaction.can_interact(agent, target):
@@ -353,8 +379,13 @@ async def run_agent(agent, world, brain, assembler, systems,
                     agent.last_action_time = world.clock.now()
                     systems["sensory"].update(agent, world.entities, world,
                                                channel_configs=labels.get("sensory_prompts"))
-            elif action_text and not target_name:
-                # No target specified — try action-only move (immediate)
+                else:
+                    # No target or can't find — direct enqueue (for controlled NPC with file_output etc.)
+                    al._pending_action = (decision, None)
+                    al._action_complete_at = time.time()
+            elif target_name and action_text:
+                # Deprecated path — now handled by the if action_text: block above
+                pass
                 target = interaction.find_entity_at(
                     agent.zone, agent.pos, action_text, world.entities,
                     exclude_id=agent.id)
