@@ -1,0 +1,305 @@
+world:
+  name: AutoGenSim 办公室
+  time_scale: 60
+  start_time: "09:00"
+  world-group: full
+  simulation:
+    currency: coins
+    poll_interval: 0.3
+    stale_timeout: 30
+    memory_prompt_count: 5
+    default_patience: 5
+    kl:
+      state_thresholds: [30, 60, 80]
+      coin_epsilon: 5
+    drive:
+      attributes:
+        thirst:
+          min: 0
+          max: 100
+          decay: 0.02
+          description: "想喝咖啡。0=刚喝完一杯, 100=必须立刻去茶水间"
+        hunger:
+          min: 0
+          max: 100
+          decay: 0.018
+          description: "饥饿。0=刚吃完饭, 100=饿到没法写代码"
+        social:
+          min: 0
+          max: 100
+          decay: 0.015
+          description: "社交需求。0=只想自己coding, 100=必须找人聊聊"
+        energy:
+          min: 0
+          max: 100
+          decay: -0.008
+          description: "精力。0=趴在桌上睡着了, 100=能通宵debug"
+        fun:
+          min: 0
+          max: 100
+          decay: 0.02
+          description: "娱乐。0=代码太爽忘了玩, 100=刷推特无法自拔"
+        mood:
+          min: 0
+          max: 100
+          decay: 0.0
+          description: "心情。0=bug修不好想辞职, 100=代码跑通人生巅峰"
+    validation:
+      delta_max: 30
+    text:
+      kl_entered: '{channel}: {name} 路过'
+      kl_left: '{channel}: {name} 走开了'
+      kl_changed: '{channel}: {name} 变化'
+      kl_stale: '距上次行动已超{stale_timeout}s'
+      kl_coin: 经验值 {sign}{delta}
+      kl_state_cross: '{attr} {arrow}突破{t}'
+
+traits:
+  default: []
+  # All office NPCs start with no traits — pure persona-driven
+
+zones:
+  - id: open_space
+    name: 开放工位
+    width: 30
+    height: 20
+  - id: meeting_room
+    name: 会议室
+    width: 15
+    height: 15
+  - id: break_room
+    name: 茶水间
+    width: 12
+    height: 8
+
+entities:
+  # ═══════ Gates ═══════
+  - id: door_meeting
+    name: 会议室门
+    zone: open_space
+    pos: [20, 8]
+    visual:
+      visible_radius: 8
+      properties:
+        look: "磨砂玻璃门，隐约能看到里面的白板"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "通往会议室。里面好像有人在开会。"
+      gate:
+        to_zone: meeting_room
+        to_pos: [6, 11]
+    description: "磨砂玻璃门，通往会议室。"
+
+  - id: door_break
+    name: 茶水间门
+    zone: open_space
+    pos: [5, 15]
+    visual:
+      visible_radius: 8
+      properties:
+        look: "半开的木门，飘出咖啡香"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "通往茶水间。咖啡机就在里面。"
+      gate:
+        to_zone: break_room
+        to_pos: [5, 3]
+    description: "半开的木门，通往茶水间。"
+
+  # ═══════ Agents ═══════
+  - id: coder_01
+    name: 小李
+    zone: open_space
+    pos: [8, 6]
+    visual:
+      visible_radius: 15
+      properties:
+        look: "戴着耳机写代码，屏幕上全是终端"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 100
+        hunger: 35
+        thirst: 60
+        social: 20
+        energy: 75
+        fun: 30
+        mood: 60
+    agent:
+      autonomous: true
+      personality: "小李，26岁，后端工程师。Rust和Go专家。最讨厌开会。戴耳机是为了假装没听到PM说话——但其实耳朵里只有键盘声。5点以后不谈代码。"
+    description: "戴耳机写代码的后端工程师。屏幕上是vim。"
+
+  - id: coder_02
+    name: 小王
+    zone: open_space
+    pos: [14, 6]
+    visual:
+      visible_radius: 15
+      properties:
+        look: "年轻的前端dev，桌上堆满了零食和能量饮料"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 80
+        hunger: 50
+        thirst: 80
+        social: 60
+        energy: 85
+        fun: 65
+        mood: 75
+    agent:
+      autonomous: true
+      personality: "小王，24岁，前端工程师。崇拜小李的代码。最爱React——觉得Vue是邪教。桌上永远有零食。每天必定去茶水间三趟——顺便看看有没有八卦。"
+    description: "年轻前端dev。桌上堆满零食和能量饮料。"
+
+  - id: pm_01
+    name: 张总
+    zone: open_space
+    pos: [11, 12]
+    visual:
+      visible_radius: 20
+      properties:
+        look: "站在白板前，手里拿着马克笔，盯着sprint board"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 500
+        hunger: 40
+        thirst: 45
+        social: 75
+        energy: 65
+        fun: 35
+        mood: 55
+    agent:
+      autonomous: true
+      personality: "张总，项目经理。管三个项目，最讨厌'delay'这个词。每天早上standup第一个到。他其实写过程序——但那是在Java还没泛型的年代。每个人尊重他，但没人想跟他开会。"
+    description: "项目经理。站在白板前盯sprint board。"
+
+  - id: designer_01
+    name: 小陈
+    zone: open_space
+    pos: [22, 6]
+    visual:
+      visible_radius: 15
+      properties:
+        look: "面前两台显示器，一台Figma，一台Spotify"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 120
+        hunger: 45
+        thirst: 55
+        social: 40
+        energy: 60
+        fun: 70
+        mood: 65
+    agent:
+      autonomous: true
+      personality: "小陈，UI/UX设计师。她觉得所有程序员都缺审美——除了偶尔夸她的配色。她的Figma文件永远是强迫症级的整洁。最怕听到'就加一个小改动'。"
+    description: "设计师。两台显示器——Figma + Spotify。"
+
+  - id: reviewer_01
+    name: 老王
+    zone: open_space
+    pos: [18, 12]
+    visual:
+      visible_radius: 15
+      properties:
+        look: "戴着老花镜，手持一杯浓茶，对着PR做code review"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 300
+        hunger: 30
+        thirst: 35
+        social: 25
+        energy: 55
+        fun: 20
+        mood: 50
+    agent:
+      autonomous: true
+      personality: "老王，45岁，tech lead。写过C/C++/Java/Python/Go——每种语言都写过一万行以上。code review只有三个评价：'可以'、'不行'、'重写'。大家都怕他，但没人能反驳他。喝浓茶，不喝咖啡。"
+    description: "Tech lead。戴老花镜做code review。手持浓茶。"
+
+  - id: intern_01
+    name: 小周
+    zone: open_space
+    pos: [25, 12]
+    visual:
+      visible_radius: 12
+      properties:
+        look: "实习生，紧张地看着屏幕，手边放着一本《Rust入门》"
+    interaction:
+      interaction_radius: 3
+      private_attrs:
+        coins: 30
+        hunger: 55
+        thirst: 70
+        social: 85
+        energy: 90
+        fun: 80
+        mood: 85
+    agent:
+      autonomous: true
+      personality: "小周，22岁，实习生。刚入职两周。每天提前到公司，最后一个走——不是努力，是怕被开。崇拜老王，但不敢跟他说话。他总是借咖啡为名接近同事——但他根本不喝咖啡。"
+    description: "实习生。紧张看着屏幕。手边《Rust入门》。"
+
+  # ═══════ Items ═══════
+  - id: whiteboard
+    name: 白板
+    zone: open_space
+    pos: [12, 14]
+    visual:
+      visible_radius: 10
+      properties:
+        look: "上面画满了sprint task和架构图"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "团队白板。sprint task、架构草稿、还有一张不知道谁画的小恐龙。"
+    description: "白板。sprint task + 架构图 + 小恐龙涂鸦。"
+
+  - id: coffee_machine
+    name: 咖啡机
+    zone: break_room
+    pos: [6, 4]
+    visual:
+      visible_radius: 6
+      properties:
+        look: "意式浓缩机，蒸汽嘴在滴水"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "办公室的命脉——没有它整个团队下午三点就崩了。今天已经第五杯了。"
+    description: "意式浓缩机。蒸汽嘴在滴水。"
+
+  - id: snack_box
+    name: 零食柜
+    zone: break_room
+    pos: [8, 5]
+    visual:
+      visible_radius: 4
+      properties:
+        look: "半开的柜门，能看到薯片和能量棒"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "小王的主要补给站。薯片、能量棒、速溶咖啡——虽然没人喝速溶。实习生每天偷偷补给。"
+    description: "零食柜。薯片和能量棒。"
+
+  - id: meeting_whiteboard
+    name: 会议白板
+    zone: meeting_room
+    pos: [6, 8]
+    visual:
+      visible_radius: 10
+      properties:
+        look: "新擦干净的，等着画架构设计"
+    interaction:
+      interaction_radius: 2
+      properties:
+        description: "会议室白板。上次画的一个架构图还没人擦——已经挂了三天了。"
+    description: "会议室白板。上次的架构图还没擦。"

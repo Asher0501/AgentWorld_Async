@@ -1,0 +1,29 @@
+# Director permission matrix — field × group → minimum level required
+# Unmatched fields default to level 4 (super)
+groups:
+  observer:     0    # snap() only
+  controller:   1    # + order()
+  moderator:    2    # + memory, drives, personality, main_thread
+  admin:        3    # + pos, zone, layers, private_attrs
+  super:        4    # all fields (default for unmatched)
+
+fields:
+  # Level 2 — Moderator
+  agent.memory:                 2
+  agent.main_thread:            2
+  agent.personality:            2
+  agent.traits:                 2
+  agent.drives.*:               2
+  agent._last_intent:           2
+  agent._last_intent_target:    2
+  # Level 3 — Admin
+  agent.pos:                    3
+  agent.zone:                   3
+  agent._action_complete_at:    3
+  agent._last_action_ts:        3
+  agent.slot_mask:              3
+  interaction.private_attrs.*:  3
+  interaction.hidden.*:         3
+  visual.properties.*:          3
+  auditory.properties.*:        3
+  # Level 4 — Super (default fallback)

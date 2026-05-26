@@ -6,7 +6,11 @@ def register_director_routes(app: web.Application, director):
     """Attach Director endpoints to the aiohttp app."""
 
     async def _state(request):
-        return web.json_response({"frozen": director.frozen, "controlled": sorted(director._controlled), "pending": {k: v for k, v in director._orders.items()}})
+        return web.json_response({
+            "frozen": director.frozen,
+            "controlled": sorted(director._controlled.keys()),
+            "pending": {k: v for k, v in director._orders.items()},
+        })
 
     async def _freeze(request):
         director.freeze()
@@ -17,8 +21,10 @@ def register_director_routes(app: web.Application, director):
         return web.json_response({"status": "ok", "frozen": False})
 
     async def _take(request):
-        director.take(request.match_info["agent_id"])
-        return web.json_response({"status": "ok", "controlled": True})
+        body = await request.json() if request.can_read_body else {}
+        level = body.get("level", 1) if isinstance(body, dict) else 1
+        director.take(request.match_info["agent_id"], level=level)
+        return web.json_response({"status": "ok", "controlled": True, "level": level})
 
     async def _release(request):
         director.release(request.match_info["agent_id"])
@@ -29,13 +35,26 @@ def register_director_routes(app: web.Application, director):
         if "sensory" in data and data["sensory"]:
             clean = {}
             for ch, ch_data in data["sensory"].items():
-                clean[ch] = {eid: {"name": r.name, "distance": r.distance, "data": r.data} for eid, r in (ch_data or {}).items()}
+                clean[ch] = {eid: {"name": r.name, "distance": r.distance, "data": r.data}
+                             for eid, r in (ch_data or {}).items()}
             data["sensory"] = clean
         return web.json_response(data)
 
     async def _order(request):
         body = await request.json()
         director.order(request.match_info["agent_id"], body.get("decision", {}))
+        return web.json_response({"status": "ok"})
+
+    async def _set(request):
+        body = await request.json()
+        path = body.get("path", "")
+        value = body.get("value")
+        director.set(request.match_info["agent_id"], path, value)
+        return web.json_response({"status": "ok", "path": path})
+
+    async def _memorize(request):
+        body = await request.json()
+        director.memorize(request.match_info["agent_id"], body.get("text", ""))
         return web.json_response({"status": "ok"})
 
     app.router.add_get("/api/state", _state)
@@ -45,3 +64,5 @@ def register_director_routes(app: web.Application, director):
     app.router.add_post("/api/release/{agent_id}", _release)
     app.router.add_get("/api/snap/{agent_id}", _snap)
     app.router.add_post("/api/order/{agent_id}", _order)
+    app.router.add_post("/api/set/{agent_id}", _set)
+    app.router.add_post("/api/memorize/{agent_id}", _memorize)
