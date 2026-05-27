@@ -190,6 +190,7 @@ async def run_agent(agent, world, brain, assembler, systems,
 
     import agent_logging
     prompt1 = None
+    err_backoff: dict[str, int] = {}
     while time.time() < end:
         try:
             # ═══════════════════════════════════════════
@@ -326,6 +327,8 @@ async def run_agent(agent, world, brain, assembler, systems,
                 await asyncio.sleep(cfg.poll_interval)
                 continue
 
+            agent_logging.debug(f"[{name}] DELTA triggered — LLM being called")
+
             # ═══════════════════════════════════════════
             #  PHASE 3: DECIDE
             # ═══════════════════════════════════════════
@@ -368,6 +371,7 @@ async def run_agent(agent, world, brain, assembler, systems,
             target_name = decision.get("target_name")
             action_text = decision.get("action")
             if action_text:
+                agent_logging.debug(f"[{name}] ENQUEUE: {action_text[:50]}")
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
                     exclude_id=agent.id) if target_name else None
@@ -402,4 +406,9 @@ async def run_agent(agent, world, brain, assembler, systems,
         except Exception as e:
             from core.error_collector import errors
             errors.log_exception(f"loop.{name}", e)
-            await asyncio.sleep(3)
+            # Transient (rate-limit, timeout) → backoff. Fatal → short pause.
+            etype = type(e).__name__
+            transient = etype in ("RateLimitError", "APITimeoutError", "Timeout", "TimeoutError")
+            err_backoff[name] = err_backoff.get(name, 0) + 1 if transient else 0
+            delay = min(2 ** err_backoff.get(name, 1), 60) if transient else 3
+            await asyncio.sleep(delay)

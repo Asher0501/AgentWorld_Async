@@ -58,6 +58,22 @@ class ErrorCollector:
         preview = raw_text[:200].replace("\n", " ")
         self._dedup_and_add(module, f"LLM JSON parse failed. Raw: {preview}", "")
 
+    def get_summary(self) -> dict:
+        """Return {module: error_count} summary for inspection."""
+        summary = {}
+        for r in self.records:
+            summary[r.module] = summary.get(r.module, 0) + r.count
+        return summary
+
+    def dump(self) -> str:
+        """Human-readable error report."""
+        if not self.records:
+            return "No errors recorded."
+        lines = [f"Error Report ({self.total_errors} total, {len(self.records)} unique):"]
+        for r in self.records:
+            lines.append(f"  [{r.module}] x{r.count} — {r.message[:100]}")
+        return "\n".join(lines)
+
 
 # Global singleton
 errors = ErrorCollector()

@@ -263,4 +263,46 @@ slot 组通过 `slot_groups.yaml` 的二维矩阵控制——每行对应一个 
 
 ---
 
-*Written by Asher · 2026 · AgentWorld Async v7.1*
+## 9. Design Limitations
+
+Every architecture has boundaries. Documenting them is not a weakness — it tells users and reviewers that the author knows where the edge is.
+
+### 9.1 P/Q Delta Gate
+
+**False-negative risk — entity with empty observation leaving scope.**
+`channel_delta` uses `_extract_data()` which returns `{}` for both "not in channel" and "entity has empty data dict." An entity with a truly empty observation (no current_speech, no visual data) leaving sensory range produces no delta signal. In practice, this is rare — entities with empty observations are typically static non-NPC items that don't warrant a delta event. But it means the gate can silently miss exits under these conditions.
+
+**False-positive ceiling — data-dict equality check is strict.**
+Two `SensorRecord.data` dicts are compared with `==`. A single float rounding difference or timestamp field change triggers an unnecessary delta. The gate does not do semantic comparison — it does byte-level equality. For json-serialized sensory data this is usually fine, but if a sensor adds non-deterministic fields (e.g., random seed annotations), the gate fires on every tick.
+
+### 9.2 Slot Composition Upper Bound
+
+**Cross-slot ctx key references are not validated.**
+If slot A's template references `{some_key}` and slot B is responsible for providing `some_key`, there is no compile-time check that B is activated and ordered before A. A typo in a `condition` field (e.g., `"memeory_text"` instead of `"memory_text"`) causes a slot to silently skip — the LLM receives an incomplete prompt with no error. This is the structural weakness of declarative architectures: no compiler verifies YAML correctness.
+
+**Slot ordering is the only "attention weighting" mechanism.**
+Earlier slots appear earlier in the prompt. This is a crude proxy for importance — there is no dynamic weighting based on drive urgency or context. In Generative Agents, importance scoring dynamically weights memory. In AW, slot order is static per template.
+
+### 9.3 The "LLM is Capable Enough" Assumption
+
+**The entire architecture assumes current-gen LLMs (GPT-4, DeepSeek-V3) can produce reliable JSON decisions from slot-composed prompts without explicit scaffolding.**
+This is validated anecdotally (v12 Friends simulation ran 180s with 99% dialogue rate) but not systematically across model tiers. With smaller models (7B-13B), the slot architecture may not provide enough structure to guide coherent multi-step behavior. The P/Q Gate would still save tokens, but the decisions it gates to might degrade.
+
+**No explicit chain-of-thought scaffolding.** Unlike systems that decompose planning into sub-steps (plan → act → observe → replan), AW expects the LLM to do everything in one decision per tick. For complex multi-step tasks, this single-decision format may be insufficient.
+
+### 9.4 Scenarios This Architecture Is NOT Designed For
+
+- **Embodied continuous control** — The 0.3s tick + 1-2s LLM latency means physical real-time interaction (e.g., game NPC combat) is out of scope.
+- **Strict reproducibility** — LLM non-determinism means the same world config may produce different behavior across runs. Seed control exists at the prompt level only.
+- **Safety-critical systems** — No guardrails on LLM output content. An NPC can decide to "destroy the world" and the engine will dutifully execute it.
+- **Massive scale (100+ agents)** — The O(n²) sensory polling (each agent checks every entity per tick) limits practical agent count.
+
+### 9.5 Engine-Level Risks
+
+- **spawn_entity** with duplicate ID is now caught (ValueError since v7.2), but runtime entity creation from external systems (via Gateway API) should validate IDs client-side.
+- **_pending_action** is now cleared only after successful execution (v7.2), but if the action's interaction fails mid-way (e.g., NPC→Item LLM call fails), the side effects (dialogue, deltas) written before the failure point are NOT rolled back. A retry would re-execute the side effects.
+- **sensory is_new** now uses speech-content comparison (v7.2) instead of lifetime entity-first-seen, fixing the silent-utterance-drop bug where the engine filtered out subsequent messages from the same speaker.
+
+---
+
+*Written by Asher · 2026 · AgentWorld Async v7.2*
