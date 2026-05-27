@@ -11,3 +11,4 @@ geralt_*.md
 docs/
 *.egg-info/
 .pytest_cache/
+AutoGenSim/output/

@@ -52,6 +52,12 @@ class SensorySystem:
 
                 current[layer_name].add(eid)
                 is_new = eid not in sensory.channels[layer_name]
+
+                prev_speech = ""
+                prev_record = sensory.channels[layer_name].get(eid)
+                if prev_record:
+                    prev_speech = prev_record.data.get("current_speech", "")
+
                 data = layer.observe(d)
 
                 if content_ts is not None and content_ts > 0:
@@ -65,10 +71,10 @@ class SensorySystem:
                                 else sensory.channels[layer_name][eid].first_seen),
                 )
 
-                # Conversation buffer — record as what was heard, without judging importance
-                if content_ts is not None and is_new and observer.has("agent"):
+                # Conversation buffer — record each distinct utterance, not importance-judged
+                if content_ts is not None and observer.has("agent"):
                     speech = layer.properties.get("current_speech", "")
-                    if speech:
+                    if speech and (is_new or speech != prev_speech):
                         al_buf = observer.get("agent")._conversation_buffer
                         al_buf.append({"speaker": entity.name, "text": speech, "ts": time.time()})
                         if len(al_buf) > 8:

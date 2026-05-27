@@ -206,7 +206,6 @@ async def run_agent(agent, world, brain, assembler, systems,
             coins = round(float(agent.get("interaction").private_attrs.get(cfg.currency, 0)))
             if al._pending_action is not None and time.time() >= al._action_complete_at:
                 enqueued_decision, enqueued_target = al._pending_action
-                al._pending_action = None
                 # Execute the delayed action now — write layers, apply deltas
                 target_name = enqueued_decision.get("target_name")
                 action_text = enqueued_decision.get("action")
@@ -259,6 +258,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                     out_path = _os.path.join(out_dir, f"{agent.id}_{fo['filename']}")
                     with open(out_path, "w") as _f:
                         _f.write(fo["content"])
+                al._pending_action = None  # cleared only after successful execution
                 await asyncio.sleep(0)
                 continue
 

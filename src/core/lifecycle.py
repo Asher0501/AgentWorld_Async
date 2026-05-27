@@ -8,6 +8,8 @@ class EntityLifecycle:
 
     def spawn(self, entity) -> None:
         w = self.world
+        if entity.id in w.entities:
+            raise ValueError(f"Entity ID '{entity.id}' already exists in world")
         w.entities[entity.id] = entity
         entity._world = w
         if entity.zone in w.grids:
@@ -23,6 +25,10 @@ class EntityLifecycle:
         return True
 
     def transfer_zone(self, entity, new_zone: str, new_pos: list[int]) -> None:
+        """Move entity between zones. Clears sensory channels so stale visual/auditory
+        data from the old zone doesn't persist. Conversation buffer (max 8 entries) is
+        intentionally preserved — like a human remembering a conversation after leaving
+        the room. It naturally ages out via the FIFO cap."""
         old_zone = entity.zone
         old_pos = list(entity.pos)
 
