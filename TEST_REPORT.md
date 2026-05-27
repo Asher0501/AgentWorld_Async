@@ -1,12 +1,20 @@
-AgentWorld Async — Modification Regression Test Report
-Generated 2026-05-28 | 110 tests, 8 files | python -m pytest tests/unit/ -q → 0.19s
+AgentWorld Async — Complete Test Report
+Generated 2026-05-28 | 130 tests, 9 files | python -m pytest tests/ -q → 10.01s
+
+═══════════════════════════════════════════════════════════════
+OVERVIEW
+═══════════════════════════════════════════════════════════════
+
+  110 unit tests        (0.18s)  — pure logic, no I/O, no LLM
+   20 integration tests  (9.86s)  — full stack with dashboard, world, agent loop
+
+  130 TOTAL             (10.01s) — ALL PASSED
 
 ═══════════════════════════════════════════════════════════════
 MODIFICATION-TO-TEST MAPPING
 ═══════════════════════════════════════════════════════════════
 
-Each code change from commits cb69cf6 and 6c5e36b is listed below with
-its corresponding test(s). Files modified: 6 source files, 3 new test files.
+Each code change from commits cb69cf6 and 6c5e36b listed with tests.
 
 ───────────────────────────────────────────────────────────────
 #3  src/systems/sensory.py  — is_new speech-content comparison
@@ -16,87 +24,62 @@ BUG: is_new was lifetime entity flag. Second utterance from same
 FIX: Capture prev_speech before overwriting record. Append to
      buffer when (is_new OR speech != prev_speech).
 
-TESTS (test_modifications.py):
+UNIT (test_modifications.py):
   ✅ test_sensory_first_utterance_enters_buffer
-     Verify first utterance from new entity always enters buffer.
-
   ✅ test_sensory_repeated_same_speech_not_duplicated
-     Same speech on second tick → NOT duplicated.
-
   ✅ test_sensory_different_speech_from_same_speaker_enters_buffer
-     Different speech from same speaker → enters buffer (the bug fix).
-
   ✅ test_sensory_multiple_speakers_buffer
-     Two speakers, two utterances each → all 4 in buffer.
-
   ✅ test_sensory_buffer_capped_at_8
-     Buffer respects FIFO cap of 8.
+
+INTEGRATION (test_full_stack.py):
+  ✅ test_multiple_utterances_enter_the_same_entity_buffer
+  ✅ test_speaker_out_of_range_removed_from_channels
 
 ───────────────────────────────────────────────────────────────
 #1  src/core/lifecycle.py  — spawn_entity ID collision
 ───────────────────────────────────────────────────────────────
-BUG:  lifecycle.spawn() silently overwrote existing entity on
-      duplicate ID. Old entity destroyed, new unreported.
-FIX:  Add `if entity.id in w.entities: raise ValueError(...)`
-      before blind assignment.
+BUG:  lifecycle.spawn() silently overwrote existing entity on duplicate ID.
+FIX:  Add ValueError before blind assignment.
 
-TESTS (test_modifications.py):
-  ✅ test_spawn_duplicate_id_preserves_original
-     Duplicate ID raises ValueError; original entity untouched.
+UNIT:
+  ✅ test_spawn_duplicate_id_preserves_original (test_modifications.py)
+  ✅ test_spawn_unique_ids_no_collision (test_modifications.py)
+  ✅ test_spawn_entity_success (test_world.py)
+  ✅ test_spawn_entity_duplicate_id_raises (test_world.py)
 
-  ✅ test_spawn_unique_ids_no_collision
-     Two different IDs spawn without conflict.
-
-ALSO (test_world.py):
-  ✅ test_spawn_entity_success
-  ✅ test_spawn_entity_duplicate_id_raises
+INTEGRATION:
+  ✅ test_spawn_duplicate_preserves_world_state
+  ✅ test_despawn_removes_from_world
+  ✅ test_despawn_nonexistent_returns_false
 
 ───────────────────────────────────────────────────────────────
 #4  src/loop.py  — _pending_action defer-clear
 ───────────────────────────────────────────────────────────────
-BUG:  _pending_action = None was at line 2 of FLUSH block (before
-      execution). Exception mid-execution → action lost, side
-      effects persisted.
-FIX:  Moved _pending_action = None to END of FLUSH (after file
-      output, before await sleep). Cleared only after success.
+BUG:  _pending_action = None was BEFORE execution.
+FIX:  Moved to END of FLUSH (after file output, before continue).
 
-TEST (test_modifications.py):
+UNIT:
   ✅ test_pending_action_not_cleared_until_successful_execution
-     inspect.getsource(run_agent) — verifies _pending_action=None
-     appears exactly once, AFTER file_output handling, NOT near
-     enqueued_decision assignment.
+
+INTEGRATION:
+  ✅ test_controlled_agent_consumes_order
+  ✅ test_flush_writes_file_to_disk
+  (Both verify the full take → order → execute → consume path)
 
 ───────────────────────────────────────────────────────────────
 #2  src/core/lifecycle.py  — zone transfer docstring
 ───────────────────────────────────────────────────────────────
-NOT A BUG. Added docstring to transfer_zone() explaining that
-conversation buffer carries across zones intentionally (8-entry
-FIFO cap naturally ages out). Sensory channels cleared on transfer.
-No test needed — documentation-only change.
+Documentation-only. No test needed.
 
 ───────────────────────────────────────────────────────────────
 #10 src/event_bus.py  — QueueFull warning
-───────────────────────────────────────────────────────────────
-BUG:  QueueFull was silently pass'd. Slow WebSocket clients lost
-      events with zero observability.
-FIX:  Replace `pass` with agent_logging.warning(...).
-
-TESTS (test_modifications.py):
-  ✅ test_event_bus_queuefull_logs_warning
-     Verifies agent_logging.warning exists in EventBus.emit source.
-
-ALSO (test_event_bus.py):
-  ✅ test_queue_full_handled_gracefully
-  ✅ test_emit_delivers_to_registered_client
-  ✅ test_unregister_stops_delivery
-
-───────────────────────────────────────────────────────────────
 #11 src/core/error_collector.py  — get_summary() + dump()
+#12 src/loop.py  — transient vs fatal error distinction
+#13 src/loop.py  — agent_logging at key paths
+#14 src/decision_types.py  — TypedDict contracts
 ───────────────────────────────────────────────────────────────
-ENHANCEMENT: Error collector had no export/inspection API.
-ADDED: get_summary() → dict, dump() → human-readable string.
-
-TESTS (test_modifications.py):
+UNIT (test_modifications.py):
+  ✅ test_event_bus_queuefull_logs_warning (inspect source)
   ✅ test_error_collector_summary_empty
   ✅ test_error_collector_summary_with_errors
   ✅ test_error_collector_dump_with_errors
@@ -105,68 +88,45 @@ TESTS (test_modifications.py):
   ✅ test_error_collector_log_exception_captures_traceback
   ✅ test_error_collector_llm_parse_failure_truncates
   ✅ test_error_collector_global_singleton
-
-───────────────────────────────────────────────────────────────
-#12 src/loop.py  — transient vs fatal error distinction
-───────────────────────────────────────────────────────────────
-BUG:  All exceptions caught with flat 3s sleep. Rate limiting
-      indistinguishable from programming errors.
-FIX:  err_backoff dict per-agent. Transient types (RateLimitError,
-      APITimeoutError, Timeout, TimeoutError) → exponential backoff
-      (min 2^n, max 60s). Fatal → 3s pause.
-
-TESTS (test_modifications.py):
   ✅ test_loop_error_backoff_variable_exists
-     Verifies err_backoff dict declared and used.
-
   ✅ test_loop_transient_error_types_identified
-     Verifies RateLimitError and Timeout detected by name.
-
   ✅ test_loop_error_logs_to_collector
-     Verifies log_exception(f"loop.{name}", e) in except block.
-
-───────────────────────────────────────────────────────────────
-#13 src/loop.py  — agent_logging at key paths
-───────────────────────────────────────────────────────────────
-ENHANCEMENT: agent_logging was unused (1 call site).
-ADDED: debug() at delta gate trigger and ENQUEUE phase.
-
-TESTS (test_modifications.py):
   ✅ test_agent_logging_at_delta_trigger
-     Verifies debug("DELTA triggered") in source.
-
   ✅ test_agent_logging_at_enqueue
-     Verifies debug("ENQUEUE:") in source.
-
-ALSO (existing in loop.py — unchanged):
-  agent_logging.debug(f"[{name}] FLUSH: ...")  — 1 pre-existing call site
-
-───────────────────────────────────────────────────────────────
-#14 src/decision_types.py (was src/types.py)  — TypedDict
-───────────────────────────────────────────────────────────────
-ENHANCEMENT: DecisionDict, FileOutput TypedDict with NotRequired
-fields for IDE support and AutoGen tool schemas.
-
-TESTS (test_modifications.py):
   ✅ test_decision_dict_imports
-     DecisionDict and FileOutput importable.
-
   ✅ test_decision_dict_allows_optional_fields
-     Minimal dict with only "action" key passes type check.
-
   ✅ test_decision_dict_file_output_subtype
-     Nested FileOutput within DecisionDict.
+
+INTEGRATION (test_full_stack.py):
+  ✅ test_errors_are_deduped_across_calls
+  ✅ test_dump_produces_human_readable_output
+  ✅ test_summary_returns_dict
 
 ───────────────────────────────────────────────────────────────
-#16 DESIGN_PHILOSOPHY.md  — Design Limitations
+#5-7  Core architecture validation
 ───────────────────────────────────────────────────────────────
-Documentation-only. Added Section 9 covering:
-- 9.1 P/Q Gate false-negative / false-positive
-- 9.2 Slot composition upper bound
-- 9.3 "LLM is capable enough" assumption
-- 9.4 Scenarios NOT designed for
-- 9.5 Engine-level risks (incl. v7.2 fixes)
-No test needed.
+UNIT:
+  ✅ 21 tests: test_delta_gate.py (4 pure functions)
+  ✅ 22 tests: test_extract_json.py (6 strategies)
+  ✅ 16 tests: test_assembler.py (slot composition)
+
+#5: P/Q delta gate functions — entered, left, changed, cross, stale
+#6: Prompt assembler — safe_format edges, slot mask, condition gates
+#7: LLM output parser — 6 JSON extraction strategies
+
+───────────────────────────────────────────────────────────────
+REST API integration
+───────────────────────────────────────────────────────────────
+INTEGRATION (test_full_stack.py):
+  ✅ test_state_returns_world_snapshot       GET  /api/state
+  ✅ test_snap_returns_agent_data            GET  /api/snap
+  ✅ test_snap_nonexistent_returns_empty     GET  /api/snap (404-like)
+  ✅ test_take_sets_controlled_status        POST /api/take
+  ✅ test_take_and_release_cycle             POST /api/take + /api/release
+  ✅ test_order_injects_decision             POST /api/order
+  ✅ test_set_writes_entity_field            POST /api/set
+  ✅ test_set_permission_rejected            POST /api/set (PermissionError)
+  ✅ test_memorize_adds_memory               POST /api/memorize
 
 ═══════════════════════════════════════════════════════════════
 FULL TEST SUITE BREAKDOWN
@@ -174,25 +134,33 @@ FULL TEST SUITE BREAKDOWN
 
 File                          Tests   Category
 ─────────────────────────────────────────────────────
-test_modifications.py          25     Modification regression
-test_delta_gate.py             21     P/Q gate functions
-test_extract_json.py           22     LLM output parsing
-test_assembler.py              16     Slot assembly pipeline
-test_world.py                  12     Entity CRUD operations
-test_director.py                9     Director lifecycle
-test_event_bus.py               6     Event bus pub/sub
-test_config.py                  3     YAML structure validation
+test_full_stack.py             20     Integration (full stack)
+test_modifications.py          25     Modification regression (unit)
+test_delta_gate.py             21     P/Q gate functions (unit)
+test_extract_json.py           22     LLM output parsing (unit)
+test_assembler.py              16     Slot assembly pipeline (unit)
+test_world.py                  12     Entity CRUD operations (unit)
+test_director.py                9     Director lifecycle (unit)
+test_event_bus.py               6     Event bus pub/sub (unit)
+test_config.py                  3     YAML structure validation (unit)
 ─────────────────────────────────────────────────────
-TOTAL                         110
+TOTAL                         130
 
-All 110 tests: PASSED (0.19s)
+All 130 tests: PASSED (10.01s)
 
 ═══════════════════════════════════════════════════════════════
-CI COMMAND
+CI COMMANDS
 ═══════════════════════════════════════════════════════════════
 
+  # Unit only (no external deps, 0.2s):
   python -m pytest tests/unit/ -v
 
-CI workflow: .github/workflows/test.yml (runs on push/PR)
+  # Integration (needs config files, dashboard, ~10s):
+  python -m pytest tests/integration/ -v
+
+  # All:
+  python -m pytest tests/ -v
+
+CI: .github/workflows/test.yml (runs on push/PR)
   - pip install pytest pytest-asyncio
   - python -m pytest tests/unit/ -v --tb=short
