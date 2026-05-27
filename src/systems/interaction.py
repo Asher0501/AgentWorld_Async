@@ -50,25 +50,6 @@ class InteractionSystem:
                 match = e
         return match
 
-    def find_entity_at(self, zone: str, pos: list[int], action: str,
-                       all_entities: dict, exclude_id: str = "") -> object | None:
-        """Deprecated — use find_entity_by_name with LLM-supplied target_name."""
-        candidates = []
-        for e in all_entities.values():
-            if e.zone != zone or not e.has("interaction"):
-                continue
-            if e.id == exclude_id:
-                continue
-            d = abs(pos[0] - e.pos[0]) + abs(pos[1] - e.pos[1])
-            candidates.append((d, e))
-        if not candidates:
-            return None
-        candidates.sort(key=lambda x: x[0])
-        for d, e in candidates:
-            if e.name in action:
-                return e
-        return None
-
     # ═══════════ core: interact() ═══════════
 
     async def interact(self, agent, target,

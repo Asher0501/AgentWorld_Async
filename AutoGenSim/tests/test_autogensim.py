@@ -38,7 +38,7 @@ class TestDirectorClient:
 
 class TestTools:
     def test_imports(self):
-        from tools import make_tools
+        from scheduler import make_tools
         assert callable(make_tools)
 
 

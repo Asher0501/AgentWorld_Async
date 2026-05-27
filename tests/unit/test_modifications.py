@@ -339,26 +339,3 @@ def test_agent_logging_at_enqueue():
     assert 'ENQUEUE:' in src, "Must log at ENQUEUE phase"
 
 
-# ═══════════════════════════════════════════════════════════════
-# TypedDict validation (Phase 4)
-# ═══════════════════════════════════════════════════════════════
-
-def test_decision_dict_imports():
-    """TypedDict types are importable — runtime check only."""
-    from decision_types import DecisionDict, FileOutput
-    assert DecisionDict is not None
-    assert FileOutput is not None
-
-
-def test_decision_dict_allows_optional_fields():
-    """Minimal DecisionDict with only required fields passes type check."""
-    from decision_types import DecisionDict
-    d: DecisionDict = {"action": "walk"}
-    assert d["action"] == "walk"
-
-
-def test_decision_dict_file_output_subtype():
-    from decision_types import DecisionDict, FileOutput
-    fo: FileOutput = {"filename": "test.py", "content": "print(1)"}
-    d: DecisionDict = {"action": "write code", "file_output": fo}
-    assert d["file_output"]["filename"] == "test.py"

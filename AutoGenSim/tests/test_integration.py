@@ -74,14 +74,14 @@ def test_autogen_imports():
         results.append(("FunctionTool", False, str(e)[:50]))
     try:
         from director_client import DirectorClient
-        from tools import make_tools
+        from scheduler import make_tools
         tools = make_tools(DirectorClient())
         results.append(("make_tools", len(tools) == 3, f"{len(tools)} tools"))
     except Exception as e:
         results.append(("make_tools", False, str(e)[:50]))
     try:
         from autogen_core.tools import FunctionTool
-        from tools import make_tools
+        from scheduler import make_tools
         tools = make_tools(DirectorClient())
         [FunctionTool(t, description="x") for t in tools]
         results.append(("FunctionTool wrap", True, "3 wrapped"))

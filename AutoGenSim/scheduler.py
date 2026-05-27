@@ -13,6 +13,32 @@ from director_client import DirectorClient
 from personas import PLANNER_SYSTEM, CODER_SYSTEM, REVIEWER_SYSTEM
 
 
+def make_tools(director: DirectorClient):
+    """Create Director-tool functions bound to a DirectorClient instance."""
+
+    async def order_npc(npc_id: str, action: str, dialogue: str = "") -> str:
+        decision = {"action": action}
+        if dialogue:
+            decision["dialogue"] = dialogue
+        await director.order(npc_id, decision)
+        return f"Ordered {npc_id}: {action}"
+
+    async def snap_npc(npc_id: str) -> str:
+        s = await director.snap(npc_id)
+        return (
+            f"{s.get('name', npc_id)}: zone={s.get('zone')} pos={s.get('pos')}\n"
+            f"drives={s.get('drives', {})}\n"
+            f"main_thread={s.get('main_thread', '')}\n"
+            f"memory: {s.get('memory', [])}"
+        )
+
+    async def memorize_npc(npc_id: str, text: str) -> str:
+        await director.memorize(npc_id, text)
+        return f"Memorized to {npc_id}: {text}"
+
+    return [order_npc, snap_npc, memorize_npc]
+
+
 class AgentWorldTeam:
     """Wraps AutoGen's RoundRobinGroupChat with AgentWorld NPC control."""
 
@@ -36,29 +62,7 @@ class AgentWorldTeam:
         )
 
     async def _make_tools(self):
-        director = self.director
-
-        async def order_npc(npc_id: str, action: str, dialogue: str = "") -> str:
-            decision = {"action": action}
-            if dialogue:
-                decision["dialogue"] = dialogue
-            await director.order(npc_id, decision)
-            return f"Ordered {npc_id}: {action}"
-
-        async def snap_npc(npc_id: str) -> str:
-            s = await director.snap(npc_id)
-            return (
-                f"{s.get('name', npc_id)}: zone={s.get('zone')} pos={s.get('pos')}\n"
-                f"drives={s.get('drives', {})}\n"
-                f"main_thread={s.get('main_thread', '')}\n"
-                f"memory: {s.get('memory', [])}"
-            )
-
-        async def memorize_npc(npc_id: str, text: str) -> str:
-            await director.memorize(npc_id, text)
-            return f"Memorized to {npc_id}: {text}"
-
-        return [order_npc, snap_npc, memorize_npc]
+        return make_tools(self.director)
 
     async def run(self, task: str) -> str:
         """Run a coding task through the AutoGen team."""

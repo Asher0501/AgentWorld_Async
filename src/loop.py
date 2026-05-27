@@ -387,18 +387,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                     # No target or can't find — direct enqueue (for controlled NPC with file_output etc.)
                     al._pending_action = (decision, None)
                     al._action_complete_at = time.time()
-            elif target_name and action_text:
-                # Deprecated path — now handled by the if action_text: block above
-                pass
-                target = interaction.find_entity_at(
-                    agent.zone, agent.pos, action_text, world.entities,
-                    exclude_id=agent.id)
-                if target and not interaction.can_interact(agent, target):
-                    agent.move_to(list(target.pos))
-                    agent.last_action_time = world.clock.now()
-                    systems["sensory"].update(agent, world.entities, world,
-                                               channel_configs=labels.get("sensory_prompts"))
-
             snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
                        cfg.thresholds, cfg.coin_epsilon)
             await asyncio.sleep(0)

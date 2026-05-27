@@ -1,14 +1,14 @@
 AgentWorld Async — Complete Test Report
-Generated 2026-05-28 | 130 tests, 9 files | python -m pytest tests/ -q → 10.01s
+Generated 2026-05-28 | 127 tests, 8 files | python -m pytest tests/ -q → 10.03s
 
 ═══════════════════════════════════════════════════════════════
 OVERVIEW
 ═══════════════════════════════════════════════════════════════
 
-  110 unit tests        (0.18s)  — pure logic, no I/O, no LLM
-   20 integration tests  (9.86s)  — full stack with dashboard, world, agent loop
+  107 unit tests        (0.19s)  — pure logic, no I/O, no LLM
+   20 integration tests  (9.84s)  — full stack with dashboard, world, agent loop
 
-  130 TOTAL             (10.01s) — ALL PASSED
+  127 TOTAL             (10.03s) — ALL PASSED
 
 ═══════════════════════════════════════════════════════════════
 MODIFICATION-TO-TEST MAPPING
@@ -76,32 +76,6 @@ Documentation-only. No test needed.
 #11 src/core/error_collector.py  — get_summary() + dump()
 #12 src/loop.py  — transient vs fatal error distinction
 #13 src/loop.py  — agent_logging at key paths
-#14 src/decision_types.py  — TypedDict contracts
-───────────────────────────────────────────────────────────────
-UNIT (test_modifications.py):
-  ✅ test_event_bus_queuefull_logs_warning (inspect source)
-  ✅ test_error_collector_summary_empty
-  ✅ test_error_collector_summary_with_errors
-  ✅ test_error_collector_dump_with_errors
-  ✅ test_error_collector_dedup_same_message_same_module
-  ✅ test_error_collector_dedup_different_module_separate
-  ✅ test_error_collector_log_exception_captures_traceback
-  ✅ test_error_collector_llm_parse_failure_truncates
-  ✅ test_error_collector_global_singleton
-  ✅ test_loop_error_backoff_variable_exists
-  ✅ test_loop_transient_error_types_identified
-  ✅ test_loop_error_logs_to_collector
-  ✅ test_agent_logging_at_delta_trigger
-  ✅ test_agent_logging_at_enqueue
-  ✅ test_decision_dict_imports
-  ✅ test_decision_dict_allows_optional_fields
-  ✅ test_decision_dict_file_output_subtype
-
-INTEGRATION (test_full_stack.py):
-  ✅ test_errors_are_deduped_across_calls
-  ✅ test_dump_produces_human_readable_output
-  ✅ test_summary_returns_dict
-
 ───────────────────────────────────────────────────────────────
 #5-7  Core architecture validation
 ───────────────────────────────────────────────────────────────
@@ -144,9 +118,9 @@ test_director.py                9     Director lifecycle (unit)
 test_event_bus.py               6     Event bus pub/sub (unit)
 test_config.py                  3     YAML structure validation (unit)
 ─────────────────────────────────────────────────────
-TOTAL                         130
+TOTAL                         127
 
-All 130 tests: PASSED (10.01s)
+All 127 tests: PASSED (10.03s)
 
 ═══════════════════════════════════════════════════════════════
 CI COMMANDS

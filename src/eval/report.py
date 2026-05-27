@@ -76,16 +76,6 @@ class EvalReport:
         lines.append("═" * 66)
         return "\n".join(lines)
 
-    def summary(self) -> str:
-        """One-line high-level summary."""
-        parts = [f"{self.n_actions} actions, {self.n_agents} agents"]
-        for name, r in self.results.items():
-            val = r.get("value", {})
-            if isinstance(val, dict) and "summary" in val:
-                parts.append(f"{name}={val['summary']}")
-        return " | ".join(parts)
-
-
 def _fmt_value(val, indent: str = "  ") -> str:
     if isinstance(val, dict):
         lines = []
