@@ -14,12 +14,6 @@
 
 ---
 
-<p align="center">
-  <img src="img/architecture.png?v=2" alt="Architecture" width="100%">
-</p>
-
----
-
 # 中文版
 
 ## 五个核心思想
@@ -53,12 +47,6 @@ Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用
 
 ## vs. Generative Agents
 
-<p align="center">
-  <img src="img/slot_vs_ga.png?v=2" alt="SVA vs GA" width="100%">
-</p>
-
----
-
 ## 实证 (v12, 7 Agents, 180s, Friends)
 
 | 指标 | 数值 |
@@ -83,7 +71,6 @@ python main.py --runtime 180 --validate
 python main.py --output trace.json
 python main.py --eval-report trace.json
 python main.py --api-port 8765
-python main.py --world config/world_spiderman.yaml
 ```
 
 ---

@@ -4,6 +4,7 @@ __pycache__/
 .env
 data/
 bak/
+img/
 .DS_Store
 *.swp
 *.swo
