@@ -1,15 +1,21 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square">
   <img src="https://img.shields.io/badge/async-asyncio-purple?style=flat-square">
-  <img src="https://img.shields.io/badge/LLM-DeepSeek%20|%20MiniMax-green?style=flat-square">
-  <img src="https://img.shields.io/badge/architecture-v12-ff6b35?style=flat-square">
+  <img src="https://img.shields.io/badge/LLM-DeepSeek%20%7C%20MiniMax-green?style=flat-square">
+  <img src="https://img.shields.io/badge/tests-127-brightgreen?style=flat-square">
   <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square">
 </p>
 
 <h1 align="center">AgentWorld Async</h1>
 
 <p align="center">
-  <b>引擎提供事实。LLM 提供认知。<br/>世界不变，Agent 不动。</b>
+  <b>Engine provides facts. LLM provides cognition.<br/>World unchanged, Agent unmoved.</b>
+</p>
+
+---
+
+<p align="center">
+  <img src="img/architecture.png" alt="Architecture" width="100%">
 </p>
 
 ---
@@ -37,15 +43,42 @@ Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用
 
 ### 4. Per-Agent Traits + 战术意图反馈
 
-行为倾向是声明式 trait 模板——`persistent`（坚持）、`novelty_seeking`（喜新）、`conversational_patience`（对话耐心）等——通过 YAML 矩阵 per-agent 分配。引擎追踪上轮意图、重复次数、对话不对称性，只报告事实。Ross 看到"第 8 轮追 Rachel"，由自己的 `persistent` trait 决定继续还是收手。消融实验 = 改一行 YAML。
+行为倾向是声明式 trait 模板——`persistent`（坚持）、`novelty_seeking`（喜新）、`conversational_patience`（对话耐心）等——通过 YAML 矩阵 per-agent 分配。引擎追踪上轮意图、重复次数、对话不对称性，只报告事实。消融实验 = 改一行 YAML。
 
 ### 5. 世界观即配置
 
-换世界 = 换 YAML 文件。同一引擎驱动猎魔人酒馆、老友记咖啡厅、蜘蛛侠纽约。属性名相同 → prompts.yaml 一字不改。Gateway REST/WebSocket 接口——外部 agent 通过 `join/perceive/act` 与自主 agent 共享同一决策通道。
+换世界 = 换 YAML 文件。同一引擎驱动猎魔人酒馆、老友记咖啡厅。属性名相同 → prompts.yaml 一字不改。Gateway REST/WebSocket 接口——外部 agent 通过 `join/perceive/act` 与自主 agent 共享同一决策通道。
 
 ---
 
 ## vs. Generative Agents
+
+<p align="center">
+  <img src="img/slot_vs_ga.png" alt="SVA vs GA" width="100%">
+</p>
+
+---
+
+## 架构概览
+
+```
+main.py  (CLI entry)
+  |
+  +-- Core / World   — entities, zones, spatial grid, clock, lifecycle
+  +-- Agent Loop     — sense -> delta gate -> decide -> act -> flush
+  +-- Systems        — sensory (proximity ears/eyes), interaction (NPC<->NPC), decay
+  +-- LLM + Prompts  — client (retry/backoff), concurrency gate, 14-slot assembler
+  +-- Agent State    — agent layer, drives, memory, sensory memory, P/Q state
+  +-- Event Bus      — async WS broadcast, history replay, register/unregister
+  +-- Director       — freeze/take/order/set for external agent control
+  +-- Gateway        — REST/WS API (join/perceive/act) for external agents
+  +-- Dashboard      — live WebSocket monitor (:8766)
+  +-- Visual         — pixel map frontend (:8767)
+  +-- AutoGenSim     — AutoGen team driving NPCs via Director
+  +-- Eval           — 18 metrics, 5 categories, trace analysis
+```
+
+---
 
 ## 实证 (v12, 7 Agents, 180s, Friends)
 
@@ -54,10 +87,10 @@ Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用
 | 总行动 | **206** |
 | 对话率 | **99%** (204/206) |
 | 线程完成率 | **53%** (16/30) |
-| 区域跨越 | **14 次** (6 agents) |
+| 区域跨越 | **14** (6 agents) |
 | NPC↔NPC 率 | **89%** |
 | 心情改善 | **7/7** (+17.7) |
-| 零空转 | 0% null actions |
+| Token 优化 | **-67%** |
 
 ---
 
@@ -67,10 +100,10 @@ Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用
 pip install -r requirements.txt
 python main.py --validate-config
 python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate
-python main.py --output trace.json
+python main.py --runtime 180 --validate --output trace.json
 python main.py --eval-report trace.json
-python main.py --api-port 8765
+python main.py --api-port 8765 --dashboard 8766 --visual 8767
+python -m pytest tests/ -q    # 127 tests, ~10s
 ```
 
 ---
@@ -80,12 +113,12 @@ python main.py --api-port 8765
 | Ver | 里程碑 |
 |-----|--------|
 | **v12** | 三层 slot 组 · slot_groups 矩阵 · per-agent traits · intent_context · token -67% |
-| **v11** | target_name 精确匹配 · Director Phase 0 · Gateway API · 18 指标 |
-| **v10** | 多世界热切换 · error_collector |
+| **v11** | target_name 精确匹配 · Director · Gateway API · 127 测试 |
+| **v10** | 多世界热切换 · error_collector · agent_logging |
 | **v9** | update_entity() · target_changes · SessionManager |
-| **v8** | Per-attr drive · Gate crossing |
+| **v8** | Per-attr drive · Gate crossing · transient error backoff |
 | **v7** | 三通道感官 · P/Q dict copy fix |
-| **v6** | Slot vector · -364 行死代码 |
+| **v6** | Slot vector · 死代码清理 |
 | **v5** | Layer.observe() · 校验 |
 | **v4** | P/Q delta gate + write lock |
 
@@ -114,13 +147,32 @@ Agent maintains internal world model P, compares to sensory input Q each tick. P
 
 ### 4. Per-Agent Traits + Tactical Intent Feedback
 
-Behavioral tendencies are declarative trait templates — `persistent`, `novelty_seeking`, `conversational_patience` — assigned per-agent via YAML matrix. Engine tracks prior intent, repetition count, conversation asymmetry. Reports facts only. Ross sees "attempt 8 inviting Rachel" and decides via his `persistent` trait. Ablation = one YAML line change.
+Behavioral tendencies are declarative trait templates — `persistent`, `novelty_seeking`, `conversational_patience` — assigned per-agent via YAML matrix. Engine tracks prior intent, repetition count, conversation asymmetry. Reports facts only. Ablation = one YAML line change.
 
 ### 5. Worlds Are Config Files
 
-Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Friends coffee shop, Spider-Man NYC. Shared attribute names → zero prompt changes. Gateway REST/WebSocket API — external agents use same `join/perceive/act` protocol as autonomous agents.
+Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Friends coffee shop. Shared attribute names → zero prompt changes. Gateway REST/WebSocket API — external agents use same `join/perceive/act` protocol as autonomous agents.
 
 ---
+
+## Architecture
+
+```
+main.py  (CLI entry)
+  |
+  +-- Core / World   — entities, zones, spatial grid, clock, lifecycle
+  +-- Agent Loop     — sense -> delta gate -> decide -> act -> flush
+  +-- Systems        — sensory (proximity ears/eyes), interaction (NPC<->NPC), decay
+  +-- LLM + Prompts  — client (retry/backoff), concurrency gate, 14-slot assembler
+  +-- Agent State    — agent layer, drives, memory, sensory memory, P/Q state
+  +-- Event Bus      — async WS broadcast, history replay, register/unregister
+  +-- Director       — freeze/take/order/set for external agent control
+  +-- Gateway        — REST/WS API (join/perceive/act) for external agents
+  +-- Dashboard      — live WebSocket monitor (:8766)
+  +-- Visual         — pixel map frontend (:8767)
+  +-- AutoGenSim     — AutoGen team driving NPCs via Director
+  +-- Eval           — 18 metrics, 5 categories, trace analysis
+```
 
 ## Quick Start
 
@@ -128,10 +180,10 @@ Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Frien
 pip install -r requirements.txt
 python main.py --validate-config
 python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate
-python main.py --output trace.json
+python main.py --runtime 180 --validate --output trace.json
 python main.py --eval-report trace.json
-python main.py --api-port 8765
+python main.py --api-port 8765 --dashboard 8766 --visual 8767
+python -m pytest tests/ -q    # 127 tests, ~10s
 ```
 
 ---

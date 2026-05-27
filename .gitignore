@@ -4,7 +4,7 @@ __pycache__/
 .env
 data/
 bak/
-img/
+make_images.py
 .DS_Store
 *.swp
 *.swo
