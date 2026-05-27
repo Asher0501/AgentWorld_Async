@@ -47,3 +47,27 @@ def minimal_world(minimal_world_cfg):
         "decay": DecaySystem(),
     })
     return world
+
+
+@pytest.fixture
+def empty_world():
+    """World with no entities — clean slate for spawn/despawn tests."""
+    from core.world import World
+    from systems.sensory import SensorySystem
+    from systems.interaction import InteractionSystem
+    from systems.decay import DecaySystem
+
+    class _StubLLM:
+        def __init__(self): pass
+        async def chat(self, **kw): return "{}"
+
+    cfg = {
+        "world": {"name": "empty", "start_time": "08:00", "time_scale": 60},
+        "zones": [{"id": "main", "width": 50, "height": 50}],
+        "entities": [],
+    }
+    return World(cfg, {
+        "sensory": SensorySystem(),
+        "interaction": InteractionSystem(_StubLLM(), None),
+        "decay": DecaySystem(),
+    })

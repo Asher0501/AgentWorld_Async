@@ -1,29 +1,5 @@
-"""Unit tests for World — entity CRUD. Uses minimal_world fixture from conftest."""
+"""Unit tests for World — entity CRUD. Uses minimal_world/empty_world fixtures from conftest."""
 import pytest
-from core.world import World
-from systems.sensory import SensorySystem
-from systems.interaction import InteractionSystem
-from systems.decay import DecaySystem
-
-
-class _StubLLM:
-    def __init__(self): pass
-    async def chat(self, **kw): return "{}"
-
-
-@pytest.fixture
-def empty_world():
-    """World with no entities — clean slate for spawn tests."""
-    cfg = {
-        "world": {"name": "empty", "start_time": "08:00", "time_scale": 60},
-        "zones": [{"id": "main", "width": 50, "height": 50}],
-        "entities": [],
-    }
-    return World(cfg, {
-        "sensory": SensorySystem(),
-        "interaction": InteractionSystem(_StubLLM(), None),
-        "decay": DecaySystem(),
-    })
 
 
 # ── Entity presence ──
