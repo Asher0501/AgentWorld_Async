@@ -14,4 +14,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements.txt
-      - run: python -m pytest tests/unit/ -v --tb=long
+      - run: python -c "import sys;sys.path.insert(0,'src');from channel import ChannelCollector;print('imports OK')"
+      - run: python -m pytest tests/unit/ -v --tb=short
