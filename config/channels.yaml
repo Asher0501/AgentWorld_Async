@@ -1,0 +1,36 @@
+# Channel definitions for ctx collection.
+# Each channel specifies a data source and which ctx keys to collect.
+# Sources: agent_layer, world, drives, sensory, memory, traits, delta_gate
+#
+# To add/remove a field: edit the fields list.
+# To add a new channel: add a new entry with source + fields.
+# To change activation order: reorder the channels list.
+#
+# condition = which ctx key must be non-empty for the Assembler slot to render.
+# (condition is defined in prompts.yaml slots, not here)
+
+channels:
+  - source: agent_layer
+    fields: [personality, name, main_thread, conversation_text, item_narrative]
+
+  - source: agent_layer
+    fields: [last_intent, last_target, last_expects_reply,
+             conversation_since_last_action, drive_delta_since_last_action]
+
+  - source: world
+    fields: [zone_name, zone_width, zone_height, pos_x, pos_y, gate_text]
+
+  - source: drives
+    fields: [drives_table, drive_min, drive_max]
+
+  - source: sensory
+    fields: [sensory_text]
+
+  - source: memory
+    fields: [memory_text]
+
+  - source: traits
+    fields: [traits_text]
+
+  - source: delta_gate
+    fields: [delta_text]

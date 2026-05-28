@@ -68,13 +68,13 @@ slots:
     template: |
       ## 状态
       {drives_table}
-      {state_description}
 
   drive_context:
-    condition: drive_boundaries
+    condition: drive_min
     template: |
       ## 边界参考
-      {drive_boundaries}
+      最小值: {drive_min}
+      最大值: {drive_max}
 
   spatial_context:
     condition: zone_name
@@ -108,6 +108,7 @@ slots:
       ## 上一轮
       你打算: {last_intent}
       对象: {last_target}
+      期待回复: {last_expects_reply}
       之后:
       {conversation_since_last_action}
       变化: {drive_delta_since_last_action}

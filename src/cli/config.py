@@ -55,9 +55,19 @@ def load_config(world_path: str | None = None):
     from prompt.loader import PromptLoader
     from prompt.assembler import PromptAssembler
     loader = PromptLoader(os.path.join(base_dir, "config/prompts.yaml"))
-    assembler = PromptAssembler(loader)
     labels = loader.data.get("text_labels", {})
     labels["sensory_prompts"] = loader.data.get("sensory_prompts", {})
+    # load channel definitions
+    from channel import ChannelCollector
+    channels_path = os.path.join(base_dir, "config/channels.yaml")
+    channels_def = []
+    try:
+        with open(channels_path) as f:
+            channels_def = yaml.safe_load(f).get("channels", [])
+    except (FileNotFoundError, KeyError):
+        pass
+    channel = ChannelCollector(channels_def, labels)
+    assembler = PromptAssembler(loader, channel=channel)
     return {"world": wc, "llm_clients": llm_clients, "llm_config": lc,
             "assembler": assembler, "labels": labels,
             "default_provider": default_provider,

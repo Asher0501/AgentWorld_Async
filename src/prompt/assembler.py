@@ -15,8 +15,9 @@ def safe_format(template: str, ctx: dict) -> str:
 
 
 class PromptAssembler:
-    def __init__(self, loader):
+    def __init__(self, loader, channel=None):
         self.loader = loader
+        self.channel = channel
 
     def assemble(self, template_name: str, ctx: dict, slot_mask: dict = None) -> str:
         tpl = self.loader.get_template(template_name)

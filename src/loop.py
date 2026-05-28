@@ -57,122 +57,15 @@ def _make_trace(agent_name, target_name, target_id, action_text,
     return trace
 
 
-def _build_sensory_text(sensory, labels: dict) -> str:
-    """Render all sensory channels from YAML sensory_prompts template."""
-    sp = labels.get("sensory_prompts", {})
-    parts = [t for ch, cfg in sp.items() if (t := sensory.to_prompt(ch, cfg))]
-    return "\n\n".join(parts)
-
-
-def _build_decision_ctx(agent, al, world, sensory, labels, cfg, delta_text) -> dict:
-    """Construct the LLM decision context dict."""
-    ctx = {
-        "main_thread": al.main_thread,
-        "name": agent.name, "personality": al.personality,
-        "drives_table": al.drives.to_prompt(),
-        "zone_name": world.zones.get(agent.zone, {}).get("name", ""),
-        "zone_width": world.zones.get(agent.zone, {}).get("width", 10),
-        "zone_height": world.zones.get(agent.zone, {}).get("height", 10),
-        "pos_x": agent.pos[0], "pos_y": agent.pos[1],
-        "sensory_text": _build_sensory_text(sensory, labels),
-        "memory_text": al.memory.to_prompt_text(cfg.memory_prompt_count, labels),
-        "delta_text": delta_text,
-        "state_description": _build_state_text(al),
-        "conversation_text": _build_conversation_text(al),
-        "item_narrative": al._pending_narrative,
-        "gate_text": _build_gate_text(agent, world),
-    }
-    al._pending_narrative = ""
+def _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text) -> dict:
+    """Collect all ctx fields from channel sources. No formatting, no judgment."""
+    ctx = {}
+    channel = assembler.channel
+    channel.collect(ctx,
+                    agent=agent, al=al, world=world,
+                    sensory=sensory, cfg=cfg,
+                    delta_text=delta_text, loader=assembler.loader)
     return ctx
-
-
-def _build_gate_text(agent, world) -> str:
-    """Report nearby gate entities as pure fact — no judgment about crossing."""
-    zone_entities = [e for e in world.entities.values() if e.zone == agent.zone]
-    gates = []
-    for e in zone_entities:
-        inter = e.get("interaction") if e.has("interaction") else None
-        if inter and inter.gate:
-            dist = agent.distance_to(e)
-            to_zone_name = world.zones.get(inter.gate.get("to_zone", ""), {}).get("name", "")
-            gates.append(f"{e.name} ({dist}格) → {to_zone_name}")
-    return "\n".join(gates) if gates else ""
-
-
-def _build_state_text(al) -> str:
-    """Render factual state description from agent memory and conversation tracking.
-    Pure facts — no cognitive judgment. Engine says what happened, not what to do.
-    """
-    parts = []
-    latest = al.memory.latest()
-    if latest:
-        parts.append(latest.get("text", ""))
-    if al._last_target_name:
-        line = f"上一轮你与{al._last_target_name}交谈"
-        if al._last_expects_reply:
-            line += "，你当时期待对方回应"
-        parts.append(line)
-    return "；".join(parts) if parts else ""
-
-
-def _build_conversation_text(al) -> str:
-    """Render recent conversation as bare facts — who said what.
-    Engine reports dialogue, LLM judges relevance.
-    """
-    buf = al._conversation_buffer[-5:]  # most recent 5 utterances
-    if not buf:
-        return ""
-    lines = []
-    for e in buf:
-        ts = int(time.time() - e["ts"])
-        lines.append(f"[{ts}s前] {e['speaker']}: {e['text']}")
-    return "\n".join(lines)
-
-
-def _build_traits_text(al, loader) -> str:
-    """Render trait templates selected for this agent."""
-    all_traits = loader.data.get("traits", {})
-    parts = []
-    for t in al.traits:
-        if t in all_traits:
-            parts.append(all_traits[t]["template"])
-    return "\n\n".join(parts)
-
-
-def _build_intent_context(al) -> dict:
-    """Build intent feedback ctx — engine reports facts, LLM judges outcome."""
-    if not al._last_intent:
-        return {}
-    since = [e for e in al._conversation_buffer if e["ts"] > al._last_action_ts]
-    conv_lines = [f"- {e['speaker']}: {e['text']}" for e in since[-5:] if e.get("text")]
-    drives_now = al.drives.attrs
-    old = al._last_action_drives
-    delta_lines = []
-    for k in sorted(set(old) | set(drives_now)):
-        d = round(float(drives_now.get(k, 0)) - float(old.get(k, 0)), 1)
-        if d != 0:
-            dir_sym = "↑" if d > 0 else "↓"
-            delta_lines.append(f"- {k} {dir_sym}{abs(d)}")
-    return {
-        "last_intent": al._last_intent,
-        "last_target": al._last_intent_target,
-        "conversation_since_last_action": "\n".join(conv_lines) or "（无新对话）",
-        "drive_delta_since_last_action": "\n".join(delta_lines) or "（无变化）",
-    }
-
-
-def _build_drive_boundaries_text(attr_cfg: dict) -> str:
-    """Render drive boundary values only (0 and 100) as factual reference."""
-    lines = []
-    for attr, cfg in sorted(attr_cfg.items()):
-        desc = cfg.get("description", "")
-        lo = desc.split("0=", 1)[-1].split("。")[0].split("，")[0] if "0=" in desc else ""
-        hi = desc.split("100=", 1)[-1].split("。")[0].split("，")[0] if "100=" in desc else ""
-        parts = [f"{attr}: {lo}"] if lo else [attr]
-        if hi:
-            parts.append(f"100={hi}")
-        lines.append(" → ".join(parts) if len(parts) > 1 else parts[0])
-    return "\n".join(lines)
 
 
 # ── main loop ──
@@ -220,7 +113,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                         al._last_target_name = target.name
                         al._last_expects_reply = bool(enqueued_decision.get("expects_reply"))
                         al._last_intent = enqueued_decision.get("intent", "")
-                        al._last_intent_target = target.name
                         al._last_action_ts = time.time()
                         al._last_action_drives = {k: round(float(v), 1) for k, v in drives.attrs.items()}
                         if dashboard_emit:
@@ -279,11 +171,11 @@ async def run_agent(agent, world, brain, assembler, systems,
             systems["sensory"].update(agent, world.entities, world,
                                        channel_configs=labels.get("sensory_prompts"))
             sensory = al.sensory
+            zone_entities = [e for e in world.entities.values() if e.zone == agent.zone]
             if dashboard_emit:
                 vis = sensory.channels.get("visual", {})
                 aud = sensory.channels.get("auditory", {})
                 zone_def = world.zones.get(agent.zone, {})
-                zone_entities = [e for e in world.entities.values() if e.zone == agent.zone]
                 entity_list = []
                 for e in zone_entities:
                     etype = "agent" if e.has("agent") else "gate" if e.get("interaction") and e.get("interaction").gate else "item"
@@ -359,11 +251,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                 await asyncio.sleep(cfg.poll_interval)
                 continue
 
-            ctx = _build_decision_ctx(agent, al, world, sensory, labels, cfg, delta_text)
-            # Inject slot-group-controlled context (not in base builder)
-            ctx["traits_text"] = _build_traits_text(al, assembler.loader)
-            ctx["drive_boundaries"] = _build_drive_boundaries_text(al.drives.attr_cfg)
-            ctx.update(_build_intent_context(al))
+            ctx = _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text)
             prompt1 = assembler.assemble("agent_decision", ctx) if trace_fn else None
 
             decision = await brain.decide(ctx, template_name=al.template or "agent_decision",

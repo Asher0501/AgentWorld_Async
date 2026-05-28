@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square">
   <img src="https://img.shields.io/badge/async-asyncio-purple?style=flat-square">
   <img src="https://img.shields.io/badge/LLM-DeepSeek%20%7C%20MiniMax-green?style=flat-square">
-  <img src="https://img.shields.io/badge/tests-127-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/tests-159-brightgreen?style=flat-square">
   <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square">
 </p>
 
@@ -14,9 +14,50 @@
 
 ---
 
-<p align="center">
-  <img src="img/architecture.png" alt="Architecture" width="100%">
-</p>
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             main.py  (CLI Entry)                            │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                    ┌──────────────┼──────────────┐
+                    ▼              ▼              ▼
+           ┌──────────────┐ ┌─────────────┐ ┌──────────────┐
+           │  Core/World  │ │ Agent Loop  │ │ LLM+Prompts  │
+           │              │ │ (loop.py)   │ │              │
+           │ World/Entity │ │ Sense       │ │ LLMClient    │
+           │ SpatialGrid  │ │   |         │ │ Concur.Gate  │
+           │ Clock        │▶│ Delta Gate  │▶│ Assembler    │
+           │ Lifecycle    │ │   |         │ │ 14-Slot      │
+           │ Director     │ │ Decide(LLM) │ │ safe_format  │
+           │ Session      │ │   |         │ └──────────────┘
+           └──────────────┘ │ Act         │
+                            │   |         │ ┌──────────────┐
+           ┌──────────────┐ │ Flush       │ │ Agent State  │
+           │   Systems    │ │             │ │ (layers/)    │
+           │ Sensory      │▶│ P/Q State   │▶│ AgentLayer   │
+           │ Interaction  │ │ Write Lock  │ │ Drives       │
+           │ Decay        │ │ err_backoff │ │ Memory(10)   │
+           └──────────────┘ └─────────────┘ │ SensoryMem   │
+                                            └──────────────┘
+     ┌────────────┬──────────────┐
+     ▼            ▼              ▼
+┌──────────┐ ┌──────────┐ ┌──────────────┐    ┌─────────────────┐
+│Event Bus │ │ Director │ │ Error+Logger │    │  Channel System │
+│register  │ │freeze    │ │ logger/      │    │  (config YAML)  │
+│emit WS   │ │take      │ │ 6 hooks      │    │                 │
+│history   │ │order     │ │ SQLite       │    │ agent_layer     │
+│unregister│ │snap      │ │ dedup/dump   │    │ world  drives   │
+└──────────┘ └──────────┘ └──────────────┘    │ sensory memory  │
+     │                                        │ traits delta    │
+  ┌──┴───────┐                                 │ collect(ctx) →  │
+  ▼          ▼                                 └─────────────────┘
+┌──────┐ ┌──────┐ ┌──────────────┐
+│Dash. │ │Visual│ │ Gateway API  │ ┌──────────────┐ ┌───────────┐
+│:8766 │ │:8767 │ │ join/perceive│ │   AutoGenSim │ │   Eval    │
+│ WS   │ │PixiJS│ │ act/leave    │ │   team<>NPC  │ │ 18 metrics│
+│监控  │ │像素  │ │ REST+WS      │ │   Director   │ │ 5 cats    │
+└──────┘ └──────┘ └──────────────┘ └──────────────┘ └───────────┘
+```
 
 ---
 
@@ -41,9 +82,23 @@ Generative Agents 的 730 行认知代码 → 14 个 YAML slot + 45 行字符串
 
 Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用。P≠Q → 触发决策。四通道并行 diff。发呆不花钱。Token 节省 2/3。
 
-### 4. Per-Agent Traits + 战术意图反馈
+### 4. Channel-Driven Architecture
 
-行为倾向是声明式 trait 模板——`persistent`（坚持）、`novelty_seeking`（喜新）、`conversational_patience`（对话耐心）等——通过 YAML 矩阵 per-agent 分配。引擎追踪上轮意图、重复次数、对话不对称性，只报告事实。消融实验 = 改一行 YAML。
+**loop.py 不做格式化。** ctx dict 的每个 key 由 YAML 定义的 channel 驱动。8 个 channel 对应 7 个数据源——loop.py 只管 `channel.collect(ctx)`，不格式化、不命名、不解释。
+
+```
+config/channels.yaml         src/channel.py              ctx dict
+───────────────────          ─────────────               ───────
+- source: agent_layer  →  AgentLayerSource.collect()  → personality, main_thread
+- source: world        →  WorldSource.collect()       → zone_name, pos_x, gate_text
+- source: drives       →  DriveSource.collect()       → drives_table, drive_min/max
+- source: sensory      →  SensorySource.collect()     → sensory_text
+- source: memory       →  MemorySource.collect()      → memory_text
+- source: traits       →  TraitsSource.collect()      → traits_text
+- source: delta_gate   →  DeltaGateSource.collect()   → delta_text
+```
+
+**新增 channel = YAML 加 3 行。零 Python change。**
 
 ### 5. 世界观即配置
 
@@ -53,29 +108,17 @@ Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用
 
 ## vs. Generative Agents
 
-<p align="center">
-  <img src="img/slot_vs_ga.png" alt="SVA vs GA" width="100%">
-</p>
-
----
-
-## 架构概览
-
 ```
-main.py  (CLI entry)
-  |
-  +-- Core / World   — entities, zones, spatial grid, clock, lifecycle
-  +-- Agent Loop     — sense -> delta gate -> decide -> act -> flush
-  +-- Systems        — sensory (proximity ears/eyes), interaction (NPC<->NPC), decay
-  +-- LLM + Prompts  — client (retry/backoff), concurrency gate, 14-slot assembler
-  +-- Agent State    — agent layer, drives, memory, sensory memory, P/Q state
-  +-- Event Bus      — async WS broadcast, history replay, register/unregister
-  +-- Director       — freeze/take/order/set for external agent control
-  +-- Gateway        — REST/WS API (join/perceive/act) for external agents
-  +-- Dashboard      — live WebSocket monitor (:8766)
-  +-- Visual         — pixel map frontend (:8767)
-  +-- AutoGenSim     — AutoGen team driving NPCs via Director
-  +-- Eval           — 18 metrics, 5 categories, trace analysis
+                         SVA (AgentWorld)              Generative Agents
+                         ────────────────              ──────────────────
+  Cognitive Code         45 lines Python               730 lines Python
+  LLM Triggers           Change-detected (P/Q gate)    Every tick
+  Token Usage            -67%                          Baseline (1x)
+  New Behavior           Add 1 YAML channel            Rewrite Python functions
+  World Swap             1 YAML file                   Rewrite code
+  Tests                  159 automated                 Manual only
+  External Control       Director freeze/take/order    None
+  Observability          Logger (6 hooks, SQLite)      None
 ```
 
 ---
@@ -84,12 +127,10 @@ main.py  (CLI entry)
 
 | 指标 | 数值 |
 |------|------|
-| 总行动 | **206** |
-| 对话率 | **99%** (204/206) |
-| 线程完成率 | **53%** (16/30) |
-| 区域跨越 | **14** (6 agents) |
-| NPC↔NPC 率 | **89%** |
-| 心情改善 | **7/7** (+17.7) |
+| 总行动 | **142** |
+| 对话率 | **100%** (142/142) |
+| NPC↔NPC 率 | **100%** |
+| 行动多样性 | **92%+** |
 | Token 优化 | **-67%** |
 
 ---
@@ -100,10 +141,9 @@ main.py  (CLI entry)
 pip install -r requirements.txt
 python main.py --validate-config
 python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate --output trace.json
-python main.py --eval-report trace.json
-python main.py --api-port 8765 --dashboard 8766 --visual 8767
-python -m pytest tests/ -q    # 127 tests, ~10s
+python main.py --runtime 180 --validate --output data/traces/trace.json
+python main.py --eval-report data/traces/trace.json
+python -m pytest tests/ -q     # 159 tests, ~10s
 ```
 
 ---
@@ -112,15 +152,10 @@ python -m pytest tests/ -q    # 127 tests, ~10s
 
 | Ver | 里程碑 |
 |-----|--------|
-| **v12** | 三层 slot 组 · slot_groups 矩阵 · per-agent traits · intent_context · token -67% |
-| **v11** | target_name 精确匹配 · Director · Gateway API · 127 测试 |
-| **v10** | 多世界热切换 · error_collector · agent_logging |
-| **v9** | update_entity() · target_changes · SessionManager |
-| **v8** | Per-attr drive · Gate crossing · transient error backoff |
-| **v7** | 三通道感官 · P/Q dict copy fix |
-| **v6** | Slot vector · 死代码清理 |
-| **v5** | Layer.observe() · 校验 |
-| **v4** | P/Q delta gate + write lock |
+| **v13** | Channel-driven architecture · Logger 6-hook · 删除 error_collector |
+| **v12** | 三层 slot 组 · slot_groups 矩阵 · per-agent traits · intent_context |
+| **v11** | target_name 精确匹配 · Director · Gateway API · 159 测试 |
+| **v10-v4** | 多世界热切换 · drive · gate crossing · sensory · P/Q gate |
 
 ---
 
@@ -134,45 +169,21 @@ The engine prescribes nothing. It reports `mood=5`, gate exists, `target_name` m
 
 ### 2. Declarative Cognitive Architecture — 14 Slots, 3 Layers
 
-Generative Agents' 730 lines of cognitive Python → 14 YAML slots + 45-line string formatter. Three layers:
-- **Contract** — output rules (`action_scope` / `output_contract`)
-- **World** — environmental facts (`delta_gate` / `spatial` / `sensory` / `gate_highlight`)
-- **NPC** — agent drivers (`persona` / `main_thread` / `drive_values` / `drive_context` / `memory` / `conversation` / `traits` / `intent_context`)
-
-`slot_groups.yaml` matrix controls per-agent slot activation. New cognition = one YAML line. Zero Python changes.
+Generative Agents' 730 lines of cognitive Python → 14 YAML slots + 45-line string formatter.
 
 ### 3. P/Q Delta Gate — No Change, No Thought
 
-Agent maintains internal world model P, compares to sensory input Q each tick. P=Q → zero LLM calls. P≠Q → agent decides. Four-channel parallel diff. Idle is free. Tokens reduced 67%.
+Agent maintains internal world model P, compares to sensory input Q each tick. P=Q → zero LLM calls.
 
-### 4. Per-Agent Traits + Tactical Intent Feedback
+### 4. Channel-Driven Architecture
 
-Behavioral tendencies are declarative trait templates — `persistent`, `novelty_seeking`, `conversational_patience` — assigned per-agent via YAML matrix. Engine tracks prior intent, repetition count, conversation asymmetry. Reports facts only. Ablation = one YAML line change.
+**loop.py does zero formatting.** Each ctx key is driven by a YAML-defined channel. 8 channels map to 7 data sources. loop.py only calls `channel.collect(ctx)` — no formatting, no naming, no interpretation. New channel = 3 lines of YAML.
 
 ### 5. Worlds Are Config Files
 
-Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Friends coffee shop. Shared attribute names → zero prompt changes. Gateway REST/WebSocket API — external agents use same `join/perceive/act` protocol as autonomous agents.
+Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Friends coffee shop.
 
 ---
-
-## Architecture
-
-```
-main.py  (CLI entry)
-  |
-  +-- Core / World   — entities, zones, spatial grid, clock, lifecycle
-  +-- Agent Loop     — sense -> delta gate -> decide -> act -> flush
-  +-- Systems        — sensory (proximity ears/eyes), interaction (NPC<->NPC), decay
-  +-- LLM + Prompts  — client (retry/backoff), concurrency gate, 14-slot assembler
-  +-- Agent State    — agent layer, drives, memory, sensory memory, P/Q state
-  +-- Event Bus      — async WS broadcast, history replay, register/unregister
-  +-- Director       — freeze/take/order/set for external agent control
-  +-- Gateway        — REST/WS API (join/perceive/act) for external agents
-  +-- Dashboard      — live WebSocket monitor (:8766)
-  +-- Visual         — pixel map frontend (:8767)
-  +-- AutoGenSim     — AutoGen team driving NPCs via Director
-  +-- Eval           — 18 metrics, 5 categories, trace analysis
-```
 
 ## Quick Start
 
@@ -180,10 +191,8 @@ main.py  (CLI entry)
 pip install -r requirements.txt
 python main.py --validate-config
 python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate --output trace.json
-python main.py --eval-report trace.json
-python main.py --api-port 8765 --dashboard 8766 --visual 8767
-python -m pytest tests/ -q    # 127 tests, ~10s
+python main.py --runtime 180 --validate --output data/traces/trace.json
+python -m pytest tests/ -q     # 159 tests, ~10s
 ```
 
 ---
