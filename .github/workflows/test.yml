@@ -15,4 +15,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e .
       - run: pip install pytest pytest-asyncio
-      - run: python -m pytest tests/unit/ -v --tb=short
+      - run: python -m pytest tests/unit/ -v --tb=long
