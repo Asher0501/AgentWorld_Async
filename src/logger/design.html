@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+  AgentWorld Async — Logger 模块设计文档
+  Asher · 2026
+  v1.0
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logger — 统一维测模块设计</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --card: #111827;
+    --card-alt: #1a2332;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #94a3b8;
+    --blue: #60a5fa;
+    --blue-bg: #172554;
+    --green: #4ade80;
+    --green-bg: #052e16;
+    --purple: #c084fc;
+    --purple-bg: #2e1065;
+    --amber: #fbbf24;
+    --amber-bg: #451a03;
+    --red: #f87171;
+    --red-bg: #450a0a;
+    --teal: #2dd4bf;
+    --teal-bg: #042f2e;
+    --pink: #f472b6;
+    --pink-bg: #500724;
+    --cyan: #22d3ee;
+    --cyan-bg: #083344;
+    --code-bg: #0f172a;
+    --callout-blue: #1e3a5f;
+    --callout-green: #064e3b;
+    --callout-amber: #78350f;
+    --callout-red: #7f1d1d;
+    --inline-code: #1e293b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.75 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  /* ── layout ── */
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+
+  /* ── hero ── */
+  .hero { text-align: center; padding: 48px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 44px; }
+  .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -1px; color: #fff; margin-bottom: 8px; }
+  .hero .sub { font-size: 16px; color: var(--dim); }
+  .hero .meta { margin-top: 16px; display: flex; gap: 12px; justify-content: center; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple); }
+
+  /* ── sections ── */
+  h2 { font-size: 24px; font-weight: 700; color: #fff; margin: 44px 0 16px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 18px; font-weight: 600; color: #d1d5db; margin: 28px 0 10px; }
+  p, li { color: var(--text); font-size: 14.5px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0 8px 20px; }
+  li { margin: 4px 0; }
+
+  /* ── cards ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; margin: 16px 0; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .card h4 { font-size: 15px; margin-bottom: 8px; }
+  .card p, .card li { font-size: 13.5px; color: var(--dim); }
+  .card-blue  { border-left: 3px solid var(--blue); }
+  .card-green  { border-left: 3px solid var(--green); }
+  .card-purple { border-left: 3px solid var(--purple); }
+  .card-amber  { border-left: 3px solid var(--amber); }
+  .card-teal   { border-left: 3px solid var(--teal); }
+  .card-pink   { border-left: 3px solid var(--pink); }
+  .card-red    { border-left: 3px solid var(--red); }
+
+  /* ── callouts ── */
+  .callout { padding: 14px 18px; border-radius: 6px; margin: 14px 0; font-size: 14px; }
+  .callout-blue  { background: var(--callout-blue); border-left: 3px solid var(--blue); }
+  .callout-green { background: var(--callout-green); border-left: 3px solid var(--green); }
+  .callout-amber { background: var(--callout-amber); border-left: 3px solid var(--amber); }
+  .callout-red   { background: var(--callout-red); border-left: 3px solid var(--red); }
+  .callout strong { font-weight: 700; }
+
+  /* ── code ── */
+  code { background: var(--inline-code); padding: 2px 6px; border-radius: 3px; font-size: 13px; font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace; color: var(--green); }
+  pre { background: var(--code-bg); padding: 16px 20px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 10px 0; border: 1px solid var(--border); }
+  pre code { background: none; padding: 0; display: block; }
+  .keyword { color: var(--purple); }
+  .string { color: var(--amber); }
+  .comment { color: var(--dim); }
+  .func { color: var(--blue); }
+
+  /* ── tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; border-radius: 6px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--card-alt); font-weight: 700; color: var(--blue); white-space: nowrap; }
+  tr:hover { background: var(--card); }
+  td:first-child, th:first-child { border-left: none; }
+
+  /* ── diagram ── */
+  .diagram { display: flex; justify-content: center; margin: 24px 0; }
+  .diagram svg { max-width: 100%; }
+
+  /* ── arch tree ── */
+  .arch-tree { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 16px 0; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; line-height: 1.9; white-space: pre; }
+  .arch-tree .hl { color: var(--blue); }
+  .arch-tree .gl { color: var(--green); }
+  .arch-tree .pl { color: var(--purple); }
+  .arch-tree .al { color: var(--amber); }
+  .arch-tree .tl { color: var(--teal); }
+  .arch-tree .dim { color: var(--dim); }
+
+  /* ── diff ── */
+  .diff-add { background: var(--green-bg); color: var(--green); }
+  .diff-rem { background: var(--red-bg); color: var(--red); }
+  .diff-hdr { color: var(--blue); }
+
+  /* ── flow ── */
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; font-size: 13px; }
+  .flow-box { padding: 8px 16px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
+  .flow-arrow { color: var(--dim); font-size: 16px; }
+
+  /* ── TOC ── */
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; }
+  .toc h4 { margin-bottom: 10px; color: var(--blue); font-size: 14px; }
+  .toc a { display: block; padding: 3px 0; color: var(--dim); text-decoration: none; font-size: 13.5px; transition: .15s; }
+  .toc a:hover { color: var(--green); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <h1>Logger — 统一维测模块</h1>
+  <p class="sub">6 个 hook · 3 张 SQLite 表 · 9 行引擎改动 · 零运行时开销 (默认关闭)</p>
+  <div class="meta">
+    <span class="badge badge-blue">被动观察</span>
+    <span class="badge badge-green">零认知判断</span>
+    <span class="badge badge-purple">即插即用</span>
+  </div>
+</div>
+
+<!-- ═══════════ TOC ═══════════ -->
+<div class="toc">
+<h4>目录</h4>
+<a href="#design">1. 设计原则</a>
+<a href="#arch">2. 模块架构</a>
+<a href="#hooks">3. 6 个 Hook 详解</a>
+<a href="#mechanism">4. Hook 机制原理</a>
+<a href="#dataflow">5. 数据流转</a>
+<a href="#replace">6. 统一替换清单</a>
+<a href="#diff">7. 引擎侧改动 (Diff)</a>
+<a href="#schema">8. SQLite 表结构</a>
+<a href="#usage">9. 使用示例</a>
+<a href="#perf">10. 性能分析</a>
+<a href="#summary">11. 总结</a>
+</div>
+
+<!-- ═══════════ DESIGN PRINCIPLES ═══════════ -->
+<h2 id="design">1. 设计原则</h2>
+
+<div class="card-grid">
+<div class="card card-blue">
+<h4 style="color:var(--blue)">零认知判断</h4>
+<p>引擎报告事实，LLM 提供认知，Logger 只记录。不计算"重复率够不够"、"情绪好不好"、"性能是否异常"——那都是 eval/ 的活。</p>
+</div>
+<div class="card card-green">
+<h4 style="color:var(--green)">被动观察者</h4>
+<p>Logger 不改变任何数据流。所有 hook 默认 no-op。引擎不知道 logger 在不在——也不应该知道。</p>
+</div>
+<div class="card card-purple">
+<h4 style="color:var(--purple)">一处定义，全局使用</h4>
+<p>6 个公开 hook 替代 3 个旧模块（agent_logging、error_collector、verification stdout）。统一入口 <code>log</code>，所有观测一个路径。</p>
+</div>
+<div class="card card-amber">
+<h4 style="color:var(--amber)">类宏开关</h4>
+<p><code>enable()</code> — 全开。<code>disable()</code> — 全关。<code>AW_LOG=path</code> — 环境变量激活。开关外侧代码零感知。</p>
+</div>
+</div>
+
+<div class="callout callout-blue">
+<strong>和设计哲学的关系：</strong>引擎提供事实 → Logger 记录事实 → Eval 分析事实。Logger 不越过"判断"线。Error 就是 error、Latency 就是 latency——不评价 "好快" 或 "出问题了"。
+</div>
+
+<!-- ═══════════ ARCHITECTURE ═══════════ -->
+<h2 id="arch">2. 模块架构</h2>
+
+<div class="diagram">
+<svg width="880" height="520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="aGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#4ade80"/></marker>
+    <marker id="aBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#60a5fa"/></marker>
+    <marker id="aPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#c084fc"/></marker>
+    <marker id="aDim" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#64748b"/></marker>
+    <marker id="aRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#f87171"/></marker>
+    <marker id="aAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6Z" fill="#fbbf24"/></marker>
+  </defs>
+
+  <!-- Layer 1: Engine ────────────────────────────────────────────────── -->
+  <text x="440" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">LAYER 1 — 引擎 (Hook 调用点)</text>
+
+  <rect x="30" y="38" width="140" height="52" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="100" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">loop.py</text>
+  <text x="100" y="76" text-anchor="middle" font-size="10" fill="#94a3b8">gate · decide · result · error</text>
+
+  <rect x="210" y="38" width="140" height="52" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="280" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">llm/client.py</text>
+  <text x="280" y="76" text-anchor="middle" font-size="10" fill="#94a3b8">error · llm</text>
+
+  <rect x="390" y="38" width="140" height="52" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="460" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">interaction.py</text>
+  <text x="460" y="76" text-anchor="middle" font-size="10" fill="#94a3b8">warning</text>
+
+  <rect x="570" y="38" width="140" height="52" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="640" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">event_bus.py</text>
+  <text x="640" y="76" text-anchor="middle" font-size="10" fill="#94a3b8">warning</text>
+
+  <rect x="750" y="38" width="100" height="52" rx="6" fill="#172554" stroke="#94a3b8" stroke-width="1"/>
+  <text x="800" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#94a3b8">···</text>
+
+  <line x1="440" y1="90" x2="440" y2="120" stroke="#c084fc" stroke-width="2" marker-end="url(#aPurple)"/>
+
+  <!-- Layer 2: Logger Hooks ──────────────────────────────────────────── -->
+  <text x="440" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">LAYER 2 — Logger (6 Hook 入口)</text>
+
+  <rect x="180" y="156" width="520" height="66" rx="8" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="440" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#c084fc">Log</text>
+  <text x="440" y="200" text-anchor="middle" font-size="11" fill="#a78bfa">gate · decide · result · error · warning · llm</text>
+  <text x="440" y="214" text-anchor="middle" font-size="10" fill="#94a3b8">enable(storage) → impl = _real | disable() → impl = pass</text>
+
+  <line x1="440" y1="222" x2="440" y2="252" stroke="#4ade80" stroke-width="2" marker-end="url(#aGreen)"/>
+
+  <!-- Layer 3: Session ──────────────────────────────────────────────── -->
+  <text x="440" y="272" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">LAYER 3 — Session (异步持久化)</text>
+
+  <rect x="250" y="288" width="380" height="52" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="440" y="310" text-anchor="middle" font-size="14" font-weight="700" fill="#4ade80">Session</text>
+  <text x="440" y="328" text-anchor="middle" font-size="11" fill="#86efac">RingBuffer(100) → asyncio batch flush → SQLite / JSONL</text>
+
+  <line x1="440" y1="340" x2="440" y2="370" stroke="#f87171" stroke-width="2" marker-end="url(#aRed)"/>
+
+  <!-- Layer 4: Storage ───────────────────────────────────────────────── -->
+  <text x="440" y="390" text-anchor="middle" font-size="13" font-weight="700" fill="#94a3b8">LAYER 4 — 存储 (SQLite)</text>
+
+  <rect x="130" y="406" width="200" height="48" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="1.5"/>
+  <text x="230" y="428" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">ticks</text>
+  <text x="230" y="446" text-anchor="middle" font-size="10" fill="#fca5a5">gate · decide · result</text>
+
+  <rect x="350" y="406" width="180" height="48" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="1.5"/>
+  <text x="440" y="428" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">errors</text>
+  <text x="440" y="446" text-anchor="middle" font-size="10" fill="#fca5a5">dedup · traceback</text>
+
+  <rect x="550" y="406" width="200" height="48" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="1.5"/>
+  <text x="650" y="428" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">llm_calls</text>
+  <text x="650" y="446" text-anchor="middle" font-size="10" fill="#fca5a5">latency · tokens</text>
+
+  <!-- Side: external ─────────────────────────────────────────────────── -->
+  <rect x="10" y="460" width="110" height="36" rx="4" fill="#083344" stroke="#22d3ee" stroke-width="1"/>
+  <text x="65" y="482" text-anchor="middle" font-size="11" fill="#22d3ee">eval/ (事后)</text>
+
+  <line x1="130" y1="480" x2="120" y2="480" stroke="#22d3ee" stroke-width="1" marker-end="url(#aDim)"/>
+  <text x="60" y="506" text-anchor="middle" font-size="9" fill="#64748b">读 SQLite 做分析</text>
+
+  <rect x="750" y="460" width="120" height="36" rx="4" fill="#451a03" stroke="#fbbf24" stroke-width="1"/>
+  <text x="810" y="482" text-anchor="middle" font-size="11" fill="#fbbf24">event_bus</text>
+  <line x1="750" y1="478" x2="640" y2="478" stroke="#fbbf24" stroke-width="1" marker-end="url(#aAmber)"/>
+  <text x="810" y="506" text-anchor="middle" font-size="9" fill="#64748b">WS Dashboard</text>
+</svg>
+</div>
+
+<div class="callout callout-amber">
+<strong>核心原理：</strong>Hook 定义和实现全在 Logger 侧。引擎只管在正确的时间点喊一声 <code>log.gate(...)</code>。喊不喊、喊什么——这是引擎的职责。喊了之后谁听、怎么记录——这是 Logger 的职责。中间只隔了一个函数指针。
+</div>
+
+<!-- ═══════════ 6 HOOKS ═══════════ -->
+<h2 id="hooks">3. 6 个 Hook 详解</h2>
+
+<!-- gate -->
+<h3>3.1 <code>log.gate(agent, *, triggered, reason, zone, nearby, drives)</code></h3>
+
+<div class="card-grid">
+<div class="card card-teal"><h4 style="color:var(--teal)">观测什么</h4><p>Agent 内部世界模型 P 和感官 Q 是否相等。这就是著名的 <em>"世界不变，Agent 不动"</em> 这句话的物理时刻。</p></div>
+<div class="card card-teal"><h4 style="color:var(--teal)">触发时机</h4><p>Phase 2 (GATE) 末尾。每 tick 必呼叫一次。<b>无论触发与否都会调用</b>——这样才知道 agent 的"静默率"。</p></div>
+</div>
+
+<div class="callout callout-green">
+<strong>机制：</strong>引擎先通过 <code>total_delta()</code> 计算四通道差分（auditory、visual、spatial、state）。差异信号聚合成 <code>delta_text</code> 字符串。若为空 → P==Q，agent 本 tick 不思考。若非空 → 世界变了，触发 LLM 决策。<br><br>
+<strong>原理类比：</strong>像门口的运动感应灯。Logger 记录的不只是"灯亮了"——还记录"没亮"。灯没亮多少次，是能耗审计的关键指标。<br><br>
+<strong>例子：</strong></p>
+<pre><code><span class="comment"># Ross 本人没变，P==Q，本 tick 跳过 LLM</span>
+log.gate(<span class="string">"Ross"</span>, triggered=<span class="keyword">False</span>, reason=<span class="string">""</span>,
+         zone=<span class="string">"central_perk"</span>, nearby=4,
+         drives={<span class="string">"hunger"</span>: 40, <span class="string">"social"</span>: 70, <span class="string">"fun"</span>: 55})
+
+<span class="comment"># 三秒后，Rachel 走进感知范围，social drive 越过阈值</span>
+log.gate(<span class="string">"Ross"</span>, triggered=<span class="keyword">True</span>,
+         reason=<span class="string">"auditory: Rachel entered\nstate: social 70→75 (cross)"</span>,
+         zone=<span class="string">"central_perk"</span>, nearby=5,
+         drives={<span class="string">"hunger"</span>: 41, <span class="string">"social"</span>: 75, <span class="string">"fun"</span>: 55})</code></pre>
+</div>
+
+<!-- decide -->
+<h3>3.2 <code>log.decide(agent, *, action, intent, target, tokens, latency, retries)</code></h3>
+
+<div class="card-grid">
+<div class="card card-purple"><h4 style="color:var(--purple)">观测什么</h4><p>LLM 决定要做什么、花多少 token、耗时多少毫秒、重试了几次。这是整个系统的<b>成本和性能核心指标</b>。</p></div>
+<div class="card card-purple"><h4 style="color:var(--purple)">触发时机</h4><p>Phase 3 (DECIDE) 末尾，LLM 返回 JSON 决策后。</p></div>
+</div>
+
+<div class="callout callout-purple" style="background:var(--purple-bg);border-left-color:var(--purple)">
+<strong>机制：</strong>引擎调用 <code>brain.decide()</code> → LLM 返回 JSON → 引擎提取 action/intent/target → 调用 <code>log.decide()</code>。token 数和延迟从 LLM response 对象拿（OpenAI API 响应体自带 <code>usage.prompt_tokens</code> 和 <code>usage.completion_tokens</code>）。<br><br>
+<strong>原理类比：</strong>像汽车的油耗记录仪。每次 LLM 调用是一次"加油→燃烧→输出"循环。记录 prompt (油量注入)、completion (燃烧产出)、latency (燃烧时间)——这些数据是优化模型选择、调 prompt 长度的实证基础。<br><br>
+<strong>例子：</strong></p>
+<pre><code><span class="comment"># Ross 决定去跟 Rachel 搭话</span>
+log.decide(<span class="string">"Ross"</span>,
+    action=<span class="string">"走向Rachel，站在她面前，紧张地搓手"</span>,
+    intent=<span class="string">"和Rachel搭话，尝试重建关系"</span>,
+    target=<span class="string">"Rachel"</span>,
+    tokens=1520,        <span class="comment"># prompt 1200 + completion 320</span>
+    latency=2340,       <span class="comment"># 2.34 秒</span>
+    retries=0)</code></pre>
+</div>
+
+<!-- result -->
+<h3>3.3 <code>log.result(agent, *, action, target, narrative, deltas, sim, thread_done, duration, file_output)</code></h3>
+
+<div class="card-grid">
+<div class="card card-blue"><h4 style="color:var(--blue)">观测什么</h4><p>执行结果——对话内容、属性变化、主线是否完成、action 持续了多久、有没有产生输出文件（NPC 写代码）。</p></div>
+<div class="card card-blue"><h4 style="color:var(--blue)">触发时机</h4><p>Phase 0.5 (FLUSH) 末尾，action 执行完毕、deltas 已写入 layer、narrative 已生成。</p></div>
+</div>
+
+<div class="callout callout-blue">
+<strong>机制：</strong>引擎在 FLUSH 阶段调用 <code>interaction.interact()</code> ——这是两个 NPC 之间的实际交互：对话生成（第二次 LLM 调用）、deltas 应用、main_thread 更新。全部执行完毕后，结果写入 trace。Logger 此时记录完整的因果链：<em>谁对谁做了什么 → 说了什么 → 产生了什么变化</em>。<br><br>
+<strong>原理类比：</strong>像 Git commit。gate 是 <code>git status</code> (看看变了没)，decide 是 <code>git add</code> (准备做什么)，result 是 <code>git commit</code> (做完了，写上 commit message)。三条记录构成一个完整的"世界变更事务"。<br><br>
+<strong>例子：</strong></p>
+<pre><code><span class="comment"># Ross 对 Rachel 说完话后的完整结果</span>
+log.result(<span class="string">"Ross"</span>,
+    action=<span class="string">"走向Rachel，站在她面前，紧张地搓手"</span>,
+    target=<span class="string">"Rachel"</span>,
+    narrative=<span class="string">"Ross对Rachel说了嘿，Rachel，呃……你最近怎么样？"</span>,
+    deltas={<span class="string">"social"</span>: -10, <span class="string">"mood"</span>: 5},
+    sim=5.63,           <span class="comment"># 仿真时钟 5.63 秒</span>
+    thread_done=<span class="keyword">False</span>,
+    duration=3.0,       <span class="comment"># action 表演了 3 秒</span>
+    file_output=<span class="keyword">None</span>)     <span class="comment"># 本次没写文件</span></code></pre>
+</div>
+
+<!-- error -->
+<h3>3.4 <code>log.error(agent, *, module, exception)</code></h3>
+
+<div class="card-grid">
+<div class="card card-red"><h4 style="color:var(--red)">观测什么</h4><p>异常捕获——什么模块抛了什么异常、traceback 是什么。</p></div>
+<div class="card card-red"><h4 style="color:var(--red)">触发时机</h4><p>任何 <code>except</code> 块的末尾。</p></div>
+</div>
+
+<div class="callout callout-red">
+<strong>机制：</strong>继承原 <code>error_collector</code> 的去重逻辑——相同 (module, message[:120]) 不追加新记录，只递增 count + 更新 last_at。raw traceback 完整保存供事后排障。<br><br>
+<strong>原理类比：</strong>像飞机的黑匣子——不是每个颠簸都开新记录，同类型的颠簸合并计数。只有新类型的故障才开新记录。黑匣子容量有限，去重是必要的压缩。<br><br>
+<strong>例子：</strong></p>
+<pre><code><span class="comment"># 第 1 次 rate limit</span>
+log.error(agent=<span class="string">"Rachel"</span>, module=<span class="string">"loop.Rachel"</span>, exception=e)
+<span class="comment"># → errors 表: count=1, first_at=12.3, last_at=12.3</span>
+
+<span class="comment"># 第 2 次 rate limit (同 module + message)</span>
+log.error(agent=<span class="string">"Rachel"</span>, module=<span class="string">"loop.Rachel"</span>, exception=e)
+<span class="comment"># → errors 表: count=2, first_at=12.3, last_at=18.7  ← 合并, 不新增行</span></code></pre>
+</div>
+
+<!-- warning -->
+<h3>3.5 <code>log.warning(agent, *, module, message)</code></h3>
+
+<div class="card-grid">
+<div class="card card-amber"><h4 style="color:var(--amber)">观测什么</h4><p>非致命警告——属性越界、队列满、可能的数据不一致。</p></div>
+<div class="card card-amber"><h4 style="color:var(--amber)">触发时机</h4><p>verification.py 的 check_bounds 检测到越界时、event_bus 队列满时。</p></div>
+</div>
+
+<div class="callout callout-amber">
+<strong>机制：</strong>原本是 <code>print()</code> 刷 stdout——不可查询、不可过滤、淹没在终端输出里。改为结构化入库后可通过 SQL 查询特定 agent、特定属性的越界频率。<br><br>
+<strong>例子：</strong></p>
+<pre><code>log.warning(agent=<span class="string">"Gunther"</span>, module=<span class="string">"verification"</span>,
+           message=<span class="string">"[attribute_bounds] thirst would go below min: 1.7 + -15 = -13.3"</span>)</code></pre>
+</div>
+
+<!-- llm -->
+<h3>3.6 <code>log.llm(provider, latency_ms, tokens, error)</code></h3>
+
+<div class="card-grid">
+<div class="card card-pink"><h4 style="color:var(--pink)">观测什么</h4><p>每次 LLM API 调用的原始延迟——不聚合、不统计。保留时序信息供延迟分布分析。</p></div>
+<div class="card card-pink"><h4 style="color:var(--pink)">触发时机</h4><p><code>llm/client.py</code> 每次 API 调用完成（成功或失败）。</p></div>
+</div>
+
+<div class="callout callout-amber" style="background:var(--pink-bg);border-left-color:var(--pink)">
+<strong>机制：</strong>与 telemetry collector 互补——telemetry 保留实时 <em>中位数</em> 给 DecisionClock 校准时钟。Logger 保留 <em>每一条原始记录</em> 给事后分析。这是"实时 vs 事后"的分工，不是"谁替代谁"。<br><br>
+<strong>原理类比：</strong>telemetry 是仪表盘上的瞬时油耗，logger 是加油站的每次加油记录单。仪表盘帮司机即时调整油门，记录单帮车主算月均油耗。<br><br>
+<strong>例子：</strong></p>
+<pre><code>log.llm(provider=<span class="string">"deepseek"</span>, latency_ms=2340, tokens=1520, error=<span class="keyword">False</span>)</code></pre>
+</div>
+
+<!-- ═══════════ HOOK MECHANISM ═══════════ -->
+<h2 id="mechanism">4. Hook 机制原理</h2>
+
+<h3>4.1 为什么是类宏, 不是真正的宏?</h3>
+
+<p>Python 没有 C 预处理器。但可以用 <b>可替换函数引用</b> 做到同等效果：</p>
+
+<div class="arch-tree">
+<span class="hl">class</span> <span class="gl">Log</span>:                                <span class="dim"># 6 个公开方法, 每个都是一对函数指针</span>
+    <span class="keyword">def</span> <span class="func">enable</span>(self, storage):
+        s = Session(storage)               <span class="dim"># 打开 SQLite</span>
+        self._gate   = s.write             <span class="dim"># 把 6 个实现全换成真实写入</span>
+        self._decide = s.write
+        <span class="dim">··</span>
+
+    <span class="keyword">def</span> <span class="func">disable</span>(self):
+        self._gate = self._decide = ... = <span class="func">_noop</span>  <span class="dim"># 全换回空函数</span>
+
+    <span class="keyword">def</span> <span class="func">gate</span>(self, agent, **data):
+        self._gate(agent=agent, phase=<span class="string">"gate"</span>, **data)  <span class="dim"># 转发</span>
+
+<span class="keyword">def</span> <span class="func">_noop</span>(**kwargs): <span class="keyword">pass</span>                           <span class="dim"># 空实现 — 50 ns</span>
+
+log = Log()                                    <span class="dim"># 全局单例 — 默认全部转发到 _noop</span>
+</div>
+
+<div class="callout callout-green">
+<strong>开关原理（分三步）：</strong><br>
+<strong>Step 1 — 启动时: </strong><code>log.enable("logs/s001.sqlite3")</code> → 打开 SQLite，把 6 个 <code>self._hook</code> 全换成 <code>session.write</code>。<br>
+<strong>Step 2 — 运行时: </strong>引擎调用 <code>log.gate("Ross", ...)</code> → 转发到 <code>self._gate</code> → 进入 <code>session.write</code> → 追加到内存 ring buffer → 每 100 条异步刷 SQLite。<br>
+<strong>Step 3 — 运行时（关）: </strong>不调 enable，所有 <code>self._hook = _noop</code>。引擎照样喊，但没人听。开销 = 一次 Python 函数调用，~50ns。  
+</div>
+
+<h3>4.2 为什么是 6 个方法, 不是 1 个?</h3>
+
+<table>
+<tr><th>方案</th><th>写法</th><th>问题</th></tr>
+<tr><td>单方法</td><td><code>log("gate", agent, data)</code></td><td>phase 是字符串 — 拼写错误运行时才发现; IDE 无补全</td></tr>
+<tr><td>6 方法 ✅</td><td><code>log.gate(agent, **data)</code></td><td>IDE 自动补全; 参数名即文档; 写错参数类型 mypy 会报</td></tr>
+<tr><td>context manager</td><td><code>with log.phase("gate"):</code></td><td>只能捕获进入/退出时间。但 gate 数据在 with 块内部产生——拿不到 delta_text</td></tr>
+</table>
+
+<h3>4.3 为什么 3 个 hook 而不是 1 个 trace?</h3>
+
+<p>gate、decide、result 在代码里天然不连续：</p>
+
+<div class="flow">
+  <span class="flow-box" style="background:var(--teal-bg);color:var(--teal)">log.gate()</span>
+  <span class="flow-arrow">→ 2〜5s →</span>
+  <span class="flow-box" style="background:var(--purple-bg);color:var(--purple)">LLM 调用</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box" style="background:var(--purple-bg);color:var(--purple)">log.decide()</span>
+  <span class="flow-arrow">→ duraion 秒 →</span>
+  <span class="flow-box" style="background:var(--blue-bg);color:var(--blue)">action 等待</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-box" style="background:var(--blue-bg);color:var(--blue)">log.result()</span>
+</div>
+
+<p>中间夹了两个异步间隙——LLM 调用和 action 延迟。如果做成单个 trace 钩子，这三段数据必须缓存到函数局部变量，跨 <code>await</code> 边界保持。这破坏了"logger 不干预 engine 状态"的原则。</p>
+
+<!-- ═══════════ DATA FLOW ═══════════ -->
+<h2 id="dataflow">5. 数据流转</h2>
+
+<div class="diagram">
+<svg width="880" height="280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="f1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="f2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="f3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+  </defs>
+
+  <!-- Engine side -->
+  <rect x="10" y="60" width="260" height="160" rx="8" fill="#172554" stroke="#60a5fa" stroke-width="2"/>
+  <text x="140" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#60a5fa">Engine (loop.py)</text>
+  <line x1="30" y1="95" x2="250" y2="95" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="140" y="120" text-anchor="middle" font-size="11" fill="#94a3b8">log.gate("Ross", triggered=True, ...)</text>
+  <text x="140" y="140" text-anchor="middle" font-size="11" fill="#94a3b8">├─ 生成 dict{agent, phase="gate", ...}</text>
+  <text x="140" y="160" text-anchor="middle" font-size="11" fill="#94a3b8">├─ 调用 self._gate(**dict)</text>
+  <text x="140" y="180" text-anchor="middle" font-size="11" fill="#94a3b8">└─ 不需要知道谁在听</text>
+
+  <line x1="270" y1="120" x2="310" y2="120" stroke="#c084fc" stroke-width="2" marker-end="url(#f1)"/>
+
+  <!-- Hook dispatch -->
+  <rect x="315" y="100" width="220" height="80" rx="8" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="425" y="125" text-anchor="middle" font-size="13" font-weight="700" fill="#c084fc">self._gate</text>
+  <text x="425" y="148" text-anchor="middle" font-size="11" fill="#a78bfa">enable → s.write | disable → _noop</text>
+  <text x="425" y="168" text-anchor="middle" font-size="11" fill="#94a3b8">函数指针切换, 无 if/else</text>
+
+  <line x1="535" y1="140" x2="575" y2="140" stroke="#4ade80" stroke-width="2" marker-end="url(#f2)"/>
+
+  <!-- Session buffer -->
+  <rect x="580" y="60" width="140" height="65" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="650" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#4ade80">RingBuffer</text>
+  <text x="650" y="100" text-anchor="middle" font-size="10" fill="#94a3b8">deque(100) → JSON</text>
+  <text x="650" y="114" text-anchor="middle" font-size="10" fill="#94a3b8">无 I/O 阻塞</text>
+
+  <line x1="720" y1="92" x2="760" y2="92" stroke="#4ade80" stroke-width="2" marker-end="url(#f2)"/>
+
+  <!-- Async flush -->
+  <rect x="765" y="60" width="105" height="65" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="818" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="#4ade80">Flush</text>
+  <text x="818" y="100" text-anchor="middle" font-size="10" fill="#94a3b8">每 100 条</text>
+  <text x="818" y="114" text-anchor="middle" font-size="10" fill="#94a3b8">或每 5 秒</text>
+
+  <line x1="660" y1="125" x2="660" y2="160" stroke="#f87171" stroke-width="2" marker-end="url(#f3)"/>
+  <line x1="818" y1="125" x2="818" y2="160" stroke="#f87171" stroke-width="2" marker-end="url(#f3)"/>
+
+  <!-- SQLite -->
+  <rect x="640" y="165" width="200" height="55" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="2"/>
+  <text x="740" y="188" text-anchor="middle" font-size="14" font-weight="700" fill="#f87171">SQLite</text>
+  <text x="740" y="208" text-anchor="middle" font-size="10" fill="#fca5a5">executemany INSERT</text>
+
+  <!-- Read arrow -->
+  <line x1="740" y1="220" x2="740" y2="255" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#f1)"/>
+  <text x="740" y="272" text-anchor="middle" font-size="11" fill="#22d3ee">eval/ 读 SQL 做分析</text>
+</svg>
+</div>
+
+<!-- ═══════════ REPLACE ═══════════ -->
+<h2 id="replace">6. 统一替换清单</h2>
+
+<table>
+<tr><th style="width:15%">类别</th><th style="width:28%">旧模块 / 旧写法</th><th style="width:28%">新写法</th><th>替换机制</th></tr>
+<tr>
+  <td style="color:var(--red)">删除</td>
+  <td><code>agent_logging.py</code><br><small>debug/warning 格式字符串</small></td>
+  <td><code>log.gate(...)</code><br><code>log.decide(...)</code><br><code>log.result(...)</code></td>
+  <td>3 个结构化 hook 替代 3 处 <code>debug(f"..." )</code> 字符串拼接。CLI verbose 模式保留最小 <code>setup()</code></td>
+</tr>
+<tr>
+  <td style="color:var(--red)">删除</td>
+  <td><code>error_collector.py</code><br><small>log_exception / log_error / log_llm_parse_failure</small></td>
+  <td><code>log.error(...)</code></td>
+  <td>dedup 逻辑从 ErrorCollector 移植到 Session 内部。相同 (module, message[:120]) 合并</td>
+</tr>
+<tr>
+  <td style="color:var(--amber)">保留</td>
+  <td><code>telemetry/collector.py</code><br><small>实时 median/p95 供 DecisionClock</small></td>
+  <td><code>log.llm(...)</code> (并行)</td>
+  <td>telemetry 做实时中位数（仪表盘），logger 做全量原始记录（记录单）。互补，不替代</td>
+</tr>
+<tr>
+  <td style="color:var(--amber)">改写</td>
+  <td><code>verification.py</code> 的 <code>print()</code></td>
+  <td><code>log.warning(...)</code></td>
+  <td><code>verify()</code> 逻辑不变，只改输出端</td>
+</tr>
+<tr>
+  <td style="color:var(--green)">保留</td>
+  <td><code>event_bus.py</code></td>
+  <td>不变</td>
+  <td>WebSocket 广播 != 日志持久化。用途不同，不合并</td>
+</tr>
+<tr>
+  <td style="color:var(--green)">保留</td>
+  <td><code>eval/</code></td>
+  <td>不变，改数据源为 SQLite</td>
+  <td>认知分析 ≠ 事实记录。eval 现在可以 <code>SELECT * FROM ticks WHERE agent='Ross'</code></td>
+</tr>
+</table>
+
+<!-- ═══════════ ENGINE DIFF ═══════════ -->
+<h2 id="diff">7. 引擎侧改动 (Diff)</h2>
+
+<div class="callout callout-green">
+<strong>3 个文件, 9 行新增, 2 行删除, 3 行改写. 不改任何核心逻辑.</strong>
+</div>
+
+<h3>loop.py</h3>
+<pre><code><span class="comment"># ── import 区 ──</span>
+<span class="diff-rem">- import agent_logging                           </span><span class="diff-hdr">  # line 191</span>
+<span class="diff-add">+ from logger import log                          </span><span class="diff-hdr">  # 新增</span>
+
+<span class="comment"># ── Phase 2: GATE (line ~328) ──</span>
+<span class="diff-rem">- agent_logging.debug(f"[{name}] DELTA triggered") </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.gate(name, triggered=bool(delta_text),       </span><span class="diff-hdr">  # 新 — always call</span>
+<span class="diff-add">+     reason=delta_text or "",</span>
+<span class="diff-add">+     zone=agent.zone, nearby=len(zone_entities),</span>
+<span class="diff-add">+     drives={k:round(float(v),1) for k,v in drives.attrs.items()})</span>
+
+<span class="comment"># ── Phase 3: DECIDE (line ~370, after LLM returns) ──</span>
+<span class="diff-rem">- agent_logging.debug(f"[{name}] ENQUEUE: ...")    </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.decide(name, action=decision.get("action"),  </span><span class="diff-hdr">  # 新</span>
+<span class="diff-add">+     intent=decision.get("intent"),</span>
+<span class="diff-add">+     target=decision.get("target_name"),</span>
+<span class="diff-add">+     tokens=prompt_tokens+completion_tokens, latency=llm_latency, retries=0)</span>
+
+<span class="comment"># ── Phase 0.5: FLUSH (line ~252, after successful flush) ──</span>
+<span class="diff-rem">- agent_logging.debug(f"[{name}] FLUSH: ...")      </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.result(name, action=action_text,             </span><span class="diff-hdr">  # 新</span>
+<span class="diff-add">+     target=target_name, narrative=result.narrative,</span>
+<span class="diff-add">+     deltas=result.caller_deltas, sim=world.clock.now(),</span>
+<span class="diff-add">+     thread_done=decision.get("thread_completed", False),</span>
+<span class="diff-add">+     duration=decision.get("duration", 3.0),</span>
+<span class="diff-add">+     file_output=decision.get("file_output"))</span>
+
+<span class="comment"># ── except 块 (line ~396) ──</span>
+<span class="diff-rem">- from core.error_collector import errors</span>
+<span class="diff-rem">- errors.log_exception(f"loop.{name}", e)          </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.error(agent=name, module=f"loop.{name}", exception=e) </span><span class="diff-hdr"># 新</span>
+
+<span class="comment"># ── 删除: 不再需要 ──</span>
+<span class="diff-rem">- prompt1 = assembler.assemble(...) if trace_fn else None  </span><span class="diff-hdr"># line ~354</span>
+<span class="comment"># trace_fn 仍然工作, log 不干预</span>
+</code></pre>
+
+<h3>llm/client.py</h3>
+<pre><code><span class="comment"># ── import 区 ──</span>
+<span class="diff-add">+ from logger import log                           </span><span class="diff-hdr">  # 新增</span>
+
+<span class="comment"># ── API 调用完成后 (3 个 call site) ──</span>
+<span class="diff-rem">- from core.error_collector import errors          </span><span class="diff-hdr">  # 旧 (3处)</span>
+<span class="diff-rem">- errors.log_exception("llm", e)                   </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.error(agent="llm", module="llm.client", exception=e)   </span><span class="diff-hdr"># 新</span>
+
+<span class="comment"># ── 成功时记录延迟 (新增) ──</span>
+<span class="diff-add">+ log.llm(provider=self.provider, latency_ms=elapsed_ms,   </span><span class="diff-hdr"># 新</span>
+<span class="diff-add">+     tokens=tokens_used, error=False)</span>
+</code></pre>
+
+<h3>systems/interaction.py</h3>
+<pre><code><span class="comment"># ── verification 调用处 ──</span>
+<span class="diff-add">+ from logger import log                           </span><span class="diff-hdr">  # 新增</span>
+
+<span class="diff-rem">- print(f"Verification flag for ...")              </span><span class="diff-hdr">  # 旧 — 无筛选</span>
+<span class="diff-add">+ log.warning(agent=entity.id, module="verification",     </span><span class="diff-hdr"># 新 — 可查</span>
+<span class="diff-add">+     message=flag_msg)</span>
+
+<span class="comment"># ── except 块 ──</span>
+<span class="diff-rem">- from core.error_collector import errors          </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-rem">- errors.log_exception("interaction", e)           </span><span class="diff-hdr">  # 旧</span>
+<span class="diff-add">+ log.error(agent="system", module="interaction", exception=e)</span><span class="diff-hdr"># 新</span>
+</code></pre>
+
+<!-- ═══════════ SCHEMA ═══════════ -->
+<h2 id="schema">8. SQLite 表结构</h2>
+
+<h3>ticks — 每决策周期一行</h3>
+<pre><code><span class="keyword">CREATE TABLE</span> ticks (
+    id         <span class="keyword">INTEGER PRIMARY KEY</span> AUTOINCREMENT,
+    session    <span class="keyword">TEXT</span>    <span class="keyword">NOT NULL</span>,          <span class="comment"># "session_001"</span>
+    agent      <span class="keyword">TEXT</span>    <span class="keyword">NOT NULL</span>,          <span class="comment"># "Ross"</span>
+    tick_n     <span class="keyword">INTEGER</span> <span class="keyword">NOT NULL</span>,          <span class="comment"># agent 的第 N 个决策周期</span>
+    wall_ts    <span class="keyword">REAL</span>    <span class="keyword">NOT NULL</span>,          <span class="comment"># Unix timestamp</span>
+    sim_time   <span class="keyword">REAL</span>,                       <span class="comment"># 仿真时钟 (秒)</span>
+
+    <span class="comment">-- Phase: GATE</span>
+    g_triggered <span class="keyword">INTEGER</span> <span class="keyword">DEFAULT</span> 0,       <span class="comment"># 0=skip, 1=fired</span>
+    g_reason    <span class="keyword">TEXT</span>,                       <span class="comment"># "auditory:changed; state:cross"</span>
+    g_zone      <span class="keyword">TEXT</span>,                       <span class="comment"># "central_perk"</span>
+    g_nearby    <span class="keyword">INTEGER</span>,                    <span class="comment"># 周围实体数</span>
+    g_drives    <span class="keyword">TEXT</span>,                       <span class="comment"># JSON {"hunger":40,"thirst":...}</span>
+
+    <span class="comment">-- Phase: DECIDE</span>
+    d_action    <span class="keyword">TEXT</span>,                       <span class="comment"># "走向Ross，拍拍他的肩膀"</span>
+    d_intent    <span class="keyword">TEXT</span>,                       <span class="comment"># "跟Ross打招呼"</span>
+    d_target    <span class="keyword">TEXT</span>,                       <span class="comment"># "Ross"</span>
+    d_tokens    <span class="keyword">INTEGER</span>,                    <span class="comment"># prompt + completion</span>
+    d_latency   <span class="keyword">REAL</span>,                       <span class="comment"># LLM 延迟 (ms)</span>
+    d_retries   <span class="keyword">INTEGER</span> <span class="keyword">DEFAULT</span> 0,
+
+    <span class="comment">-- Phase: RESULT</span>
+    r_narrative  <span class="keyword">TEXT</span>,                      <span class="comment"># "Ross对Rachel说了嘿..."</span>
+    r_deltas     <span class="keyword">TEXT</span>,                      <span class="comment"># JSON {"social":5,"fun":5}</span>
+    r_thread_done <span class="keyword">INTEGER</span> <span class="keyword">DEFAULT</span> 0,
+    r_duration   <span class="keyword">REAL</span>,                      <span class="comment"># action 表演时长 (秒)</span>
+    r_file       <span class="keyword">TEXT</span>                       <span class="comment"># NULL 或 "coder_01_paging_sim.py"</span>
+);</code></pre>
+
+<h3>errors — 去重异常记录</h3>
+<pre><code><span class="keyword">CREATE TABLE</span> errors (
+    id        <span class="keyword">INTEGER PRIMARY KEY</span>,
+    session   <span class="keyword">TEXT</span> <span class="keyword">NOT NULL</span>,
+    agent     <span class="keyword">TEXT</span>,
+    module    <span class="keyword">TEXT</span> <span class="keyword">NOT NULL</span>,           <span class="comment"># "loop.Ross"</span>
+    message   <span class="keyword">TEXT</span> <span class="keyword">NOT NULL</span>,           <span class="comment"># "RateLimitError: too many requests"</span>
+    count     <span class="keyword">INTEGER</span> <span class="keyword">DEFAULT</span> 1,          <span class="comment"># 重复次数</span>
+    first_at  <span class="keyword">REAL</span>,                       <span class="comment"># 首次发生时间</span>
+    last_at   <span class="keyword">REAL</span>,                       <span class="comment"># 最近一次时间</span>
+    traceback <span class="keyword">TEXT</span>                        <span class="comment"># 完整 traceback</span>
+);</code></pre>
+
+<h3>llm_calls — 每次 API 调用原始记录</h3>
+<pre><code><span class="keyword">CREATE TABLE</span> llm_calls (
+    id         <span class="keyword">INTEGER PRIMARY KEY</span>,
+    session    <span class="keyword">TEXT</span> <span class="keyword">NOT NULL</span>,
+    provider   <span class="keyword">TEXT</span>,                      <span class="comment"># "deepseek"</span>
+    latency_ms <span class="keyword">REAL</span> <span class="keyword">NOT NULL</span>,
+    tokens     <span class="keyword">INTEGER</span>,
+    error      <span class="keyword">INTEGER</span> <span class="keyword">DEFAULT</span> 0,         <span class="comment"># 0=ok, 1=失败</span>
+    wall_ts    <span class="keyword">REAL</span> <span class="keyword">NOT NULL</span>
+);</code></pre>
+
+<!-- ═══════════ USAGE ═══════════ -->
+<h2 id="usage">9. 使用示例</h2>
+
+<h3>9.1 类宏开关</h3>
+<pre><code><span class="keyword">from</span> logger <span class="keyword">import</span> log, enable, disable
+
+<span class="comment"># 方式 1: 环境变量 (零代码改启动脚本)</span>
+<span class="comment">#   AW_LOG=logs/s001.sqlite3 python main.py ...</span>
+
+<span class="comment"># 方式 2: 显式开关</span>
+enable(<span class="string">"logs/session_001.sqlite3"</span>)   <span class="comment"># 开 — 从此所有 hook 生效</span>
+<span class="comment"># ... 运行仿真 ...</span>
+disable()                                 <span class="comment"># 关 — 回到 no-op</span>
+</code></pre>
+
+<h3>9.2 查询分析 (eval 用)</h3>
+<pre><code><span class="comment">-- 哪个 agent 的 gate 触发率最高？</span>
+<span class="keyword">SELECT</span> agent,
+       <span class="func">COUNT</span>(*) <span class="keyword">AS</span> total,
+       <span class="func">SUM</span>(g_triggered) <span class="keyword">AS</span> fired,
+       <span class="func">ROUND</span>(100.0*<span class="func">SUM</span>(g_triggered)/<span class="func">COUNT</span>(*), 1) <span class="keyword">AS</span> pct
+<span class="keyword">FROM</span> ticks <span class="keyword">GROUP BY</span> agent <span class="keyword">ORDER BY</span> pct <span class="keyword">DESC</span>;
+
+<span class="comment">-- LLM 延迟 P50/P95/P99</span>
+<span class="keyword">SELECT</span>
+  <span class="func">ROUND</span>(<span class="func">AVG</span>(d_latency), 0) <span class="keyword">AS</span> avg_ms,
+  <span class="func">ROUND</span>(<span class="func">MEDIAN</span>(d_latency), 0) <span class="keyword">AS</span> p50_ms,
+  <span class="func">ROUND</span>(<span class="func">PERCENTILE</span>(d_latency, 0.95), 0) <span class="keyword">AS</span> p95_ms
+<span class="keyword">FROM</span> ticks <span class="keyword">WHERE</span> d_latency <span class="keyword">IS NOT NULL</span>;
+
+<span class="comment">-- 每个 agent 的错误分布</span>
+<span class="keyword">SELECT</span> agent, module, message, <span class="func">MAX</span>(count) <span class="keyword">AS</span> n
+<span class="keyword">FROM</span> errors <span class="keyword">GROUP BY</span> agent, module
+<span class="keyword">ORDER BY</span> n <span class="keyword">DESC</span>;</code></pre>
+
+<!-- ═══════════ PERFORMANCE ═══════════ -->
+<h2 id="perf">10. 性能分析</h2>
+
+<table>
+<tr><th>场景</th><th>模式</th><th>单次 hook 开销</th><th>3min 总开销 (164 ticks × 3 hooks)</th></tr>
+<tr><td>默认 (无 AW_LOG 环境变量)</td><td>no-op</td><td>~50 ns</td><td style="color:var(--green)">~24 µs (基本为零)</td></tr>
+<tr><td>开启 (ring buffer 追加)</td><td>内存 dict append</td><td>~5 µs</td><td style="color:var(--amber)">~2.5 ms</td></tr>
+<tr><td>开启 + 刷盘 (100 条批写)</td><td>SQLite executemany</td><td>摊平后 ~50 µs/条</td><td style="color:var(--amber)">~25 ms (异步, 不阻塞)</td></tr>
+</table>
+
+<div class="callout callout-green">
+<strong>结论：</strong>开启时，3 分钟仿真 logger 总开销 &lt; 30ms = 0.017% 的墙钟时间。关闭时 &lt; 30µs = 基本为零。不影响世界运行。
+</div>
+
+<!-- ═══════════ SUMMARY ═══════════ -->
+<h2 id="summary">11. 总结</h2>
+
+<div class="card-grid">
+<div class="card card-teal">
+<h4 style="color:var(--teal)">6 个 Hook</h4>
+<p><code>gate</code> · <code>decide</code> · <code>result</code><br><code>error</code> · <code>warning</code> · <code>llm</code></p>
+<p style="font-size:12px;color:var(--dim)">覆盖引擎全生命周期观测</p>
+</div>
+<div class="card card-green">
+<h4 style="color:var(--green)">类宏开关</h4>
+<p><code>enable()</code> / <code>disable()</code><br><code>AW_LOG=path</code></p>
+<p style="font-size:12px;color:var(--dim)">定义与实现全在 logger 侧</p>
+</div>
+<div class="card card-blue">
+<h4 style="color:var(--blue)">9 行改动</h4>
+<p>3 文件 · 不改核心逻辑</p>
+<p style="font-size:12px;color:var(--dim)">loop.py +5, llm/client.py +3, interaction.py +1</p>
+</div>
+<div class="card card-purple">
+<h4 style="color:var(--purple)">统一 3 模块</h4>
+<p style="font-size:12px">删 <code>agent_logging.py</code><br>删 <code>error_collector.py</code><br>保留 <code>telemetry</code> (互补)</p>
+</div>
+<div class="card card-amber">
+<h4 style="color:var(--amber)">3 张表</h4>
+<p><code>ticks</code> · <code>errors</code> · <code>llm_calls</code></p>
+<p style="font-size:12px;color:var(--dim)">SQLite · JSONL 兜底 · 异步刷盘</p>
+</div>
+<div class="card card-red">
+<h4 style="color:var(--red)">零运行时开销</h4>
+<p>默认 no-op ~50ns/次</p>
+<p style="font-size:12px;color:var(--dim)">开启 &lt; 0.02% 墙钟时间</p>
+</div>
+</div>
+
+<div class="callout callout-blue" style="margin-top:20px;">
+<strong>设计哲学对齐：</strong><br>
+1. <b>引擎报告事实</b> → Logger 记录事实 → eval 分析事实。Logger 不越过判断线。<br>
+2. <b>被动观察者</b> → Hook 是引擎主动调用，但 logger 不反写任何引擎状态。引擎不知道 logger 在不在。<br>
+3. <b>一处定义</b> → <code>log.gate/decide/result/error/warning/llm</code> 是唯一入口。所有观测数据从这 6 个门出去。<br>
+4. <b>即插即用</b> → 9 行改动，不影响任何现有 behavior。默认关闭，打开即生效。
+</div>
+
+<hr>
+<p style="text-align:center;color:var(--dim);font-size:12px;">AgentWorld Async · Logger Design v1.0 · Asher · 2026</p>
+
+</div>
+</body>
+</html>
