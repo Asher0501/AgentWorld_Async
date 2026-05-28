@@ -1,4 +1,4 @@
-"""Structured logging for AgentWorld. Zero cognitive code. Pure infrastructure."""
+"""Stdout logging for CLI verbose mode. Kept minimal — engine diagnostics moved to src/logger/."""
 import logging as _stdlib_logging
 import sys
 
@@ -6,7 +6,7 @@ _logger: _stdlib_logging.Logger | None = None
 
 
 def setup(level: str = "INFO", verbose: bool = False):
-    """Configure root logger. Call once at startup."""
+    """Configure root logger. Call once at startup (--verbose)."""
     global _logger
     _logger = _stdlib_logging.getLogger("agentworld")
     _logger.setLevel(_stdlib_logging.DEBUG if verbose else getattr(_stdlib_logging, level.upper(), _stdlib_logging.INFO))
@@ -26,10 +26,6 @@ def get(name: str = "") -> _stdlib_logging.Logger:
 
 def debug(msg, *args):
     get().debug(msg, *args)
-
-
-def info(msg, *args):
-    get().info(msg, *args)
 
 
 def warning(msg, *args):

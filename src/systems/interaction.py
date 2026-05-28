@@ -156,9 +156,10 @@ class InteractionSystem:
             if target_changes and target_inter and not target_inter.readonly:
                 world.update_entity(target.id, target_changes)
         except Exception as e:
-            from core.error_collector import errors
-            errors.log_exception("interaction._resolve_npc_item", e,
-                                 f"{agent.name}→{target.name}")
+            from logger import log
+            log.error(agent=agent.name if agent else "unknown",
+                      module="interaction._resolve_npc_item",
+                      exception=e)
         if agent.has("agent") and narrative:
             agent.get("agent")._pending_narrative = narrative
         return narrative, llm2_prompt, llm2_output
@@ -181,4 +182,6 @@ class InteractionSystem:
         issues = verify(entity, deltas, inter.currency_key,
                         inter.drive_min, inter.drive_max)
         if issues:
-            logger.warning(f"Verification flag for {entity.name}: {'; '.join(issues)}")
+            from logger import log
+            log.warning(agent=entity.id, module="verification",
+                        message=f"{'; '.join(issues)}")

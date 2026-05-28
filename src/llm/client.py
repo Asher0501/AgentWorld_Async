@@ -7,6 +7,9 @@ import concurrent.futures
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=64)
 
 
+from logger import log
+
+
 def _retry(fn, max_retries: int, name: str) -> str:
     """Shared retry wrapper — exponential backoff, error logging, final failure."""
     for attempt in range(max_retries + 1):
@@ -14,12 +17,11 @@ def _retry(fn, max_retries: int, name: str) -> str:
             return fn(attempt)
         except Exception as e:
             if attempt < max_retries:
-                from core.error_collector import errors
-                errors.log_error(f"llm.{name}", f"retry {attempt+1}/{max_retries}: {e}")
+                log.error(agent="llm", module=f"llm.{name}",
+                          message=f"retry {attempt+1}/{max_retries}: {e}")
                 time.sleep(2 ** attempt)
                 continue
-            from core.error_collector import errors
-            errors.log_exception(f"llm.{name}", e, "final failure")
+            log.error(agent="llm", module=f"llm.{name}", exception=e)
             raise
     return ""
 
@@ -95,8 +97,7 @@ class LLMClient:
                     u = prov.get("baseUrl", "") or prov.get("base_url", "")
                     if k and u: return u, k
             except Exception as e:
-                from core.error_collector import errors
-                errors.log_exception("llm._find_credentials", e, f"parsing {path}")
+                log.error(agent="llm", module="llm._find_credentials", exception=e)
                 continue
         return "", ""
 

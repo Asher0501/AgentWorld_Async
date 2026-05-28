@@ -189,6 +189,7 @@ async def run_agent(agent, world, brain, assembler, systems,
     labels = cfg.labels
 
     import agent_logging
+    from logger import log
     prompt1 = None
     err_backoff: dict[str, int] = {}
     while time.time() < end:
@@ -249,7 +250,14 @@ async def run_agent(agent, world, brain, assembler, systems,
                                                    channel_configs=labels.get("sensory_prompts"))
                 snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
                            cfg.thresholds, cfg.coin_epsilon)
-                agent_logging.debug(f"[{name}] FLUSH: {action_text[:50]}")
+                log.result(name, action=action_text,
+                           target=target_name,
+                           narrative=result.narrative,
+                           deltas=result.caller_deltas,
+                           sim=world.clock.now(),
+                           thread_done=enqueued_decision.get("thread_completed", False),
+                           duration=enqueued_decision.get("duration", 3.0),
+                           file_output=enqueued_decision.get("file_output"))
                 # NPC file output: write to disk as part of action execution
                 fo = enqueued_decision.get("file_output", {})
                 if fo and fo.get("filename") and fo.get("content"):
@@ -329,6 +337,11 @@ async def run_agent(agent, world, brain, assembler, systems,
 
             agent_logging.debug(f"[{name}] DELTA triggered — LLM being called")
 
+            log.gate(name, triggered=True,
+                     reason=delta_text, zone=agent.zone,
+                     nearby=len(zone_entities),
+                     drives={k: round(float(v), 1) for k, v in drives.attrs.items()})
+
             # ═══════════════════════════════════════════
             #  PHASE 3: DECIDE
             # ═══════════════════════════════════════════
@@ -372,6 +385,11 @@ async def run_agent(agent, world, brain, assembler, systems,
             action_text = decision.get("action")
             if action_text:
                 agent_logging.debug(f"[{name}] ENQUEUE: {action_text[:50]}")
+                log.decide(name, action=action_text,
+                           intent=decision.get("intent", ""),
+                           target=target_name,
+                           tokens=getattr(brain, '_last_tokens', 0),
+                           latency=getattr(brain, '_last_latency', 0.0))
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
                     exclude_id=agent.id) if target_name else None
@@ -392,8 +410,7 @@ async def run_agent(agent, world, brain, assembler, systems,
             await asyncio.sleep(0)
 
         except Exception as e:
-            from core.error_collector import errors
-            errors.log_exception(f"loop.{name}", e)
+            log.error(agent=name, module=f"loop.{name}", exception=e)
             # Transient (rate-limit, timeout) → backoff. Fatal → short pause.
             etype = type(e).__name__
             transient = etype in ("RateLimitError", "APITimeoutError", "Timeout", "TimeoutError")

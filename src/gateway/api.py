@@ -125,8 +125,9 @@ def create_app(gateway, poll_interval: float = 0.3):
 
                 await asyncio.sleep(poll_interval)
         except Exception as e:
-            from agent_logging import warning
-            warning(f"{agent_id} disconnected: {e}")
+            from logger import log
+            log.warning(agent=agent_id, module="gateway.api",
+                        message=f"{agent_id} disconnected: {e}")
         finally:
             try:
                 await ws.close()

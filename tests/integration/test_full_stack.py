@@ -407,42 +407,68 @@ class TestSensoryIntegration:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Error collector integration
+# Logger integration
 # ═══════════════════════════════════════════════════════════════════════
 
-class TestErrorCollectorIntegration:
-    """Test that the global error_collector singleton works across modules."""
+class TestLoggerIntegration:
+    """Test that the logger module works end-to-end."""
 
     def test_errors_are_deduped_across_calls(self):
-        from core.error_collector import ErrorCollector
-        ec = ErrorCollector()
-        ec.log_error("a", "x")
-        ec.log_error("a", "x")
-        ec.log_error("b", "x")
-        assert ec.total_errors == 3
-        assert len(ec.records) == 2  # a/x deduped, b/x separate
-        assert ec.records[0].count == 2
+        from logger import log, enable, disable
+        import tempfile, os
+        fd, path = tempfile.mkstemp(suffix=".sqlite3")
+        os.close(fd); os.unlink(path)
+        enable(path)
+        log.error(agent="test", module="a", message="x")
+        log.error(agent="test", module="a", message="x")
+        log.error(agent="test", module="b", message="x")
+        disable()
+        import sqlite3
+        db = sqlite3.connect(path)
+        rows = list(db.execute("SELECT module, count FROM errors"))
+        assert len(rows) == 2  # a/x and b/x
+        counts = {r[0]: r[1] for r in rows}
+        assert counts["a"] == 2  # deduped
+        assert counts["b"] == 1
+        db.close()
+        try: os.unlink(path)
+        except OSError: pass
+        try: os.unlink(path + "-wal")
+        except OSError: pass
 
     def test_dump_produces_human_readable_output(self):
-        from core.error_collector import ErrorCollector
-        ec = ErrorCollector()
-        ec.log_error("loop.alice", "LLM timeout after 3 retries")
-        ec.log_error("sensory", "entity not in candidate list")
-
-        report = ec.dump()
-        assert "Error Report" in report
-        assert "loop.alice" in report
-        assert "sensory" in report
-        assert "2 unique" in report
+        from logger import log, enable, disable
+        import tempfile, os
+        fd, path = tempfile.mkstemp(suffix=".sqlite3")
+        os.close(fd); os.unlink(path)
+        enable(path)
+        log.error(agent="test", module="loop.alice", message="LLM timeout after 3 retries")
+        log.error(agent="test", module="sensory", message="entity not in candidate list")
+        report = log.dump()
+        assert "Ticks:" in report
+        assert "Errors:" in report
+        assert "Storage:" in report
+        disable()
+        try: os.unlink(path)
+        except OSError: pass
+        try: os.unlink(path + "-wal")
+        except OSError: pass
 
     def test_summary_returns_dict(self):
-        from core.error_collector import ErrorCollector
-        ec = ErrorCollector()
-        ec.log_error("brain", "x")
-        ec.log_error("brain", "y")
-        s = ec.get_summary()
+        from logger import log, enable, disable
+        import tempfile, os
+        fd, path = tempfile.mkstemp(suffix=".sqlite3")
+        os.close(fd); os.unlink(path)
+        enable(path)
+        log.error(agent="test", module="brain", message="x")
+        log.error(agent="test", module="brain", message="y")
+        s = log.summary()
         assert isinstance(s, dict)
-        assert s["brain"] == 2
+        assert s["total_errors"] == 2
+        disable()
+        os.unlink(path)
+        try: os.unlink(path + "-wal")
+        except OSError: pass
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -77,6 +77,7 @@ def _parse_llm_json(raw: str, source: str) -> dict:
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
-        from core.error_collector import errors
-        errors.log_llm_parse_failure(source, raw)
+        from logger import log
+        log.error(agent="brain", module=source,
+                  message=f"LLM JSON parse failed. Raw: {raw[:200].replace(chr(10), ' ')}")
         return {"parse_error": True, "source": source, "raw_preview": raw[:200]}

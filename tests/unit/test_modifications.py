@@ -2,7 +2,6 @@
 Each test maps to a specific bug fix or enhancement."""
 import time
 import pytest
-from core.error_collector import ErrorCollector, errors as global_errors
 from layers.agent import AgentLayer
 from layers.auditory import AuditoryLayer
 from agent.sensory_memory import SensoryMemory, SensorRecord
@@ -203,7 +202,7 @@ async def test_event_bus_queuefull_logs_warning(caplog):
     from event_bus import EventBus as EB
     import inspect
     src = inspect.getsource(EB.emit)
-    assert 'agent_logging.warning' in src, \
+    assert 'log.warning' in src, \
         "QueueFull handler must log warning, not pass silently"
 
     # Also verify that multiple clients work — second client still gets data
@@ -211,78 +210,6 @@ async def test_event_bus_queuefull_logs_warning(caplog):
     raw = await asyncio.wait_for(q2.get(), timeout=1)
     import json
     assert json.loads(raw)["n"] >= 0
-
-
-# ═══════════════════════════════════════════════════════════════
-# #11: error_collector get_summary() + dump() (Phase 3)
-# ═══════════════════════════════════════════════════════════════
-
-def test_error_collector_summary_empty():
-    ec = ErrorCollector()
-    assert ec.get_summary() == {}
-    assert ec.dump() == "No errors recorded."
-
-
-def test_error_collector_summary_with_errors():
-    ec = ErrorCollector()
-    ec.log_error("brain.decide", "LLM timeout")
-    ec.log_error("brain.decide", "LLM timeout")  # dedup → count=2
-    ec.log_error("loop.alice", "JSON parse failed")
-
-    summary = ec.get_summary()
-    assert summary["brain.decide"] == 2
-    assert summary["loop.alice"] == 1
-
-
-def test_error_collector_dump_with_errors():
-    ec = ErrorCollector()
-    ec.log_error("brain.decide", "LLM timeout")
-    ec.log_error("sensory", "entity not found")
-
-    report = ec.dump()
-    assert "Error Report" in report
-    assert "2 unique" in report
-    assert "brain.decide" in report
-    assert "sensory" in report
-
-
-def test_error_collector_dedup_same_message_same_module():
-    ec = ErrorCollector()
-    for _ in range(5):
-        ec.log_error("brain", "timeout")
-    assert ec.total_errors == 5
-    assert len(ec.records) == 1  # deduped
-    assert ec.records[0].count == 5
-
-
-def test_error_collector_dedup_different_module_separate():
-    ec = ErrorCollector()
-    ec.log_error("brain", "timeout")
-    ec.log_error("sensory", "timeout")  # same message, different module → separate
-    assert len(ec.records) == 2
-
-
-def test_error_collector_log_exception_captures_traceback():
-    ec = ErrorCollector()
-    try:
-        raise ValueError("test error")
-    except ValueError as e:
-        ec.log_exception("test.module", e)
-    assert ec.records[0].traceback_str != ""
-    assert "ValueError" in ec.records[0].traceback_str
-
-
-def test_error_collector_llm_parse_failure_truncates():
-    ec = ErrorCollector()
-    raw = "x" * 500
-    ec.log_llm_parse_failure("brain", raw)
-    # Message preview capped at 120 chars
-    assert len(ec.records[0].message) < 300  # should be truncated
-
-
-def test_error_collector_global_singleton():
-    assert hasattr(global_errors, 'get_summary')
-    assert hasattr(global_errors, 'dump')
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -311,11 +238,11 @@ def test_loop_transient_error_types_identified():
 
 
 def test_loop_error_logs_to_collector():
-    """Verify exception logging to error_collector."""
+    """Verify exception logging to logger."""
     from loop import run_agent
     import inspect
     src = inspect.getsource(run_agent)
-    assert 'log_exception(f"loop.{name}"' in src, "Must log to error_collector with agent name"
+    assert 'log.error(' in src, "Must log to logger with agent name"
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -323,12 +250,12 @@ def test_loop_error_logs_to_collector():
 # ═══════════════════════════════════════════════════════════════
 
 def test_agent_logging_at_delta_trigger():
-    """Verify debug log is emitted when DELTA triggers LLM call."""
+    """Verify log.gate() is called when DELTA triggers LLM call."""
     from loop import run_agent
     import inspect
     src = inspect.getsource(run_agent)
     assert 'DELTA triggered' in src, "Must log at delta gate trigger"
-    assert 'agent_logging.debug' in src, "Must use agent_logging"
+    assert 'log.gate(' in src, "Must use log.gate"
 
 
 def test_agent_logging_at_enqueue():

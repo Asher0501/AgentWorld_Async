@@ -37,5 +37,6 @@ class EventBus:
             try:
                 q.put_nowait(payload)
             except asyncio.QueueFull:
-                import agent_logging
-                agent_logging.warning(f"event_bus: client queue full, dropping event")
+                from logger import log
+                log.warning(agent="event_bus", module="event_bus",
+                            message="client queue full, dropping event")
