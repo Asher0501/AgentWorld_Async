@@ -23,40 +23,6 @@ class LoopConfig:
     memory_prompt_count: int = 5
 
 
-# ── helpers ──
-
-def _make_trace(agent_name, target_name, target_id, action_text,
-                zone, pos, drives, coins, delta_text, sim_time,
-                *, llm1_output=None, llm1_prompt=None, result=None,
-                note=None, thread_completed: bool = False,
-                intent: str = "") -> dict:
-    """Build a trace dict for a single agent action.
-    llm1_output and llm1_prompt omitted for intent-executed actions.
-    """
-    trace = {
-        "agent": agent_name, "target": target_name, "target_id": target_id,
-        "action_text": action_text, "zone": zone, "pos": list(pos),
-        "drives": {k: round(float(v), 1) for k, v in drives.attrs.items()},
-        "coins": coins, "delta_text": delta_text, "sim_time": sim_time,
-        "thread_completed": thread_completed,
-        "intent": intent,
-    }
-    if result:
-        trace["result_narrative"] = result.narrative
-        trace["result_caller_deltas"] = result.caller_deltas
-        if result.llm2_prompt:
-            trace["llm2_prompt"] = result.llm2_prompt
-        if result.llm2_output:
-            trace["llm2_output"] = result.llm2_output
-    if llm1_output:
-        trace["llm1_output"] = llm1_output
-    if llm1_prompt:
-        trace["llm1_prompt"] = llm1_prompt
-    if note:
-        trace["note"] = note
-    return trace
-
-
 def _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text) -> dict:
     """Collect all ctx fields from channel sources. No formatting, no judgment."""
     ctx = {}
@@ -71,7 +37,7 @@ def _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text) -
 # ── main loop ──
 
 async def run_agent(agent, world, brain, assembler, systems,
-                    runtime: float, *, trace_fn=None, cfg: LoopConfig = None,
+                    runtime: float, *, cfg: LoopConfig = None,
                     director=None, dashboard_emit=None):
     if cfg is None:
         cfg = LoopConfig()
@@ -83,7 +49,6 @@ async def run_agent(agent, world, brain, assembler, systems,
 
     import agent_logging
     from logger import log
-    prompt1 = None
     err_backoff: dict[str, int] = {}
     while time.time() < end:
         try:
@@ -115,6 +80,15 @@ async def run_agent(agent, world, brain, assembler, systems,
                         al._last_intent = enqueued_decision.get("intent", "")
                         al._last_action_ts = time.time()
                         al._last_action_drives = {k: round(float(v), 1) for k, v in drives.attrs.items()}
+                        log.result(name, action=action_text,
+                                   target=target_name, target_id=target.id,
+                                   narrative=result.narrative,
+                                   deltas=result.caller_deltas,
+                                   drives={k: round(float(v), 1) for k, v in drives.attrs.items()},
+                                   sim=world.clock.now(),
+                                   thread_done=enqueued_decision.get("thread_completed", False),
+                                   duration=enqueued_decision.get("duration", 3.0),
+                                   file_output=enqueued_decision.get("file_output"))
                         if dashboard_emit:
                             dashboard_emit({"agent": name, "zone": agent.zone,
                                             "phase": "action",
@@ -127,14 +101,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                                             "intent": enqueued_decision.get("intent", ""),
                                             "main_thread": enqueued_decision.get("main_thread", ""),
                                             "thread_completed": enqueued_decision.get("thread_completed", False)})
-                        if trace_fn:
-                            trace_fn(_make_trace(
-                                name, target.name, target.id, action_text,
-                                agent.zone, agent.pos, drives, coins,
-                                "", world.clock.now(),
-                                llm1_output=enqueued_decision, result=result,
-                                thread_completed=enqueued_decision.get("thread_completed", False),
-                                intent=enqueued_decision.get("intent", "")))
                     elif target and not interaction.can_interact(agent, target):
                         agent.move_to(list(target.pos))
                         agent.last_action_time = world.clock.now()
@@ -142,14 +108,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                                                    channel_configs=labels.get("sensory_prompts"))
                 snapshot_p(al, sensory, drives, cfg.currency, cfg.text,
                            cfg.thresholds, cfg.coin_epsilon)
-                log.result(name, action=action_text,
-                           target=target_name,
-                           narrative=result.narrative,
-                           deltas=result.caller_deltas,
-                           sim=world.clock.now(),
-                           thread_done=enqueued_decision.get("thread_completed", False),
-                           duration=enqueued_decision.get("duration", 3.0),
-                           file_output=enqueued_decision.get("file_output"))
                 # NPC file output: write to disk as part of action execution
                 fo = enqueued_decision.get("file_output", {})
                 if fo and fo.get("filename") and fo.get("content"):
@@ -232,7 +190,8 @@ async def run_agent(agent, world, brain, assembler, systems,
             log.gate(name, triggered=True,
                      reason=delta_text, zone=agent.zone,
                      nearby=len(zone_entities),
-                     drives={k: round(float(v), 1) for k, v in drives.attrs.items()})
+                     drives={k: round(float(v), 1) for k, v in drives.attrs.items()},
+                     pos=agent.pos, coins=coins)
 
             # ═══════════════════════════════════════════
             #  PHASE 3: DECIDE
@@ -252,7 +211,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                 continue
 
             ctx = _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text)
-            prompt1 = assembler.assemble("agent_decision", ctx) if trace_fn else None
 
             decision = await brain.decide(ctx, template_name=al.template or "agent_decision",
                                            provider=al.llm_provider, slot_mask=al.slot_mask)
@@ -273,14 +231,16 @@ async def run_agent(agent, world, brain, assembler, systems,
             action_text = decision.get("action")
             if action_text:
                 agent_logging.debug(f"[{name}] ENQUEUE: {action_text[:50]}")
-                log.decide(name, action=action_text,
-                           intent=decision.get("intent", ""),
-                           target=target_name,
-                           tokens=getattr(brain, '_last_tokens', 0),
-                           latency=getattr(brain, '_last_latency', 0.0))
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
                     exclude_id=agent.id) if target_name else None
+                log.decide(name, action=action_text,
+                           intent=decision.get("intent", ""),
+                           target=target_name,
+                           target_id=target.id if target else "",
+                           llm_output=decision,
+                           tokens=getattr(brain, '_last_tokens', 0),
+                           latency=getattr(brain, '_last_latency', 0.0))
                 if target and interaction.can_interact(agent, target):
                     al._pending_action = (decision, target)
                     al._action_complete_at = time.time() + max(0.5, decision.get("duration", 3.0))

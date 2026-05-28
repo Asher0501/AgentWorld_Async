@@ -22,12 +22,17 @@ CREATE TABLE IF NOT EXISTS ticks (
     g_zone      TEXT,
     g_nearby    INTEGER,
     g_drives    TEXT,
+    g_pos_x     INTEGER,
+    g_pos_y     INTEGER,
+    g_coins     INTEGER,
     d_action    TEXT,
     d_intent    TEXT,
     d_target    TEXT,
+    d_target_id TEXT,
     d_tokens    INTEGER,
     d_latency   REAL,
     d_retries   INTEGER DEFAULT 0,
+    d_llm_output TEXT,
     r_narrative   TEXT,
     r_deltas      TEXT,
     r_thread_done INTEGER DEFAULT 0,
@@ -35,6 +40,7 @@ CREATE TABLE IF NOT EXISTS ticks (
     r_file        TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_ticks_agent ON ticks(session, agent);
+CREATE INDEX IF NOT EXISTS idx_ticks_phase ON ticks(session, phase);
 """
 
 SCHEMA_ERRORS = """
@@ -153,12 +159,12 @@ class Session:
         self._total_written += len(batch)
 
     def _write_ticks(self, rows: list[dict]):
-        placeholders = ", ".join(["?"] * 22)
+        placeholders = ", ".join(["?"] * 27)
         self._conn.executemany(
             f"INSERT INTO ticks "
             f"(session,agent,phase,wall_ts,sim_time,tick_n,"
-            f"g_triggered,g_reason,g_zone,g_nearby,g_drives,"
-            f"d_action,d_intent,d_target,d_tokens,d_latency,d_retries,"
+            f"g_triggered,g_reason,g_zone,g_nearby,g_drives,g_pos_x,g_pos_y,g_coins,"
+            f"d_action,d_intent,d_target,d_target_id,d_tokens,d_latency,d_retries,d_llm_output,"
             f"r_narrative,r_deltas,r_thread_done,r_duration,r_file) "
             f"VALUES ({placeholders})",
             [self._tick_tuple(r) for r in rows])
@@ -169,8 +175,10 @@ class Session:
             r.get("wall_ts", 0), r.get("sim_time"), r.get("tick_n", 0),
             r.get("g_triggered"), r.get("g_reason"), r.get("g_zone"),
             r.get("g_nearby"), r.get("g_drives"),
+            r.get("g_pos_x"), r.get("g_pos_y"), r.get("g_coins"),
             r.get("d_action"), r.get("d_intent"), r.get("d_target"),
-            r.get("d_tokens"), r.get("d_latency"), r.get("d_retries"),
+            r.get("d_target_id"), r.get("d_tokens"), r.get("d_latency"),
+            r.get("d_retries"), r.get("d_llm_output"),
             r.get("r_narrative"), r.get("r_deltas"), r.get("r_thread_done"),
             r.get("r_duration"), r.get("r_file"),
         )

@@ -37,41 +37,51 @@ class Log:
 
     def gate(self, agent: str, *, triggered: bool = False,
              reason: str = "", zone: str = "",
-             nearby: int = 0, drives: dict = None, **kwargs):
+             nearby: int = 0, drives: dict = None,
+             pos: tuple = None, coins: int = 0, **kwargs):
         self._gate(agent=agent, phase="gate",
                    g_triggered=1 if triggered else 0,
                    g_reason=reason or "",
                    g_zone=zone,
                    g_nearby=nearby,
                    g_drives=json.dumps(drives) if drives else None,
+                   g_pos_x=pos[0] if pos else None,
+                   g_pos_y=pos[1] if pos else None,
+                   g_coins=coins,
                    **kwargs)
 
     def decide(self, agent: str, *, action: str = "", intent: str = "",
-               target: str = "", tokens: int = 0, latency: float = 0.0,
-               retries: int = 0, **kwargs):
+               target: str = "", target_id: str = "",
+               tokens: int = 0, latency: float = 0.0,
+               retries: int = 0, llm_output: dict = None, **kwargs):
         self._decide(agent=agent, phase="decide",
                      d_action=action or "",
                      d_intent=intent or "",
                      d_target=target or "",
+                     d_target_id=target_id or "",
                      d_tokens=tokens,
                      d_latency=latency,
                      d_retries=retries,
+                     d_llm_output=json.dumps(llm_output) if llm_output else None,
                      **kwargs)
 
     def result(self, agent: str, *, action: str = "",
-               target: str = "", narrative: str = "",
+               target: str = "", target_id: str = "",
+               narrative: str = "",
                deltas: dict = None, sim: float = 0.0,
                thread_done: bool = False, duration: float = 3.0,
-               file_output: dict = None, **kwargs):
+               file_output: dict = None, drives: dict = None, **kwargs):
         self._result(agent=agent, phase="result",
                      d_action=action or "",
                      d_target=target or "",
+                     d_target_id=target_id or "",
                      r_narrative=narrative or "",
                      r_deltas=json.dumps(deltas) if deltas else None,
                      r_thread_done=1 if thread_done else 0,
                      r_duration=duration,
                      r_file=file_output.get("filename") if file_output else None,
                      sim_time=sim,
+                     g_drives=json.dumps(drives) if drives else None,
                      **kwargs)
 
     def error(self, agent: str = "system", *, module: str = "",

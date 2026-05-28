@@ -6,8 +6,7 @@ from datetime import datetime
 from .config import load_config
 from .world_setup import spawn_world, get_autonomous_agents
 from .loop_factory import build_loop_config, setup_agent_drives
-from .runner import run_concurrent, TraceCollector
-from .report import report
+from .runner import run_concurrent
 
 
 async def cmd_test(args):
@@ -78,9 +77,6 @@ async def cmd_test(args):
     print(f"  {len(agents)} agents | {args.runtime}s | Start: {datetime.now().strftime('%H:%M:%S')}")
     print(f"{'='*60}\n")
 
-    tracer = TraceCollector()
-    t_start = time.time()
-
     if args.persist:
         from core.persistence import WorldDB
         db = WorldDB(args.persist)
@@ -89,9 +85,10 @@ async def cmd_test(args):
         db = None
         run_id = ""
 
+    t_start = time.time()
     await run_concurrent(agents, world, brain, cfg["assembler"],
                          systems, args.runtime, loop_cfg,
-                         trace_fn=tracer.callback(), director=director,
+                         director=director,
                          dashboard_emit=event_emit)
 
     if api_task:
@@ -101,12 +98,20 @@ async def cmd_test(args):
         except (asyncio.CancelledError, Exception): pass
 
     elapsed = time.time() - t_start
-    gate_stats = {pname: gate.stats() for pname, gate in cfg["concurrency_gates"].items()}
-    tracer.set_meta({"gate_stats": gate_stats,
-                     "telemetry": cfg["telemetry"].stats(),
-                     "clock": {"decision_tick": round(clock.decision_tick, 2),
-                               "scale": round(clock.scale, 3)}})
-    report(tracer, agents, sim, elapsed, args.validate, args.output)
+    from logger import log
+    gs = log.summary() or {}
+    print(f"  Complete: {elapsed:.0f}s")
+    print(f"  Logger: {gs.get('total_written', 0)} entries")
+    if args.validate:
+        print(f"  Gate: {gs.get('phase_counts', {}).get('gate', 0)} "
+              f"Decide: {gs.get('phase_counts', {}).get('decide', 0)} "
+              f"Result: {gs.get('phase_counts', {}).get('result', 0)}")
+        print(f"  Errors: {gs.get('total_errors', 0)}")
+    if args.output:
+        print(f"  Data: {args.output}")
+        import json
+        with open(args.output, "w") as f:
+            json.dump(log.summary(), f, ensure_ascii=False, indent=2)
     if db:
         db.end_run(run_id)
         db.close()
@@ -139,10 +144,7 @@ async def cmd_demo(args):
 
     await run_agent(agent, world, brain, cfg["assembler"],
                     systems,
-                    runtime=30, cfg=loop_cfg,
-                    trace_fn=lambda t: print(
-                        f"  [{agent.name}] → {t.get('target','?')} | "
-                        f"{t.get('action_text','?')[:80]}"))
+                    runtime=30, cfg=loop_cfg)
 
 
 def cmd_validate_config(args):

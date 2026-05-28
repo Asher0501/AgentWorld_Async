@@ -85,8 +85,7 @@ async def test():
     
     # Start 杰洛特 with director
     geralt_task = run_agent(geralt, world, brain, assembler, systems, 60,
-                            cfg=loop_cfg, director=director,
-                            trace_fn=lambda t: trace_log.append(t))
+                             cfg=loop_cfg, director=director)
     
     all_tasks = auto_tasks + [geralt_task]
     
