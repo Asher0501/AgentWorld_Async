@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Unified Interact Architecture — AgentWorld Async</title>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box }
+
+  :root {
+    --bg:       oklch(0.080 0.000 0);
+    --surface:  oklch(0.120 0.000 0);
+    --surface2: oklch(0.155 0.000 0);
+    --border:   oklch(0.220 0.000 0);
+    --ink:      oklch(0.950 0.000 0);
+    --muted:    oklch(0.550 0.000 0);
+    --primary:  oklch(0.650 0.120 200);
+    --primary-bg:  oklch(0.160 0.025 200);
+    --accent:   oklch(0.570 0.180 40);
+    --accent-bg:   oklch(0.145 0.040 40);
+    --green:    oklch(0.650 0.160 142);
+    --green-bg: oklch(0.140 0.030 142);
+    --purple:   oklch(0.600 0.160 295);
+    --purple-bg:oklch(0.140 0.040 295);
+    --teal:     oklch(0.620 0.100 185);
+    --teal-bg:  oklch(0.130 0.025 185);
+    --red:      oklch(0.580 0.190 20);
+    --red-bg:   oklch(0.145 0.040 20);
+    --code-bg:  oklch(0.100 0.000 0);
+    --code-inline: oklch(0.150 0.000 0);
+  }
+
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14.5px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrapper { max-width: 1080px; margin:0 auto; padding: 52px 32px 64px }
+
+  /* hero */
+  .hero { text-align:center; padding:40px 0 36px; border-bottom:1px solid var(--border); margin-bottom:40px }
+  .hero h1 { font-size:28px; font-weight:700; color:#fff; letter-spacing:-0.5px; margin-bottom:6px; text-wrap:balance }
+  .hero .sub { font-size:14px; color:var(--muted); margin-bottom:16px }
+  .hero .tags { display:flex; gap:8px; justify-content:center }
+  .tag { padding:3px 11px; border-radius:4px; font-size:11.5px; font-weight:600; letter-spacing:0.2px }
+  .tag-primary { background:var(--primary-bg); color:var(--primary) }
+  .tag-green { background:var(--green-bg); color:var(--green) }
+  .tag-purple { background:var(--purple-bg); color:var(--purple) }
+  .tag-accent { background:var(--accent-bg); color:var(--accent) }
+  .tag-teal { background:var(--teal-bg); color:var(--teal) }
+
+  /* headings */
+  h2 { font-size:20px; font-weight:700; color:#fff; margin:48px 0 12px; padding-bottom:5px; border-bottom:1px solid var(--border) }
+  h3 { font-size:16px; font-weight:600; color:var(--primary); margin:28px 0 8px }
+
+  p, li { font-size:14px; color:var(--ink) }
+  p { margin:6px 0 }
+  ul, ol { margin:6px 0 6px 20px }
+  li { margin:3px 0 }
+
+  code { background:var(--code-inline); padding:2px 6px; border-radius:3px; font-size:12.5px; font-family:"Cascadia Code","Fira Code",monospace; color:var(--green) }
+  pre { background:var(--code-bg); padding:14px 18px; border-radius:6px; overflow-x:auto; font-size:12.5px; line-height:1.55; margin:8px 0; border:1px solid var(--border) }
+  pre code { background:none; padding:0; display:block }
+  .kw { color:var(--purple) } .str { color:var(--accent) } .fn { color:var(--primary) } .cmt { color:var(--muted) } .key { color:var(--teal) }
+
+  /* diagrams */
+  .diagram { display:flex; justify-content:center; margin:20px 0 }
+
+  /* cards */
+  .card-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:12px; margin:14px 0 }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px }
+  .card h4 { font-size:13.5px; margin-bottom:6px; font-weight:600 }
+  .card p, .card li { font-size:13px; color:var(--muted); line-height:1.6 }
+  .card-primary { border-left:3px solid var(--primary) }
+  .card-green { border-left:3px solid var(--green) }
+  .card-purple { border-left:3px solid var(--purple) }
+  .card-accent { border-left:3px solid var(--accent) }
+  .card-teal { border-left:3px solid var(--teal) }
+  .card-red { border-left:3px solid var(--red) }
+
+  /* callout */
+  .callout { padding:12px 16px; border-radius:6px; margin:12px 0; font-size:13.5px }
+  .callout-primary { background:var(--primary-bg); border-left:3px solid var(--primary) }
+  .callout-green { background:var(--green-bg); border-left:3px solid var(--green) }
+  .callout-accent { background:var(--accent-bg); border-left:3px solid var(--accent) }
+  .callout-red { background:var(--red-bg); border-left:3px solid var(--red) }
+  .callout strong { font-weight:700 }
+
+  /* tables */
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; border-radius:6px; overflow:hidden }
+  th, td { padding:9px 12px; text-align:left; border-bottom:1px solid var(--border) }
+  th { background:var(--surface2); font-weight:700; color:var(--primary); white-space:nowrap; font-size:12px }
+  tr:hover { background:var(--surface) }
+  td:first-child { font-family:"Cascadia Code","Fira Code",monospace; font-size:12px }
+
+  /* bilingual */
+  .en { color:var(--muted); font-style:italic; margin-left:8px; font-size:13px }
+  .en::before { content:"— "; color:var(--muted) }
+
+  hr { border:none; border-top:1px solid var(--border); margin:28px 0 }
+
+  /* lang switcher */
+  .lang-note { font-size:12px; color:var(--muted); margin-bottom:4px }
+  .lang-note .zh { color:var(--ink) }
+  .lang-note .en { color:var(--muted); font-style:italic }
+
+  .accent-fill { background:var(--accent-bg); border-left:3px solid var(--accent); padding:12px 16px; border-radius:6px; margin:12px 0; font-size:13.5px }
+
+  @media(max-width:768px){ .wrapper{padding:24px 16px} .card-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ═══════ HERO ═══════ -->
+<div class="hero">
+  <h1>Unified Interact + Resource Constraint Registry</h1>
+  <p class="sub">统一交互入口 · YAML 定义动作 · 物理约束自动激活 · LLM 自由决策</p>
+  <p class="sub en">Single entry point · YAML-defined actions · auto-activated constraints · LLM sovereignty</p>
+  <div class="tags">
+    <span class="tag tag-teal">6th Channel 第六通道</span>
+    <span class="tag tag-primary">YAML-driven</span>
+    <span class="tag tag-purple">Extensible 可扩展</span>
+    <span class="tag tag-accent">0 Python Logic</span>
+    <span class="tag tag-green">Bilingual 中英双版</span>
+  </div>
+</div>
+
+<!-- ═══════ OVERVIEW ═══════ -->
+<h2>1. Overview <span class="en">概览</span></h2>
+
+<div class="card-grid">
+<div class="card card-primary">
+<h4 style="color:var(--primary)">Unified Entry Point <span class="en">统一入口</span></h4>
+<p>All entity interactions flow through a single <code>interaction.interact()</code> method. NPC↔NPC dialogue, NPC↔Item usage, resource transfers — dispatched by YAML-defined action type names, not by hardcoded if/elif chains.</p>
+<p class="en">所有实体交互走单一入口。NPC↔NPC 对话、NPC↔Item 使用、资源转移——全部由 YAML 定义的 action type 名派发，无硬编码分支。</p>
+</div>
+<div class="card card-green">
+<h4 style="color:var(--green)">YAML-Defined Actions <span class="en">YAML 定义动作</span></h4>
+<p>Every entity declares its interact capabilities in <code>world.yaml</code>. NPC base provides <code>send</code>, <code>receive</code>, <code>talk</code>, <code>follow</code>. Items provide <code>eat</code>, <code>pick_up</code>, <code>open</code>. Add new actions — zero Python changes.</p>
+<p class="en">每个实体在 world.yaml 声明交互能力。NPC 基础提供 send/receive/talk/follow。Item 提供 eat/pick_up/open。加新动作零 Python 改动。</p>
+</div>
+<div class="card card-purple">
+<h4 style="color:var(--purple)">Constraint Auto-Activation <span class="en">约束自动激活</span></h4>
+<p>Each action declares constraints (e.g. <code>conservation</code>, <code>consumption</code>). The engine matches both sides. Only constraints registered by <strong>both</strong> parties activate. Single-party registration is silently ignored.</p>
+<p class="en">每个动作声明约束。引擎匹配双方。只有双方都注册的约束激活。单方注册静默忽略。</p>
+</div>
+<div class="card card-accent">
+<h4 style="color:var(--accent)">Resource Ledger <span class="en">资源账本</span></h4>
+<p>A flat, entity-level balance sheet: gold, mana, apples, potions. Transfers validated against physical law (no creation from void). The engine knows zero domain semantics.</p>
+<p class="en">实体级平账本。转移按物理定律校验（不能无中生有）。引擎知道零领域语义。</p>
+</div>
+<div class="card card-teal">
+<h4 style="color:var(--teal)">LLM Sovereignty <span class="en">LLM 主权</span></h4>
+<p>The LLM receives available actions and resource state through channels. It decides what to do. The engine validates physical feasibility — not economic wisdom.</p>
+<p class="en">LLM 通过 channel 看到可执行动作和资源状态。自己决定做什么。引擎只校验物理可行性——不判断经济合理性。</p>
+</div>
+<div class="card card-red">
+<h4 style="color:var(--red)">Closed Loop <span class="en">闭环</span></h4>
+<p>Resources become a 6th sensory channel. The existing action→feedback→decision cycle extends naturally: resource changes perceived in subsequent ticks through the resource channel.</p>
+<p class="en">资源成为第6个感官通道。现有 action→feedback→decision 循环自然扩展：资源变化通过 resource channel 在下轮被感知。</p>
+</div>
+</div>
+
+<!-- ═══════ ARCHITECTURE ═══════ -->
+<h2>2. System Architecture <span class="en">系统架构</span></h2>
+
+<div class="diagram">
+<svg width="920" height="650" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ag" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="ab" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#60a5fa"/></marker>
+    <marker id="ap" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="aa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#fbbf24"/></marker>
+    <marker id="ar" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+    <marker id="ac" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
+  </defs>
+
+  <!-- L1: YAML -->
+  <text x="460" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">LAYER 1 — YAML Control Plane · YAML 控制面</text>
+
+  <rect x="10" y="36" width="220" height="55" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="120" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">world.yaml</text>
+  <text x="120" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">entity.actions + constraints</text>
+  <text x="120" y="84" text-anchor="middle" font-size="10" fill="#94a3b8">entity.resources (ledger seed)</text>
+
+  <rect x="245" y="36" width="200" height="55" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="345" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">channels.yaml</text>
+  <text x="345" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">source: resources → ctx</text>
+  <text x="345" y="84" text-anchor="middle" font-size="10" fill="#94a3b8">source: actions   → ctx</text>
+
+  <rect x="460" y="36" width="220" height="55" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="570" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">prompts.yaml</text>
+  <text x="570" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">slot: resources, actions</text>
+  <text x="570" y="84" text-anchor="middle" font-size="10" fill="#94a3b8">slot: interact_options</text>
+
+  <rect x="695" y="36" width="215" height="55" rx="6" fill="#172554" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="802" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa">slot_groups.yaml</text>
+  <text x="802" y="72" text-anchor="middle" font-size="10" fill="#94a3b8">per-agent activation ×2 cols</text>
+  <text x="802" y="84" text-anchor="middle" font-size="10" fill="#94a3b8">extend: ablation-ready</text>
+
+  <line x1="460" y1="91" x2="460" y2="115" stroke="#c084fc" stroke-width="2" marker-end="url(#ap)"/>
+
+  <!-- L2: Channel -->
+  <text x="460" y="135" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">LAYER 2 — Channel System · 现有 + 新增</text>
+
+  <rect x="10" y="147" width="108" height="26" rx="3" fill="#052e16" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  <text x="64" y="165" text-anchor="middle" font-size="9.5" fill="#4ade80">sensory</text>
+  <rect x="125" y="147" width="108" height="26" rx="3" fill="#052e16" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  <text x="179" y="165" text-anchor="middle" font-size="9.5" fill="#4ade80">drives</text>
+  <rect x="240" y="147" width="108" height="26" rx="3" fill="#052e16" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  <text x="294" y="165" text-anchor="middle" font-size="9.5" fill="#4ade80">memory</text>
+  <rect x="355" y="147" width="108" height="26" rx="3" fill="#052e16" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  <text x="409" y="165" text-anchor="middle" font-size="9.5" fill="#4ade80">delta</text>
+  <rect x="470" y="147" width="108" height="26" rx="3" fill="#052e16" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+  <text x="524" y="165" text-anchor="middle" font-size="9.5" fill="#4ade80">feedback</text>
+  <rect x="585" y="147" width="108" height="26" rx="3" fill="#083344" stroke="#22d3ee" stroke-width="2"/>
+  <text x="639" y="165" text-anchor="middle" font-size="9.5" fill="#22d3ee">resources ⟵new</text>
+  <rect x="700" y="147" width="108" height="26" rx="3" fill="#083344" stroke="#22d3ee" stroke-width="2"/>
+  <text x="754" y="165" text-anchor="middle" font-size="9.5" fill="#22d3ee">actions ⟵new</text>
+
+  <!-- ctx -->
+  <rect x="160" y="178" width="600" height="24" rx="4" fill="#1e293b" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="460" y="195" text-anchor="middle" font-size="10" fill="#60a5fa">ctx dict → Assembler.safe_format() → LLM prompt</text>
+
+  <line x1="460" y1="202" x2="460" y2="226" stroke="#fbbf24" stroke-width="2" marker-end="url(#aa)"/>
+
+  <!-- L3: Engine -->
+  <text x="460" y="246" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">LAYER 3 — Engine · 引擎 (1 new module, 1 modified method)</text>
+
+  <rect x="10" y="258" width="150" height="36" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+  <text x="85" y="281" text-anchor="middle" font-size="10.5" fill="#94a3b8">loop.py (unchanged)</text>
+
+  <rect x="175" y="250" width="280" height="52" rx="6" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="315" y="270" text-anchor="middle" font-size="12" font-weight="700" fill="#c084fc">interaction.py::interact()</text>
+  <text x="315" y="288" text-anchor="middle" font-size="10" fill="#a78bfa">dispatch by YAML action_type · match constraints → apply</text>
+
+  <rect x="470" y="258" width="220" height="36" rx="6" fill="#083344" stroke="#22d3ee" stroke-width="2"/>
+  <text x="580" y="281" text-anchor="middle" font-size="11.5" font-weight="700" fill="#22d3ee">core/ledger.py ⟵ NEW</text>
+
+  <rect x="705" y="258" width="205" height="36" rx="6" fill="#083344" stroke="#22d3ee" stroke-width="2"/>
+  <text x="807" y="281" text-anchor="middle" font-size="11.5" font-weight="700" fill="#22d3ee">core/constraints/ ⟵ NEW</text>
+
+  <line x1="200" y1="276" x2="175" y2="276" stroke="#4ade80" stroke-width="1"/>
+  <line x1="315" y1="302" x2="315" y2="330" stroke="#c084fc" stroke-width="2" marker-end="url(#ap)"/>
+
+  <!-- L4: Constraint Match -->
+  <text x="460" y="350" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">LAYER 4 — Constraint Activation · 约束激活 (双方注册才生效)</text>
+
+  <rect x="30" y="366" width="260" height="52" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="160" y="386" text-anchor="middle" font-size="11" font-weight="700" fill="#4ade80">Agent action: send</text>
+  <text x="160" y="404" text-anchor="middle" font-size="10" fill="#86efac">constraints: [conservation] | resource: gold=5</text>
+
+  <rect x="310" y="366" width="260" height="52" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="1.5"/>
+  <text x="440" y="386" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">Target action: receive</text>
+  <text x="440" y="404" text-anchor="middle" font-size="10" fill="#fca5a5">constraints: [conservation] | resource: gold</text>
+
+  <rect x="600" y="366" width="290" height="52" rx="6" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="745" y="386" text-anchor="middle" font-size="11.5" font-weight="700" fill="#c084fc">match(agent, target) → {"conservation"} ✓</text>
+  <text x="745" y="404" text-anchor="middle" font-size="10" fill="#a78bfa">双方都注册 → 激活 · 单方注册 → 忽略</text>
+
+  <line x1="160" y1="392" x2="306" y2="392" stroke="#4ade80" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="440" y1="392" x2="596" y2="392" stroke="#f87171" stroke-width="2" marker-end="url(#ar)"/>
+
+  <line x1="745" y1="418" x2="745" y2="442" stroke="#4ade80" stroke-width="2" marker-end="url(#ag)"/>
+
+  <!-- L5: Exec -->
+  <text x="460" y="462" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">LAYER 5 — Execute + Observe · 执行 + 观测</text>
+
+  <rect x="30" y="478" width="280" height="44" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="1.5"/>
+  <text x="170" y="496" text-anchor="middle" font-size="11" font-weight="700" fill="#f87171">Constraint.validate()</text>
+  <text x="170" y="514" text-anchor="middle" font-size="10" fill="#fca5a5">src.balance(gold) ≥ amount → pass / fail</text>
+
+  <rect x="330" y="478" width="280" height="44" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="470" y="496" text-anchor="middle" font-size="11" font-weight="700" fill="#4ade80">Constraint.apply() → deltas → ledger</text>
+  <text x="470" y="514" text-anchor="middle" font-size="10" fill="#86efac">ledger.transfer(src,tgt,gold,5) + log.result()</text>
+
+  <rect x="630" y="478" width="280" height="44" rx="6" fill="#083344" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="770" y="496" text-anchor="middle" font-size="11" font-weight="700" fill="#22d3ee">Channel Update → Next Tick</text>
+  <text x="770" y="514" text-anchor="middle" font-size="10" fill="#67e8f9">resources channel refresh · action_feedback</text>
+
+  <!-- L6: LLM Perception -->
+  <text x="460" y="548" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">LAYER 6 — LLM Perception (next tick) · LLM 下轮感知</text>
+
+  <rect x="30" y="562" width="870" height="48" rx="8" fill="#0f172a" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="460" y="582" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e2e8f0">action_feedback: 意图: send → Rachel · resources: gold:45 (was 50)</text>
+  <text x="460" y="600" text-anchor="middle" font-size="10.5" fill="#94a3b8">LLM 自己推理: I gave 5 gold, balance 45 → continue? switch target? change strategy?</text>
+</svg>
+</div>
+
+<!-- ═══════ ENTITY SCHEMA ═══════ -->
+<h2>3. Entity YAML Schema <span class="en">实体 YAML 模式</span></h2>
+
+<p>Every entity declares its interact capabilities and resource state in <code>world.yaml</code>. NPCs inherit base actions; items start from scratch. Specialized entities add new keys. Zero Python.</p>
+
+<h3>3.1 NPC Base + Specialization <span class="en">NPC 基础 + 特化</span></h3>
+<pre><code><span class="cmt"># NPC 基础交互 — 所有 NPC 自动拥有</span>
+<span class="key">interact</span>:
+  <span class="key">send</span>:    { <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+  <span class="key">receive</span>: { <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+  <span class="key">talk</span>:    { }
+  <span class="key">follow</span>:  { }
+
+<span class="cmt"># Geralt — 猎魔人特化 / witcher specialization</span>
+- <span class="key">id</span>: geralt
+  <span class="key">agent</span>:
+    <span class="key">autonomous</span>: true
+    <span class="key">resources</span>:                <span class="cmt"># ← NEW</span>
+      <span class="key">gold</span>: 50
+      <span class="key">potions</span>: 2
+  <span class="key">interact</span>:
+    <span class="key">cast_sign</span>:   { <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">cost</span>: 5, <span class="key">constraints</span>: [<span class="str">"consumption"</span>] }
+    <span class="key">drink_potion</span>:{ <span class="key">resource</span>: <span class="str">"potion"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>], <span class="key">deltas</span>: {<span class="str">"health"</span>: 20} }</code></pre>
+
+<h3>3.2 Item Base + Specialization <span class="en">Item 基础 + 特化</span></h3>
+<pre><code><span class="cmt"># 苹果箱 — consumable item</span>
+- <span class="key">id</span>: apple_crate
+  <span class="key">zone</span>: village
+  <span class="key">interaction</span>:
+    <span class="key">private_attrs</span>: { <span class="key">apple_count</span>: 10 }
+    <span class="key">interact</span>:
+      <span class="key">eat</span>:     { <span class="key">resource</span>: <span class="str">"apple"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>],
+                  <span class="key">deltas</span>: {<span class="str">"hunger"</span>: -10, <span class="str">"mood"</span>: 5} }
+      <span class="key">open</span>:    { <span class="key">reveal</span>: true }
+      <span class="key">pick_up</span>: { <span class="key">resource</span>: <span class="str">"apple"</span>, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+
+<span class="cmt"># 魔法水晶 — special resource item</span>
+- <span class="key">id</span>: magic_crystal
+  <span class="key">interaction</span>:
+    <span class="key">private_attrs</span>: { <span class="key">mana</span>: 100 }
+    <span class="key">interact</span>:
+      <span class="key">absorb</span>:  { <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+      <span class="key">shatter</span>: { <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>], <span class="key">lose_all</span>: true }</code></pre>
+
+<div class="callout callout-green">
+<strong>Extend rule 扩展规则:</strong> New entity → add 1 YAML block with <code>interact:</code> + <code>resources:</code>. NPC auto-inherits send/receive/talk/follow. Specialize by adding new keys to the entity's own <code>interact:</code>. Zero Python changes.
+</div>
+
+<!-- ═══════ CONSTRAINTS ═══════ -->
+<h2>4. Constraint Registry <span class="en">约束注册中心</span></h2>
+
+<p>Constraints are <strong>physical laws</strong> — not value judgments. The engine knows constraint names. The constraint classes know how to validate and apply. No domain knowledge (gold, mana, apple) exists in the engine core.</p>
+
+<div class="diagram">
+<svg width="880" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="c1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="c2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+  </defs>
+
+  <rect x="10" y="20" width="280" height="160" rx="6" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="150" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#c084fc">ConstraintRegistry</text>
+  <line x1="25" y1="55" x2="275" y2="55" stroke="#a78bfa" stroke-width="1"/>
+  <text x="150" y="78" text-anchor="middle" font-size="11" fill="#a78bfa">match(agent_act, target_act) → set[str]</text>
+  <text x="150" y="100" text-anchor="middle" font-size="11" fill="#a78bfa">apply(name, agent, target, action, ledger)</text>
+  <text x="150" y="120" text-anchor="middle" font-size="10" fill="#94a3b8">_REGISTRY = {} — extend via decorator</text>
+  <text x="150" y="142" text-anchor="middle" font-size="10" fill="#94a3b8">EXTEND: @register("new") class NewConstraint</text>
+  <text x="150" y="160" text-anchor="middle" font-size="10" fill="#94a3b8">auto-discovered from constraints/ package</text>
+
+  <line x1="290" y1="50" x2="330" y2="50" stroke="#c084fc" stroke-width="2" marker-end="url(#c1)"/>
+  <line x1="290" y1="130" x2="330" y2="130" stroke="#c084fc" stroke-width="2" marker-end="url(#c1)"/>
+
+  <rect x="335" y="18" width="250" height="70" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="460" y="40" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4ade80">ConservationConstraint</text>
+  <text x="460" y="58" text-anchor="middle" font-size="10" fill="#86efac">validate: src.balance ≥ amount</text>
+  <text x="460" y="74" text-anchor="middle" font-size="10" fill="#86efac">apply: ledger.transfer(src,tgt,res,n)</text>
+
+  <rect x="335" y="100" width="250" height="70" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="460" y="122" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4ade80">ConsumptionConstraint</text>
+  <text x="460" y="140" text-anchor="middle" font-size="10" fill="#86efac">validate: target resource quantity > 0</text>
+  <text x="460" y="156" text-anchor="middle" font-size="10" fill="#86efac">apply: resource-1, deltas, if 0→remove</text>
+
+  <rect x="610" y="40" width="260" height="110" rx="6" fill="#0f172a" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4"/>
+  <text x="740" y="65" text-anchor="middle" font-size="11" fill="#64748b">Future: DurabilityConstraint</text>
+  <text x="740" y="85" text-anchor="middle" font-size="10" fill="#64748b">item wears per use</text>
+  <text x="740" y="105" text-anchor="middle" font-size="10" fill="#64748b">Future: CapacityConstraint</text>
+  <text x="740" y="125" text-anchor="middle" font-size="10" fill="#64748b">max inventory per entity</text>
+</svg>
+</div>
+
+<pre><code><span class="kw">class</span> <span class="fn">ConservationConstraint</span>:
+    <span class="cmt"># 引擎不知道 gold, mana — 只知 resource 名字字符串</span>
+
+    <span class="kw">def</span> <span class="fn">validate</span>(self, agent, target, action_def, ledger) → <span class="kw">bool</span>:
+        resource = action_def[<span class="str">"resource"</span>]
+        amount   = action_def.get(<span class="str">"amount"</span>, action_def.get(<span class="str">"cost"</span>, 1))
+        <span class="kw">return</span> ledger.balance(agent.id, resource) >= amount
+
+    <span class="kw">def</span> <span class="fn">apply</span>(self, agent, target, action_def, ledger):
+        resource = action_def[<span class="str">"resource"</span>]
+        amount   = action_def.get(<span class="str">"amount"</span>, action_def.get(<span class="str">"cost"</span>, 1))
+        ledger.transfer(agent.id, target.id, resource, amount)</code></pre>
+
+<!-- ═══════ LEDGER ═══════ -->
+<h2>5. Resource Ledger <span class="en">资源账本</span></h2>
+
+<p>Flat entity-level balance sheet. Zero domain knowledge. Tracks what each entity holds. Transfers never create resources from nothing.</p>
+
+<pre><code><span class="kw">class</span> <span class="fn">ResourceLedger</span>:
+    <span class="cmt"># {entity_id: {resource_name: quantity}}</span>
+    _holdings: dict[str, dict[str, int]]
+
+    <span class="kw">def</span> <span class="fn">balance</span>  (entity_id, resource) → <span class="kw">int</span>
+    <span class="kw">def</span> <span class="fn">all_of</span>   (entity_id) → dict[str, int]
+    <span class="kw">def</span> <span class="fn">transfer</span> (src_id, tgt_id, resource, amount) → <span class="kw">bool</span>
+    <span class="kw">def</span> <span class="fn">deposit</span>  (entity_id, resource, amount)
+    <span class="kw">def</span> <span class="fn">withdraw</span> (entity_id, resource, amount) → <span class="kw">bool</span></code></pre>
+
+<div class="callout callout-accent">
+<strong>Conservation law 守恒律:</strong> <code>transfer(A,B,x,n)</code> guarantees A.x -= n and B.x += n. If A's balance is insufficient, the entire operation returns False — no partial execution. Engine records every transfer via logger for audit trail.
+</div>
+
+<!-- ═══════ FLOW ═══════ -->
+<h2>6. Unified Interact Flow <span class="en">统一交互流程</span></h2>
+
+<div class="diagram">
+<svg width="880" height="340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="f1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="f2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="f3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+    <marker id="f4" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
+  </defs>
+
+  <rect x="10" y="10" width="200" height="55" rx="6" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+  <text x="110" y="32" text-anchor="middle" font-size="11.5" font-weight="700" fill="#60a5fa">Step 0: LLM Decides</text>
+  <text x="110" y="50" text-anchor="middle" font-size="10" fill="#94a3b8">{action, interact:"send",</text>
+  <text x="110" y="64" text-anchor="middle" font-size="10" fill="#94a3b8">target, resource, amount}</text>
+
+  <line x1="210" y1="37" x2="250" y2="37" stroke="#c084fc" stroke-width="2" marker-end="url(#f1)"/>
+
+  <rect x="255" y="10" width="190" height="55" rx="6" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="350" y="32" text-anchor="middle" font-size="11.5" font-weight="700" fill="#c084fc">Step 1: Resolve</text>
+  <text x="350" y="50" text-anchor="middle" font-size="10" fill="#a78bfa">agent.interact[action_type]</text>
+  <text x="350" y="64" text-anchor="middle" font-size="10" fill="#a78bfa">target.interact[action_type]</text>
+
+  <line x1="445" y1="37" x2="485" y2="37" stroke="#f87171" stroke-width="2" marker-end="url(#f3)"/>
+
+  <rect x="490" y="5" width="190" height="70" rx="6" fill="#450a0a" stroke="#f87171" stroke-width="2"/>
+  <text x="585" y="26" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f87171">Step 2: Match</text>
+  <text x="585" y="42" text-anchor="middle" font-size="10" fill="#fca5a5">a_c = agent.action.constraints</text>
+  <text x="585" y="56" text-anchor="middle" font-size="10" fill="#fca5a5">t_c = target.action.constraints</text>
+  <text x="585" y="70" text-anchor="middle" font-size="10" fill="#fca5a5">active = a_c &amp; t_c (intersection)</text>
+
+  <rect x="490" y="85" width="190" height="22" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+  <text x="585" y="101" text-anchor="middle" font-size="9.5" fill="#64748b">no match → skip constraints</text>
+
+  <line x1="585" y1="107" x2="585" y2="135" stroke="#c084fc" stroke-width="2" marker-end="url(#f1)"/>
+
+  <rect x="490" y="140" width="190" height="55" rx="6" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
+  <text x="585" y="158" text-anchor="middle" font-size="11.5" font-weight="700" fill="#c084fc">Step 3: Validate</text>
+  <text x="585" y="174" text-anchor="middle" font-size="10" fill="#a78bfa">for c in active: c.validate()</text>
+  <text x="585" y="192" text-anchor="middle" font-size="10" fill="#a78bfa">any fail → return error</text>
+
+  <line x1="680" y1="167" x2="720" y2="167" stroke="#4ade80" stroke-width="2" marker-end="url(#f2)"/>
+
+  <rect x="725" y="10" width="145" height="55" rx="6" fill="#052e16" stroke="#4ade80" stroke-width="2"/>
+  <text x="797" y="32" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4ade80">Step 4: Apply</text>
+  <text x="797" y="50" text-anchor="middle" font-size="10" fill="#86efac">constraint.apply()</text>
+  <text x="797" y="64" text-anchor="middle" font-size="10" fill="#86efac">deltas → layers</text>
+
+  <line x1="797" y1="65" x2="797" y2="105" stroke="#22d3ee" stroke-width="2" marker-end="url(#f4)"/>
+
+  <rect x="725" y="110" width="145" height="85" rx="6" fill="#083344" stroke="#22d3ee" stroke-width="2"/>
+  <text x="797" y="132" text-anchor="middle" font-size="11.5" font-weight="700" fill="#22d3ee">Step 5: Log</text>
+  <text x="797" y="150" text-anchor="middle" font-size="10" fill="#67e8f9">log.result()</text>
+  <text x="797" y="166" text-anchor="middle" font-size="10" fill="#67e8f9">ledger updated</text>
+  <text x="797" y="182" text-anchor="middle" font-size="10" fill="#67e8f9">channel refresh</text>
+
+  <!-- next tick -->
+  <rect x="200" y="260" width="480" height="50" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+  <text x="440" y="282" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fbbf24">Next Tick — LLM Perceives Consequences · 下轮感知</text>
+  <text x="440" y="300" text-anchor="middle" font-size="10" fill="#fbbf24">resources update · action_feedback · drives · memory · sensory</text>
+
+  <line x1="585" y1="195" x2="585" y2="240" stroke="#c084fc" stroke-width="1.5"/>
+  <line x1="585" y1="240" x2="440" y2="240" stroke="#64748b" stroke-width="1.5"/>
+  <line x1="440" y1="240" x2="440" y2="260" stroke="#fbbf24" stroke-width="2" marker-end="url(#f2)"/>
+</svg>
+</div>
+
+<!-- ═══════ CLOSED LOOP ═══════ -->
+<h2>7. Integration with the Closed Loop <span class="en">闭环集成</span></h2>
+
+<table>
+<tr><th>Layer 层</th><th>现有 / Existing</th><th>After this feature / 新增后</th></tr>
+<tr><td>Channels 通道</td><td>5 channels (sensory, drives, memory, delta, feedback)</td><td><strong>7 channels</strong> (+ resources, + actions)</td></tr>
+<tr><td>Channel Sources</td><td>7 source classes in channel.py</td><td>+2 sources (ResourceSource, ActionSource)</td></tr>
+<tr><td>Prompt Slots</td><td>13 slots defined</td><td>+2 slots (resources, interact_options)</td></tr>
+<tr><td>Engine Core</td><td>core/ (world, delta_gate, director, ...)</td><td>+ledger.py, +constraints/ — zero domain knowledge</td></tr>
+<tr><td>Interaction 交互</td><td>NPC↔NPC vs NPC↔Item hardcoded</td><td><strong>unified dispatch by YAML action_type</strong></td></tr>
+<tr><td>Logger 日志</td><td>7 hooks → SQLite</td><td>+transfer events via log.result()</td></tr>
+<tr><td>Extensibility 扩展</td><td>New ctx key → 3 files</td><td>New entity → 1 YAML block<br/>New constraint → +1 class<br/>New action → +1 YAML key</td></tr>
+</table>
+
+<!-- ═══════ EXTENSION ═══════ -->
+<h2>8. Extension Guide <span class="en">扩展指南</span></h2>
+
+<div class="card-grid">
+<div class="card card-primary"><h4 style="color:var(--primary)">New Entity Type 新实体</h4>
+<p>1 file: <code>world.yaml</code>. Add entity block with <code>interact:</code> + initial <code>resources:</code>. NPCs auto-inherit base actions. Zero Python.</p></div>
+<div class="card card-green"><h4 style="color:var(--green)">New Constraint 新约束</h4>
+<p>2 files: add class in <code>constraints/</code> (30 lines), register via <code>@register</code>. Then YAML can reference it. Zero engine changes.</p></div>
+<div class="card card-purple"><h4 style="color:var(--purple)">New Action 新动作</h4>
+<p>1 file: <code>world.yaml</code>. Add key to entity's <code>interact:</code> block. Define resource requirements, constraints, deltas. Zero code.</p></div>
+<div class="card card-accent"><h4 style="color:var(--accent)">New Resource 新资源</h4>
+<p>1 file: <code>world.yaml</code>. Add to entity's <code>resources:</code> block. Reference in <code>interact:</code> actions. Zero code.</p></div>
+</div>
+
+<h3>8.1 Example: Adding "Reputation" <span class="en">示例：加"声望"</span></h3>
+<pre><code><span class="cmt"># world.yaml — NPC base gets reputation / 所有 NPC 初始声望为 0</span>
+<span class="key">resources</span>:
+  <span class="key">reputation</span>: 0
+
+<span class="cmt"># 新增 interact 动作: compliment</span>
+<span class="key">interact</span>:
+  <span class="key">compliment</span>: { <span class="key">resource</span>: <span class="str">"reputation"</span>, <span class="key">constraints</span>: [<span class="str">"conservation"</span>], <span class="key">deltas</span>: {<span class="str">"mood"</span>: 3} }
+
+<span class="cmt"># 零 Python 改动。conservation 约束已存在。Zero Python changes. Constraint exists.</span></code></pre>
+
+<!-- ═══════ FILE IMPACT ═══════ -->
+<h2>9. File Impact <span class="en">文件改动</span></h2>
+
+<table>
+<tr><th>File</th><th>Action</th><th>~Lines</th><th>Notes</th></tr>
+<tr><td><code>src/core/ledger.py</code></td><td style="color:var(--teal)">NEW 新增</td><td>~40</td><td>ResourceLedger — flat balance sheet</td></tr>
+<tr><td><code>src/core/constraints/<wbr>__init__.py</code></td><td style="color:var(--teal)">NEW</td><td>~20</td><td>ConstraintRegistry — match + register</td></tr>
+<tr><td><code>src/core/constraints/<wbr>conservation.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>validate: balance check, apply: transfer</td></tr>
+<tr><td><code>src/core/constraints/<wbr>consumption.py</code></td><td style="color:var(--teal)">NEW</td><td>~25</td><td>validate: quantity>0, apply: decrement</td></tr>
+<tr><td><code>src/channel.py</code></td><td style="color:var(--accent)">MODIFY 修改</td><td>+25</td><td>+ResourceSource, +ActionSource</td></tr>
+<tr><td><code>src/systems/<wbr>interaction.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+30/-10</td><td>Unified dispatch + constraint matching</td></tr>
+<tr><td><code>config/channels.yaml</code></td><td style="color:var(--green)">YAML</td><td>+6</td><td>+resources, +actions channels</td></tr>
+<tr><td><code>config/prompts.yaml</code></td><td style="color:var(--green)">YAML</td><td>+10</td><td>+resources, +interact_options slots</td></tr>
+<tr><td><code>config/slot_groups.yaml</code></td><td style="color:var(--green)">YAML</td><td>+2</td><td>Columns for new slots</td></tr>
+<tr><td><code>config/world.yaml</code></td><td style="color:var(--green)">YAML</td><td>+30/entity</td><td>interact: + resources: blocks</td></tr>
+</table>
+
+<div class="callout callout-green">
+<strong>总计 Total:</strong> ~200 lines new Python (4 files), ~50 lines YAML config. loop.py: zero changes. Logger: zero changes. Existing 159 tests: zero impact. New feature = new tests only.
+</div>
+
+<!-- ═══════ PHILOSOPHY ═══════ -->
+<h2>10. Design Philosophy <span class="en">设计哲学对齐</span></h2>
+
+<div class="card-grid">
+<div class="card card-primary"><h4 style="color:var(--primary)">Engine reports facts 引擎报事实</h4><p>ResourceSource only reports balance. Engine never reports "you should save" or "this trade is worth it". Engine only reports <code>gold: 45</code>.</p></div>
+<div class="card card-green"><h4 style="color:var(--green)">LLM provides cognition LLM 提供认知</h4><p>LLM sees available actions + resource state through channels. Decides send, eat, talk, follow — all freely.</p></div>
+<div class="card card-purple"><h4 style="color:var(--purple)">Constraints = Physical Laws 约束=物理定律</h4><p>Conservation does not judge trades — only ensures no creation from void. Physical constraint, not economic opinion.</p></div>
+<div class="card card-accent"><h4 style="color:var(--accent)">YAML is the extension surface YAML 是扩展面</h4><p>New entity → add YAML. New action → add YAML key. New resource → add resources block. Zero Python.</p></div>
+<div class="card card-teal"><h4 style="color:var(--teal)">Closed loop preserved 闭环保留</h4><p>6 channels → LLM decide → interact execute → constraint apply → logger → next tick perception. Cycle unchanged.</p></div>
+<div class="card card-red"><h4 style="color:var(--red)">Delete, don't add 删除不添加</h4><p>Unified interact deletes NPC↔NPC vs NPC↔Item hardcoded branches. One dispatch by YAML action_type name.</p></div>
+</div>
+
+<hr>
+<p style="text-align:center;color:var(--muted);font-size:12px">AgentWorld Async · Unified Interact + Resource Constraint Registry · v1.0 · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:11px">Designed with impeccable · product register · dark-theme single-font · OKLCH palette</p>
+
+</div>
+</body>
+</html>
