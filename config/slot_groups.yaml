@@ -19,7 +19,7 @@ world:
 
 npc:
   columns: [persona, drive_values, drive_context,
-            recent_memory, conversation_context,
+            recent_memory,
             main_thread, behavioral_traits, action_feedback]
   groups:
     default:            [1, 1, 1, 1, 1, 1, 1, 1]

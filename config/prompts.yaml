@@ -15,7 +15,7 @@ templates:
     temperature: 0.7
     system_prompt_ref: agent_decision
     slots:
-      - main_thread
+      - action_feedback
       - persona
       - behavioral_traits
       - delta_gate
@@ -25,8 +25,7 @@ templates:
       - sensory_section
       - gate_highlight
       - recent_memory
-      - conversation_context
-      - action_feedback
+      - main_thread
       - action_scope
       - output_contract
     output_schema: decision_output
@@ -96,17 +95,12 @@ slots:
       ## 记忆
       {memory_text}
 
-  conversation_context:
-    condition: conversation_text
-    template: |
-      ## 对话
-      {conversation_text}
-
   action_feedback:
     condition: last_intent
     template: |
       ## 上轮行动
       意图: {last_intent} → {last_target}
+      {conversation_text}
 
   action_scope:
     template: |
