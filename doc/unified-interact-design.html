@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Unified Interact Architecture — AgentWorld Async</title>
+<title>Unified Interact + Universal Constraint Paradigm — AgentWorld Async</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   :root{
@@ -24,9 +24,7 @@
   .hero .sub{font-size:14px;color:var(--muted);margin-bottom:16px}
   .hero .tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .tag{padding:3px 11px;border-radius:4px;font-size:11.5px;font-weight:600}
-  .tag-prim{background:var(--primary-bg);color:var(--primary)} .tag-grn{background:var(--green-bg);color:var(--green)}
-  .tag-pur{background:var(--purple-bg);color:var(--purple)} .tag-acc{background:var(--accent-bg);color:var(--accent)}
-  .tag-teal{background:var(--teal-bg);color:var(--teal)} .tag-red{background:var(--red-bg);color:var(--red)}
+  .tag-prim{background:var(--primary-bg);color:var(--primary)}.tag-grn{background:var(--green-bg);color:var(--green)}.tag-pur{background:var(--purple-bg);color:var(--purple)}.tag-acc{background:var(--accent-bg);color:var(--accent)}.tag-teal{background:var(--teal-bg);color:var(--teal)}.tag-red{background:var(--red-bg);color:var(--red)}
   h2{font-size:20px;font-weight:700;color:#fff;margin:48px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--border)}
   h3{font-size:16px;font-weight:600;color:var(--primary);margin:28px 0 8px}
   p,li{font-size:14px;margin:6px 0}
@@ -37,7 +35,7 @@
   pre code{background:none;padding:0;display:block}
   .kw{color:var(--purple)}.str{color:var(--accent)}.fn{color:var(--primary)}.cmt{color:var(--muted)}.key{color:var(--teal)}
   .diagram{display:flex;justify-content:center;margin:20px 0}
-  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin:14px 0}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;margin:14px 0}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px}
   .card h4{font-size:13.5px;margin-bottom:6px;font-weight:600}
   .card p,.card li{font-size:13px;color:var(--muted);line-height:1.6}
@@ -59,10 +57,16 @@
 <div class="wrapper">
 
 <div class="hero">
-<h1>Unified Interact Architecture</h1>
-<p class="sub">两范式统一交互 · Proposal-Consent 协议 · 感官驱动引擎 · 零认知代码</p>
-<p class="sub en">Two Paradigms · Proposal-Consent Protocol · Sensory-Driven Engine · Zero Cognitive Code</p>
-<div class="tags"><span class="tag tag-teal">NPC↔NPC Protocol</span><span class="tag tag-grn">NPC↔Item Direct</span><span class="tag tag-pur">Constraint Registry</span><span class="tag tag-acc">Resource Ledger</span><span class="tag tag-red">Bilingual 中英</span></div>
+<h1>Unified Interact + Universal Constraint Paradigm</h1>
+<p class="sub">统一交互入口 · 通用约束范式 · Proposal-Consent 协议 · 零认知代码</p>
+<p class="sub en">Single Entry Point · Universal Constraint Paradigm · Proposal-Consent Protocol · Zero Cognitive Code</p>
+<div class="tags">
+  <span class="tag tag-teal">Two Paradigms 双范式</span>
+  <span class="tag tag-pur">Universal Constraint 通用约束</span>
+  <span class="tag tag-grn">Proposal-Consent</span>
+  <span class="tag tag-acc">Conservation 守恒样例</span>
+  <span class="tag tag-red">Bilingual 中英</span>
+</div>
 </div>
 
 <!-- ═══════ 1. TWO PARADIGMS ═══════ -->
@@ -71,305 +75,404 @@
 <div class="card-grid">
 <div class="card c-pur">
 <h4 style="color:var(--purple)">Proposal-Consent <span class="en">要约-同意</span></h4>
-<p><strong>NPC ↔ NPC</strong> — both sides have LLM cognition.<br/>Phase 1: proposer sends <code>propose: send gold=5</code> + dialogue.<br/>Phase 2: target perceives via <code>conversation_text</code>, decides accept/reject.<br/>Only on accept: engine validates constraints + executes.<br/>Applicable to: <code>send</code>, <code>trade</code>, <code>give_item</code>, <code>challenge</code>, <code>recruit</code>, ...</p>
+<p><strong>NPC ↔ NPC</strong> — both sides have LLM cognition.<br/>Phase 1: proposer sends <code>propose: send gold=5</code> + dialogue.<br/>Phase 2: target perceives via <code>conversation_text</code>, decides accept/reject/counter.<br/>Phase 3: only on accept → engine validates constraints + executes.<br/>Dispatch: <code>target.has("agent")</code> = the only branch point.</p>
 </div>
 <div class="card c-grn">
 <h4 style="color:var(--green)">Direct Execution <span class="en">直接执行</span></h4>
-<p><strong>NPC → Item</strong> — target has no LLM. No proposal phase.<br/>NPC decides <code>eat apple</code> → engine validates constraint immediately → executes.<br/>Item's response defined by YAML rules.<br/>Applicable to: <code>eat</code>, <code>pick_up</code>, <code>open</code>, <code>use</code>, <code>absorb</code>, ...</p>
+<p><strong>NPC → Item</strong> — target has no LLM. No proposal phase.<br/>NPC decides <code>eat apple</code> → engine validates constraints immediately → executes.<br/>Item's feedback defined by YAML rules.<br/>Dispatch: same <code>interact()</code> — no separate code path.</p>
 </div>
 </div>
 
-<div class="callout co-pri">
-<strong>判断依据 / Dispatch logic:</strong> <code>if target.has("agent")</code> → Proposal-Consent (目标有 LLM 认知, 需等待对方决定). <code>else</code> → Direct Execution (目标无 LLM, YAML rules 提供反馈). 引擎只问这一句——不做其他判断.
-</div>
-
-<!-- ═══════ 2. INTERACTION TAXONOMY ═══════ -->
+<!-- ═══════ 2. TAXONOMY ═══════ -->
 <h2>2. Interaction Taxonomy <span class="en">交互分类法</span></h2>
 
 <table>
-<tr><th style="width:12%">Entity Pair<br/>实体对</th><th style="width:10%">Paradigm<br/>范式</th><th style="width:12%">Action Types<br/>动作类型</th><th style="width:16%">Constraint<br/>约束</th><th>Description</th></tr>
-<tr>
-  <td><strong>NPC → NPC</strong></td>
-  <td style="color:var(--purple)">Proposal-<br/>Consent</td>
-  <td><code>send</code></td><td><code>conservation</code></td>
-  <td>Propose resource transfer. Target decides accept/reject/counter. Engine validates only on accept.</td>
-</tr>
-<tr><td></td><td></td><td><code>trade</code></td><td><code>conservation</code></td><td>Bilateral exchange. Proposer offers {give: sword, want: gold=10}. Target accepts/counters/rejects.</td></tr>
-<tr><td></td><td></td><td><code>give_item</code></td><td><code>conservation</code></td><td>Propose item transfer (can't be consumed — apple vs. sword).</td></tr>
-<tr><td></td><td></td><td><code>talk</code></td><td>none</td><td>Free dialogue. No constraints. No proposal needed.</td></tr>
-<tr><td></td><td></td><td><code>challenge</code></td><td>none</td><td>Propose duel. Target accepts/rejects. No resource constraint (combat is attribute-based).</td></tr>
-<tr><td></td><td></td><td><code>recruit</code></td><td>none</td><td>Propose joining party/faction. Target's LLM decides.</td></tr>
-<tr><td></td><td></td><td><code>follow</code></td><td>none</td><td>No proposal — direct spatial action.</td></tr>
+<tr><th>Entity Pair<br/>实体对</th><th>Paradigm<br/>范式</th><th>Action Types<br/>动作类型</th><th>Constraints<br/>约束</th><th>Description / 描述</th></tr>
+<tr><td rowspan="7"><strong>NPC → NPC</strong></td><td rowspan="7" style="color:var(--purple)">Proposal-<br/>Consent</td><td><code>send</code></td><td><code>conservation</code></td><td>Propose resource transfer. Target decides accept/reject/counter.</td></tr>
+<tr><td><code>trade</code></td><td><code>conservation</code></td><td>Bilateral exchange. Proposer offers {give, want}. Target accepts/counters.</td></tr>
+<tr><td><code>give_item</code></td><td><code>conservation</code></td><td>Propose item transfer.</td></tr>
+<tr><td><code>talk</code></td><td>none</td><td>Free dialogue. No constraints. No proposal needed.</td></tr>
+<tr><td><code>challenge</code></td><td>none</td><td>Propose duel/combat. Target accepts/rejects.</td></tr>
+<tr><td><code>recruit</code></td><td><code>reputation</code></td><td>Propose joining faction. Target's LLM decides.</td></tr>
+<tr><td><code>follow</code></td><td>none</td><td>No proposal — direct spatial action.</td></tr>
 
-<tr><td><strong>NPC → Item</strong></td><td style="color:var(--green)">Direct<br/>Execute</td><td><code>eat</code></td><td><code>consumption</code></td><td>Consume 1 unit of resource. Apply deltas (hunger-10, mood+5). If depleted → remove.</td></tr>
-<tr><td></td><td></td><td><code>pick_up</code></td><td><code>conservation</code></td><td>Transfer item from world to agent inventory. Ledger.move(item→agent).</td></tr>
-<tr><td></td><td></td><td><code>open</code></td><td>none</td><td>Reveal contents. No resource change — visual update only.</td></tr>
-<tr><td></td><td></td><td><code>use</code></td><td>varies</td><td>Generic use. YAML rules define constraint + deltas + narrative.</td></tr>
-<tr><td></td><td></td><td><code>read</code></td><td>none</td><td>Reveal text info. No resource change.</td></tr>
-<tr><td></td><td></td><td><code>absorb</code></td><td><code>conservation</code></td><td>Transfer mana/energy from crystal→agent. Visual VFX triggered.</td></tr>
+<tr><td rowspan="6"><strong>NPC → Item</strong></td><td rowspan="6" style="color:var(--green)">Direct<br/>Execute</td><td><code>eat</code></td><td><code>consumption</code></td><td>Consume 1 unit. Apply deltas. If depleted → remove.</td></tr>
+<tr><td><code>pick_up</code></td><td><code>conservation</code></td><td>Transfer item from world to agent inventory.</td></tr>
+<tr><td><code>open</code></td><td>none</td><td>Reveal contents. No resource change.</td></tr>
+<tr><td><code>use</code></td><td>varies</td><td>Generic. YAML rules define constraint + deltas + narrative.</td></tr>
+<tr><td><code>absorb</code></td><td><code>conservation</code></td><td>Transfer mana/energy from crystal→agent.</td></tr>
+<tr><td><code>read</code></td><td>none</td><td>Reveal text info.</td></tr>
 
-<tr><td><strong>Item → NPC</strong></td><td style="color:var(--red)">Item<br/>triggers</td><td><code>trap</code></td><td><code>consumption</code></td><td>Environment effect. Poison, spike, curse — apply deltas to NPC. Item may be consumed.</td></tr>
-<tr><td></td><td></td><td><code>aura</code></td><td>none</td><td>Passive area effect. No consumption. Per-tick deltas to nearby agents.</td></tr>
+<tr><td rowspan="2"><strong>Item → NPC</strong></td><td rowspan="2" style="color:var(--red)">Item<br/>triggers</td><td><code>trap</code></td><td><code>consumption</code></td><td>Environment effect. Apply deltas. May be consumed.</td></tr>
+<tr><td><code>aura</code></td><td>none</td><td>Passive area effect. Per-tick deltas to nearby agents.</td></tr>
 
-<tr><td><strong>NPC → Portal</strong></td><td style="color:var(--green)">Direct<br/>Execute</td><td><code>cross</code></td><td>none (or <code>access</code>)</td><td>Spatial zone transition. May require item/key to cross (future: <code>access</code> constraint).</td></tr>
+<tr><td><strong>NPC → Portal</strong></td><td style="color:var(--green)">Direct</td><td><code>cross</code></td><td><code>access</code></td><td>Spatial zone transition. May require key/item.</td></tr>
 </table>
 
-<div class="callout co-grn">
-<strong>Extend / 扩展:</strong> New action type → add 1 YAML key to entity's <code>interact:</code> block. New constraint → add 1 class in <code>constraints/</code>. Zero engine changes. Zero loop.py changes.
+<!-- ═══════ 3. UNIVERSAL CONSTRAINT PARADIGM ═══════ -->
+<h2>3. Universal Constraint Paradigm <span class="en">通用约束范式</span></h2>
+
+<p>Constraints are <strong>physical laws</strong> — not value judgments. Every constraint — conservation, consumption, capacity, reputation, durability, access — follows the same interface, the same registration pattern, and the same engine processing loop. The engine never distinguishes one constraint from another.</p>
+
+<div class="card-grid">
+<div class="card c-pur"><h4 style="color:var(--purple)">Abstract Interface <span class="en">抽象接口</span></h4>
+<p>All constraints implement 3 methods + 1 property. Zero domain knowledge. The engine sees: <code>validate()</code>, <code>apply()</code>, <code>describe_failure()</code>, <code>phase</code>. Nothing else.</p></div>
+<div class="card c-grn"><h4 style="color:var(--green)">Match + Activate <span class="en">匹配+激活</span></h4>
+<p><code>match(agent_constraints, target_constraints) → set[name]</code>. Only constraints registered by <strong>both</strong> parties activate. Single-party registration is silently ignored.</p></div>
+<div class="card c-acc"><h4 style="color:var(--accent)">Phase Control <span class="en">相位控制</span></h4>
+<p><code>phase = "propose" | "execute" | "both"</code>. Proposal-phase constraints (capacity, reputation) check during proposal. Execute-phase constraints (conservation, consumption) check during execution.</p></div>
+<div class="card c-teal"><h4 style="color:var(--teal)">@register Decorator <span class="en">装饰器注册</span></h4>
+<p>One decorator: <code>@register("name")</code>. Auto-adds to <code>_REGISTRY</code>. Zero engine changes needed to add a new constraint type.</p></div>
 </div>
 
-<!-- ═══════ 3. PROPOSAL-CONSENT PROTOCOL ═══════ -->
-<h2>3. Proposal-Consent Protocol <span class="en">要约-同意协议 (NPC↔NPC)</span></h2>
+<h3>3.1 The Abstract Interface <span class="en">抽象接口定义</span></h3>
 
-<p>Three-phase, sensory-driven. No proposal channel — the target perceives via <code>conversation_text</code>. Engine validates only on accept.</p>
+<pre><code><span class="kw">class</span> <span class="fn">Constraint</span>(ABC):
+    <span class="cmt"># 物理定律基类。引擎只知此接口。Base class. Engine knows ONLY this interface.</span>
+
+    <span class="key">phase</span>: str = <span class="str">"execute"</span>   <span class="cmt"># "propose" | "execute" | "both" — 何时激活</span>
+
+    <span class="kw">def</span> <span class="fn">validate</span>(self, agent, target, action_def, ledger, world) → <span class="kw">bool</span>:
+        <span class="cmt"># 校验物理可行性。返回 True/False。零认知判断。</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">apply</span>(self, agent, target, action_def, ledger, world):
+        <span class="cmt"># 执行物理操作。校验通过后调用。引擎只知 side-effect。</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">describe_failure</span>(self, agent, target, action_def) → <span class="kw">str</span>:
+        <span class="cmt"># 事实描述 — 为什么失败。不判断 — 只报事实。</span>
+        <span class="cmt"># Never: "your inventory is too full". Always: "capacity: 10/10".</span>
+        ...</code></pre>
+
+<h3>3.2 The Complete Constraint Table <span class="en">完整约束表</span></h3>
+
+<table>
+<tr><th>Constraint<br/>约束名</th><th>Phase<br/>相位</th><th>validate() checks<br/>校验内容</th><th>apply() does<br/>执行内容</th></tr>
+<tr><td><code>conservation</code></td><td>execute</td><td>src.balance(resource) ≥ amount</td><td>ledger.transfer(src,tgt,res,n)</td></tr>
+<tr><td><code>consumption</code></td><td>execute</td><td>target.resource_qty > 0</td><td>resource-1, apply deltas, if 0→remove entity</td></tr>
+<tr><td><code>capacity</code></td><td>propose</td><td>agent.inventory_count < max_capacity</td><td>(handled by conservation on execute)</td></tr>
+<tr><td><code>access</code></td><td>both</td><td>agent holds required key/item</td><td>(nothing — gate opens / portal activates)</td></tr>
+<tr><td><code>durability</code></td><td>execute</td><td>item.durability > 0</td><td>durability-1, apply degradation deltas</td></tr>
+<tr><td><code>reputation</code></td><td>propose</td><td>agent.reputation ≥ threshold</td><td>(nothing — gating constraint only)</td></tr>
+<tr><td><code>faction</code></td><td>propose</td><td>agent.faction compatible with target faction</td><td>(nothing — gating constraint only)</td></tr>
+<tr><td><code>cooldown</code></td><td>propose</td><td>time since last_use ≥ cooldown</td><td>update last_use timestamp</td></tr>
+</table>
+
+<h3>3.3 The Engine Processing Loop <span class="en">引擎统一处理循环</span></h3>
+
+<pre><code><span class="cmt"># interaction.py — 引擎只循环 active 约束集，不区分约束类型</span>
+<span class="cmt"># The engine only loops over the active constraint set. Never branches on constraint type.</span>
+
+<span class="kw">def</span> <span class="fn">interact</span>(agent, target, decision, world):
+    action_type = decision.get(<span class="str">"interact"</span>)
+
+    agent_cons = agent.interact[action_type].get(<span class="str">"constraints"</span>, [])
+    tgt_cons   = target.interact[action_type].get(<span class="str">"constraints"</span>, [])
+
+    active = REGISTRY.match(agent_cons, tgt_cons)
+    <span class="cmt"># e.g. {"conservation", "capacity"} — 全是名字, 引擎不知道它们做什么</span>
+
+    <span class="cmt"># PROPOSE phase: only NPC↔NPC (target has LLM)</span>
+    <span class="kw">if</span> target.has(<span class="str">"agent"</span>):
+        <span class="kw">for</span> name <span class="kw">in</span> active:
+            c = REGISTRY[name]
+            <span class="kw">if</span> c.phase <span class="kw">in</span> (<span class="str">"propose"</span>, <span class="str">"both"</span>):
+                <span class="kw">if not</span> c.validate(agent, target, defs[action_type], ledger, world):
+                    <span class="kw">return</span> ActionResult(error=c.describe_failure(...))
+        store_pending_proposal()
+        <span class="kw">return</span>
+
+    <span class="cmt"># EXECUTE phase: NPC↔Item or NPC↔NPC on accept</span>
+    <span class="kw">for</span> name <span class="kw">in</span> active:
+        c = REGISTRY[name]
+        <span class="kw">if</span> c.phase <span class="kw">in</span> (<span class="str">"execute"</span>, <span class="str">"both"</span>):
+            <span class="kw">if not</span> c.validate(agent, target, defs[action_type], ledger, world):
+                <span class="kw">return</span> ActionResult(error=c.describe_failure(...))
+            c.apply(agent, target, defs[action_type], ledger, world)
+    log.result()</code></pre>
+
+<div class="callout co-pri">
+<strong>引擎零认知 / Engine Zero Cognition:</strong> The engine never checks "is this about gold or mana or reputation?" It loops over <code>active</code>, calls <code>validate()</code>, calls <code>apply()</code>. Each constraint class encapsulates its own physics. The engine is a constraint-agnostic executor.
+</div>
+
+<h3>3.4 Registration — One Decorator <span class="en">注册——一行装饰器</span></h3>
+
+<pre><code><span class="cmt"># constraints/__init__.py</span>
+_REGISTRY = {}
+
+<span class="kw">def</span> <span class="fn">register</span>(name: str):
+    <span class="kw">def</span> decorator(cls):
+        _REGISTRY[name] = cls()
+        <span class="kw">return</span> cls
+    <span class="kw">return</span> decorator
+
+<span class="kw">def</span> <span class="fn">match</span>(agent_constraints: list, target_constraints: list) → set[str]:
+    <span class="kw">return</span> set(agent_constraints) & set(target_constraints)</code></pre>
+
+<div class="callout co-grn">
+<strong>Extend / 扩展:</strong> Add 1 file in <code>constraints/</code>: 30 lines implementing <code>Constraint</code>. One <code>@register("new_name")</code> decorator. Then YAML can reference it via <code>constraints: ["new_name"]</code>. <strong>Zero engine code changes. Zero loop.py changes.</strong>
+</div>
+
+<!-- ═══════ 4. WORKED EXAMPLE: CONSERVATION ═══════ -->
+<h2>4. Worked Example: Conservation Constraint <span class="en">具体范例：守恒约束</span></h2>
+
+<p>Conservation is one constraint among many. It follows the exact same interface, registration pattern, and engine processing loop as every other constraint. This section walks through its complete lifecycle.</p>
+
+<h3>4.1 Implementation — 30 Lines <span class="en">实现</span></h3>
+<pre><code><span class="cmt"># constraints/conservation.py</span>
+<span class="kw">from</span> . <span class="kw">import</span> Constraint, register
+
+@<span class="fn">register</span>(<span class="str">"conservation"</span>)
+<span class="kw">class</span> <span class="fn">ConservationConstraint</span>(Constraint):
+    <span class="key">phase</span> = <span class="str">"execute"</span>   <span class="cmt"># 只在执行时校验</span>
+
+    <span class="kw">def</span> <span class="fn">validate</span>(self, agent, target, action_def, ledger, world=None) → <span class="kw">bool</span>:
+        resource = action_def[<span class="str">"resource"</span>]
+        amount   = action_def.get(<span class="str">"amount"</span>, action_def.get(<span class="str">"cost"</span>, 1))
+        <span class="kw">return</span> ledger.balance(agent.id, resource) >= amount
+
+    <span class="kw">def</span> <span class="fn">apply</span>(self, agent, target, action_def, ledger, world=None):
+        resource = action_def[<span class="str">"resource"</span>]
+        amount   = action_def.get(<span class="str">"amount"</span>, action_def.get(<span class="str">"cost"</span>, 1))
+        ledger.transfer(agent.id, target.id, resource, amount)
+
+    <span class="kw">def</span> <span class="fn">describe_failure</span>(self, agent, target, action_def) → <span class="kw">str</span>:
+        resource = action_def[<span class="str">"resource"</span>]
+        bal = ledger.balance(agent.id, resource)
+        need = action_def.get(<span class="str">"amount"</span>, action_def.get(<span class="str">"cost"</span>, 1))
+        <span class="kw">return</span> f<span class="str">"{resource}: balance {bal} insufficient for {need}"</span></code></pre>
+
+<h3>4.2 YAML Declaration <span class="en">YAML 声明</span></h3>
+<pre><code><span class="cmt"># world.yaml — Geralt declares send action with conservation</span>
+- <span class="key">id</span>: geralt
+  <span class="key">interact</span>:
+    <span class="key">send</span>: { <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+
+<span class="cmt"># Rachel declares receive action with conservation</span>
+- <span class="key">id</span>: rachel
+  <span class="key">interact</span>:
+    <span class="key">receive</span>: { <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
+
+<span class="cmt"># match(geralt.send.constraints, rachel.receive.constraints)
+# → {"conservation"} × {"conservation"} → {"conservation"} ✓ ACTIVATED</span></code></pre>
+
+<h3>4.3 Lifecycle — NPC↔NPC send gold <span class="en">完整生命周期</span></h3>
 
 <div class="diagram">
-<svg width="900" height="480" xmlns="http://www.w3.org/2000/svg">
+<svg width="900" height="440" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <marker id="pa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
-    <marker id="pb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
-    <marker id="pc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
-    <marker id="pd" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
+    <marker id="va" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="vb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="vc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+    <marker id="vd" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
   </defs>
 
-  <!-- TITLE ROW -->
-  <text x="230" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Phase 1 — Proposer Tick · 提议方</text>
-  <text x="670" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Phase 2 — Target Tick · 接收方</text>
+  <text x="450" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Conservation Lifecycle — Geralt → Rachel: send gold=5 · 守恒生命周期</text>
 
-  <!-- Proposer Box -->
-  <rect x="20" y="30" width="420" height="160" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="230" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="var(--primary)">Geralt (proposer) · 杰洛特</text>
-  <line x1="35" y1="65" x2="425" y2="65" stroke="var(--border)" stroke-width="1"/>
-  <text x="230" y="85" text-anchor="middle" font-size="11" fill="var(--muted)">LLM sees: resources{gold:50} · Rachel nearby · action_feedback</text>
-  <text x="230" y="108" text-anchor="middle" font-size="11" fill="var(--green)">LLM decides: interact="send", resource="gold", amount=5</text>
-  <text x="230" y="126" text-anchor="middle" font-size="11" fill="var(--green)">dialogue: "你帮了大忙，这5个金币收下"</text>
-  <text x="230" y="148" text-anchor="middle" font-size="10" fill="var(--muted)">FLUSH: write dialogue → auditory · propose stored as _pending_proposal</text>
-  <text x="230" y="166" text-anchor="middle" font-size="10" fill="var(--muted)">validate: can_propose(gold≥5) ✓ · NO transfer yet</text>
+  <!-- Phase 1 Label -->
+  <rect x="10" y="30" width="880" height="18" rx="3" fill="var(--surface2)"/>
+  <text x="450" y="44" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--purple)">Phase 1 — Propose (Geralt's tick) · 提议</text>
 
-  <line x1="440" y1="100" x2="480" y2="100" stroke="var(--purple)" stroke-width="2" marker-end="url(#pb)"/>
+  <rect x="20" y="52" width="410" height="100" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="225" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="var(--primary)">Geralt (proposer) · 杰洛特</text>
+  <line x1="35" y1="82" x2="415" y2="82" stroke="var(--border)" stroke-width="1"/>
+  <text x="225" y="102" text-anchor="middle" font-size="10.5" fill="var(--muted)">LLM decides: interact="send", resource="gold", amount=5</text>
+  <text x="225" y="118" text-anchor="middle" font-size="10.5" fill="var(--muted)">dialogue: "你帮了大忙，这5个金币收下。"</text>
+  <text x="225" y="136" text-anchor="middle" font-size="10" fill="var(--accent)"><strong>can_propose check:</strong> ledger.balance(geralt,gold)≥5 → ✓</text>
+  <text x="225" y="150" text-anchor="middle" font-size="10" fill="var(--muted)">Store _pending_proposal · NO transfer yet</text>
 
-  <!-- Target Box -->
-  <rect x="485" y="30" width="395" height="160" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
-  <text x="682" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="var(--red)">Rachel (receiver) · 瑞秋</text>
-  <line x1="500" y1="65" x2="870" y2="65" stroke="var(--border)" stroke-width="1"/>
-  <text x="682" y="85" text-anchor="middle" font-size="11" fill="var(--muted)">ctx via channels: conversation_text:"[1s前] Geralt: ...收下这5个金币"</text>
-  <text x="682" y="108" text-anchor="middle" font-size="11" fill="var(--muted)">resources{gold:3} · "Geralt在给我钱。我有3金币。收下吧。"</text>
-  <text x="682" y="128" text-anchor="middle" font-size="11" fill="var(--accent)">LLM decides: response="accept" | 或 reject | 或 counter</text>
-  <text x="682" y="148" text-anchor="middle" font-size="11" fill="var(--accent)">dialogue: "谢谢，白狼。我收下了。"</text>
-  <text x="682" y="166" text-anchor="middle" font-size="10" fill="var(--muted)">FLUSH: find pending from Geralt → constraint.validate() → ✓</text>
+  <rect x="450" y="52" width="440" height="100" rx="8" fill="var(--purple-bg)" stroke="var(--purple)" stroke-width="1.5"/>
+  <text x="670" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="var(--purple)">Constraint Engine · 约束引擎</text>
+  <line x1="465" y1="82" x2="875" y2="82" stroke="var(--border)" stroke-width="1"/>
+  <text x="670" y="102" text-anchor="middle" font-size="10.5" fill="var(--muted)">active = match(geralt.send, rachel.receive) → {"conservation"}</text>
+  <text x="670" y="118" text-anchor="middle" font-size="10.5" fill="var(--muted)">conservation.phase = "execute" → SKIP in propose phase</text>
+  <text x="670" y="138" text-anchor="middle" font-size="10" fill="var(--muted)">No propose-phase constraints → proposal stored as pending</text>
+  <text x="670" y="152" text-anchor="middle" font-size="10" fill="var(--muted)">No transfer. Rachel must accept first.</text>
+
+  <!-- Phase 2 -->
+  <rect x="10" y="160" width="880" height="18" rx="3" fill="var(--surface2)"/>
+  <text x="450" y="174" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--green)">Phase 2 — Perceive (Rachel's tick) · 感知</text>
+
+  <rect x="180" y="182" width="540" height="55" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
+  <text x="450" y="204" text-anchor="middle" font-size="12" font-weight="700" fill="var(--red)">Rachel perceives via channels · 瑞秋通过感官通道感知</text>
+  <text x="450" y="222" text-anchor="middle" font-size="10.5" fill="var(--muted)">conversation_text: "[1s前] Geralt: ...收下这5个金币。"</text>
+  <text x="450" y="236" text-anchor="middle" font-size="10.5" fill="var(--accent)">LLM decides: <strong>accept</strong> / reject / counter — 完全自主</text>
 
   <!-- Phase 3 -->
-  <line x1="230" y1="190" x2="230" y2="230" stroke="var(--purple)" stroke-width="1.5"/>
-  <line x1="682" y1="190" x2="682" y2="230" stroke="var(--purple)" stroke-width="1.5"/>
-  <line x1="230" y1="230" x2="682" y2="230" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#pb)"/>
+  <rect x="10" y="246" width="880" height="18" rx="3" fill="var(--surface2)"/>
+  <text x="450" y="260" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--accent)">Phase 3 — Execute (Rachel's FLUSH, on accept) · 执行</text>
 
-  <text x="460" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="var(--purple)">Phase 3 — Execute · 执行 (on accept only)</text>
+  <rect x="100" y="270" width="700" height="75" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="450" y="292" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">ConservationConstraint.validate() + apply()</text>
+  <line x1="115" y1="300" x2="785" y2="300" stroke="var(--border)" stroke-width="1"/>
+  <text x="450" y="318" text-anchor="middle" font-size="10.5" fill="var(--green)">validate: ledger.balance(geralt, gold)≥5 → ✓ (still has it)</text>
+  <text x="450" y="334" text-anchor="middle" font-size="10.5" fill="var(--green)">apply: ledger.transfer(geralt, rachel, gold, 5) | geralt:50→45, rachel:3→8</text>
 
-  <rect x="200" y="240" width="500" height="70" rx="6" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="450" y="262" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Engine executes · 引擎执行</text>
-  <text x="450" y="282" text-anchor="middle" font-size="10" fill="var(--green)">constraint.apply() → ledger.transfer(geralt, rachel, gold, 5) | geralt:50→45, rachel:3→8</text>
-  <text x="450" y="298" text-anchor="middle" font-size="10" fill="var(--green)">log.result() | write dialogue to auditory → both sides perceive | clear _pending_proposal</text>
+  <!-- Next Tick -->
+  <line x1="450" y1="345" x2="450" y2="380" stroke="var(--teal)" stroke-width="2" marker-end="url(#vd)"/>
 
-  <!-- Next tick -->
-  <line x1="450" y1="310" x2="450" y2="350" stroke="var(--teal)" stroke-width="2" marker-end="url(#pd)"/>
-
-  <rect x="200" y="355" width="500" height="55" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
-  <text x="450" y="378" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--accent)">Next Tick — Both Perceive · 双方感知</text>
-  <text x="450" y="398" text-anchor="middle" font-size="10" fill="var(--muted)">Geralt: resources{gold:45} · conversation_text:"Rachel:谢谢白狼" → "交易完成"</text>
-
-  <!-- Reject path -->
-  <line x1="682" y1="200" x2="780" y2="200" stroke="var(--red)" stroke-width="1.5" marker-end="url(#pc)"/>
-  <text x="850" y="195" text-anchor="middle" font-size="10" fill="var(--red)">if reject →</text>
-  <text x="850" y="210" text-anchor="middle" font-size="10" fill="var(--red)">只清除pending</text>
-  <text x="850" y="225" text-anchor="middle" font-size="10" fill="var(--red)">不执行transfer</text>
+  <rect x="150" y="385" width="600" height="45" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+  <text x="450" y="406" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--accent)">Next Tick — Both Perceive · 双方感知</text>
+  <text x="450" y="422" text-anchor="middle" font-size="10.5" fill="var(--muted)">Geralt: resources{gold:45} · Rachel: resources{gold:8} · conversation_text:"Rachel:谢谢白狼"</text>
 </svg>
 </div>
 
 <div class="callout co-pur">
-<strong>引擎何时校验 / When does the engine validate:</strong><br/>
-Phase 1 (propose): Engine checks <code>can_propose</code> — sender balance satisfies constraint (prevent "bouncing checks"). Stores proposal as <code>_pending_proposal</code>. <strong>No transfer happens.</strong><br/>
-Phase 2 (target): Engine does NOTHING — Rachel's LLM perceives via <code>conversation_text</code> and decides freely. Zero engine intervention.<br/>
-Phase 3 (accept only): Engine validates constraint with <strong>current</strong> sender balance, executes transfer, clears proposal. On reject: only clears the proposal.
+<strong>Key insight 关键洞察:</strong> The engine never asks "is this about gold or mana?" Conservation validates the same way for gold, mana, apples, potions — any resource name. The constraint class only knows <code>resource</code> as a string key into the ledger. Zero domain semantics. Adding a new resource type (reputation, mana, arrows) requires <strong>zero constraint code changes</strong> — only YAML.
 </div>
 
-<h3>3.1 Reject + Counter <span class="en">拒绝 + 还价</span></h3>
+<!-- ═══════ 5. PROPOSAL-CONSENT PROTOCOL ═══════ -->
+<h2>5. Proposal-Consent Protocol <span class="en">要约-同意协议 (NPC↔NPC 全流)</span></h2>
 
-<pre><code><span class="cmt"># Rachel rejects / 拒绝</span>
-LLM decides: {action: "摇头", dialogue: "不了，我不需要施舍。",
-              response: "reject", to: "Geralt", resource: "gold"}
-
-FLUSH: find pending(geralt, gold) → delete. No transfer. Logged.
-
-<span class="cmt"># Rachel counters / 还价</span>
-LLM decides: {action: "挑眉", dialogue: "10金币我帮你打听消息。",
-              response: "counter", to: "Geralt", want: "gold", amount: 10,
-              offer: "village info"}
-
-FLUSH: delete old pending. Write new propose: Rachel→Geralt trade.
-Geralt下轮感知 → 自己决定接受/拒绝。</code></pre>
-
-<!-- ═══════ 4. DIRECT EXECUTION ═══════ -->
-<h2>4. Direct Execution <span class="en">直接执行 (NPC→Item)</span></h2>
-
-<p>Target has no LLM. No proposal phase. NPC decides → constraint validates → executes immediately.</p>
+<p>Three-phase, sensory-driven. No proposal channel. Target perceives via <code>conversation_text</code>.</p>
 
 <div class="diagram">
-<svg width="880" height="300" xmlns="http://www.w3.org/2000/svg">
+<svg width="900" height="340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="pa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="pb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="pc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+  </defs>
+
+  <text x="200" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">Proposer Tick · 提议方</text>
+  <text x="700" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">Target Tick · 接收方</text>
+
+  <rect x="10" y="28" width="380" height="135" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="200" y="50" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--primary)">Geralt (proposer) · 杰洛特</text>
+  <line x1="25" y1="58" x2="375" y2="58" stroke="var(--border)" stroke-width="1"/>
+  <text x="200" y="76" text-anchor="middle" font-size="10" fill="var(--muted)">LLM: interact="send", resource="gold", amount=5</text>
+  <text x="200" y="92" text-anchor="middle" font-size="10" fill="var(--muted)">dialogue: "你帮了大忙，这5个金币收下"</text>
+  <text x="200" y="110" text-anchor="middle" font-size="10" fill="var(--accent)">can_propose: balance(geralt,gold)≥5 → ✓</text>
+  <text x="200" y="126" text-anchor="middle" font-size="10" fill="var(--accent)">repo: _pending_proposal stored</text>
+  <text x="200" y="145" text-anchor="middle" font-size="10" fill="var(--muted)">log: proposal_event | NO transfer yet</text>
+
+  <line x1="390" y1="70" x2="430" y2="70" stroke="var(--purple)" stroke-width="2" marker-end="url(#pb)"/>
+
+  <rect x="435" y="28" width="455" height="135" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
+  <text x="662" y="50" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--red)">Rachel (receiver) · 瑞秋</text>
+  <line x1="450" y1="58" x2="875" y2="58" stroke="var(--border)" stroke-width="1"/>
+  <text x="662" y="76" text-anchor="middle" font-size="10" fill="var(--muted)">conversation_text: "[1s前] Geralt: ...5个金币收下"</text>
+  <text x="662" y="92" text-anchor="middle" font-size="10" fill="var(--muted)">LLM 自己推理: 他在给我钱, 我有3金币, 接受吧</text>
+  <text x="662" y="110" text-anchor="middle" font-size="10" fill="var(--green)">LLM decides: <strong>accept</strong> · 或 reject · 或 counter</text>
+  <text x="662" y="128" text-anchor="middle" font-size="10" fill="var(--green)">dialogue: "谢谢，白狼。我收下了。"</text>
+  <text x="662" y="145" text-anchor="middle" font-size="10" fill="var(--red)">if reject → only clear pending, no transfer</text>
+
+  <line x1="450" y1="170" x2="450" y2="200" stroke="var(--green)" stroke-width="2" marker-end="url(#pa)"/>
+
+  <rect x="160" y="205" width="580" height="65" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="450" y="226" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Phase 3 — Engine Execute (on accept only) · 引擎执行</text>
+  <text x="450" y="244" text-anchor="middle" font-size="10" fill="var(--green)">match(geralt.send, rachel.receive) → {"conservation"} · conservation.validate() → ✓</text>
+  <text x="450" y="260" text-anchor="middle" font-size="10" fill="var(--green)">conservation.apply() → ledger.transfer(geralt,rachel,gold,5) | log.result() | clear pending</text>
+
+  <line x1="450" y1="270" x2="450" y2="300" stroke="var(--teal)" stroke-width="2"/>
+  <rect x="200" y="303" width="500" height="28" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1"/>
+  <text x="450" y="322" text-anchor="middle" font-size="10.5" fill="var(--accent)">Next Tick: geralt gold:45, rachel gold:8 · action_feedback perceives change</text>
+</svg>
+</div>
+
+<!-- ═══════ 6. DIRECT EXECUTION ═══════ -->
+<h2>6. Direct Execution <span class="en">直接执行 (NPC→Item)</span></h2>
+
+<div class="diagram">
+<svg width="880" height="270" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="da" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
     <marker id="db" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
     <marker id="dc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
   </defs>
 
-  <text x="440" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Direct Execution Flow · 直接执行流 (NPC → Item)</text>
+  <text x="440" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">Direct Execution Flow · 直接执行流 (NPC → Item)</text>
 
-  <!-- NPC side -->
-  <rect x="20" y="40" width="350" height="110" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="195" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="var(--primary)">Geralt (NPC) · 杰洛特</text>
-  <text x="195" y="88" text-anchor="middle" font-size="10.5" fill="var(--muted)">ctx: resources, actions</text>
-  <text x="195" y="105" text-anchor="middle" font-size="10.5" fill="var(--green)">LLM decides: eat apple_crate</text>
-  <text x="195" y="125" text-anchor="middle" font-size="10" fill="var(--green)">Engine: target has no agent → Direct Execution</text>
-  <text x="195" y="142" text-anchor="middle" font-size="10" fill="var(--green)">No proposal needed — item has no LLM</text>
+  <rect x="15" y="34" width="400" height="120" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="215" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="var(--primary)">Geralt (NPC) · 杰洛特</text>
+  <line x1="30" y1="64" x2="400" y2="64" stroke="var(--border)" stroke-width="1"/>
+  <text x="215" y="82" text-anchor="middle" font-size="10.5" fill="var(--muted)">LLM: interact="eat", target="AppleCrate"</text>
+  <text x="215" y="100" text-anchor="middle" font-size="10.5" fill="var(--muted)">Engine: target.has("agent")? → False</text>
+  <text x="215" y="118" text-anchor="middle" font-size="10.5" fill="var(--green)">→ Direct Execution — no proposal needed</text>
+  <text x="215" y="136" text-anchor="middle" font-size="10" fill="var(--muted)">Item has no LLM to consent to</text>
+  <text x="215" y="152" text-anchor="middle" font-size="10" fill="var(--muted)">YAML rules provide item's response</text>
 
-  <line x1="370" y1="85" x2="420" y2="85" stroke="var(--green)" stroke-width="2" marker-end="url(#da)"/>
+  <line x1="415" y1="75" x2="455" y2="75" stroke="var(--green)" stroke-width="2" marker-end="url(#da)"/>
 
-  <!-- Item side -->
-  <rect x="425" y="40" width="435" height="110" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
-  <text x="642" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)">AppleCrate (Item) · 苹果箱</text>
-  <line x1="440" y1="75" x2="845" y2="75" stroke="var(--border)" stroke-width="1"/>
-  <text x="642" y="95" text-anchor="middle" font-size="10.5" fill="var(--muted)">YAML rules: eat → {resource:"apple", constraint:"consumption", {hunger:-10, mood:5}}</text>
-  <text x="642" y="115" text-anchor="middle" font-size="10.5" fill="var(--red)">constraint.validate(): apple_count≥1 → ✓</text>
-  <text x="642" y="132" text-anchor="middle" font-size="10.5" fill="var(--red)">constraint.apply(): apple_count-1, apply deltas</text>
-  <text x="642" y="148" text-anchor="middle" font-size="10" fill="var(--muted)">if apple_count=0 → despawn item</text>
+  <rect x="460" y="34" width="405" height="120" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
+  <text x="662" y="56" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)">AppleCrate (Item) — YAML rules</text>
+  <line x1="475" y1="64" x2="850" y2="64" stroke="var(--border)" stroke-width="1"/>
+  <text x="662" y="82" text-anchor="middle" font-size="10.5" fill="var(--muted)">match(geralt.eat, apple.eat) → {"consumption"}</text>
+  <text x="662" y="100" text-anchor="middle" font-size="10.5" fill="var(--red)">consumption.phase="execute" → validate: apple_count≥1 → ✓</text>
+  <text x="662" y="118" text-anchor="middle" font-size="10.5" fill="var(--red)">consumption.apply: apple_count-1, deltas:hunger-10,mood+5</text>
+  <text x="662" y="136" text-anchor="middle" font-size="10.5" fill="var(--red)">if apple_count=0 → despawn item</text>
+  <text x="662" y="152" text-anchor="middle" font-size="10" fill="var(--muted)">narrative from YAML: "你咬了一口苹果"</text>
 
-  <!-- Execute + Log -->
-  <rect x="230" y="170" width="420" height="50" rx="6" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="192" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Execute + Observe · 执行 + 观测</text>
-  <text x="440" y="210" text-anchor="middle" font-size="10" fill="var(--green)">log.result(eat, apple_crate, deltas) · resources channel refresh · action_feedback</text>
+  <line x1="440" y1="160" x2="440" y2="185" stroke="var(--teal)" stroke-width="2" marker-end="url(#dc)"/>
 
-  <line x1="440" y1="220" x2="440" y2="260" stroke="var(--teal)" stroke-width="2" marker-end="url(#dc)"/>
-
-  <rect x="230" y="265" width="420" height="25" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="440" y="282" text-anchor="middle" font-size="10.5" fill="var(--accent)">Next Tick: Geralt hunger:35/100 (was 45) · "苹果箱不在了" → LLM adapts</text>
+  <rect x="200" y="190" width="480" height="65" rx="6" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="440" y="212" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Execute + Observe · 执行 + 观测</text>
+  <text x="440" y="232" text-anchor="middle" font-size="10" fill="var(--green)">log.result() · log.llm() · resources channel refresh · action_feedback</text>
+  <text x="440" y="248" text-anchor="middle" font-size="10" fill="var(--accent)">Next tick: Geralt hunger:35/100 (was 45) · AppleCrate gone → LLM adapts</text>
 </svg>
 </div>
 
-<!-- ═══════ 5. ENTITY SCHEMA ═══════ -->
-<h2>5. Entity YAML Schema <span class="en">实体 YAML 模式</span></h2>
+<!-- ═══════ 7. LEDGER ═══════ -->
+<h2>7. Resource Ledger <span class="en">资源账本</span></h2>
 
-<h3>5.1 NPC — Full Definition <span class="en">NPC 完整定义</span></h3>
-<pre><code><span class="cmt"># NPC base — all NPCs inherit (引擎提供, YAML 不重复写)</span>
-<span class="key">interact</span>:
-  <span class="key">send</span>:      { <span class="key">proposal</span>: true, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-  <span class="key">receive</span>:   { <span class="key">proposal</span>: true, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-  <span class="key">trade</span>:     { <span class="key">proposal</span>: true, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-  <span class="key">give_item</span>: { <span class="key">proposal</span>: true, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-  <span class="key">talk</span>:      { <span class="key">proposal</span>: false }
-  <span class="key">follow</span>:    { <span class="key">proposal</span>: false }
+<p>Flat entity-level balance sheet. Zero domain knowledge. Every constraint type that involves resource tracking uses this same ledger.</p>
 
-<span class="cmt"># Geralt — specialization / 猎魔人特化</span>
-- <span class="key">id</span>: geralt
-  <span class="key">agent</span>:
-    <span class="key">resources</span>:
-      <span class="key">gold</span>: 50
-      <span class="key">potions</span>: 2
-  <span class="key">interact</span>:
-    <span class="key">cast_sign</span>:   { <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">cost</span>: 5, <span class="key">constraints</span>: [<span class="str">"consumption"</span>] }
-    <span class="key">drink_potion</span>:{ <span class="key">resource</span>: <span class="str">"potion"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>], <span class="key">deltas</span>: {<span class="str">"health"</span>:20} }</code></pre>
+<pre><code><span class="kw">class</span> <span class="fn">ResourceLedger</span>:
+    <span class="cmt"># {entity_id: {resource_name: quantity}} — 不知道 gold/mana/apple 是什么</span>
+    _holdings: dict[str, dict[str, int]]
 
-<h3>5.2 Item — Full Definition <span class="en">Item 完整定义</span></h3>
-<pre><code><span class="cmt"># Consumable / 消耗品</span>
-- <span class="key">id</span>: apple_crate
-  <span class="key">zone</span>: village
-  <span class="key">interaction</span>:
-    <span class="key">private_attrs</span>: { <span class="key">apple_count</span>: 10 }
-    <span class="key">interact</span>:
-      <span class="key">eat</span>:     { <span class="key">resource</span>: <span class="str">"apple"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>], <span class="key">deltas</span>: {<span class="str">"hunger"</span>:-10, <span class="str">"mood"</span>:5} }
-      <span class="key">open</span>:    { <span class="key">reveal</span>: true }
-      <span class="key">pick_up</span>: { <span class="key">resource</span>: <span class="str">"apple"</span>, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-
-<span class="cmt"># Resource node / 资源节点</span>
-- <span class="key">id</span>: magic_crystal
-  <span class="key">interaction</span>:
-    <span class="key">private_attrs</span>: { <span class="key">mana</span>: 100 }
-    <span class="key">interact</span>:
-      <span class="key">absorb</span>: { <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">constraints</span>: [<span class="str">"conservation"</span>] }
-      <span class="key">shatter</span>:{ <span class="key">resource</span>: <span class="str">"mana"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>], <span class="key">lose_all</span>: true }
-
-<span class="cmt"># Trap / 陷阱 (Item actively triggers on NPC)</span>
-- <span class="key">id</span>: poison_trap
-  <span class="key">interaction</span>:
-    <span class="key">interact</span>:
-      <span class="key">trap</span>:    { <span class="key">trigger</span>: <span class="str">"proximity"</span>, <span class="key">deltas</span>: {<span class="str">"health"</span>:-20}, <span class="key">constraints</span>: [<span class="str">"consumption"</span>] }
-      <span class="key">disarm</span>:  { <span class="key">resource</span>: <span class="str">"trap_disarm_kit"</span>, <span class="key">constraints</span>: [<span class="str">"consumption"</span>] }</code></pre>
-
-<h3>5.3 Portal <span class="en">传送门</span></h3>
-<pre><code>- <span class="key">id</span>: village_gate
-  <span class="key">zone</span>: village
-  <span class="key">interaction</span>:
-    <span class="key">gate</span>: { <span class="key">to_zone</span>: <span class="str">"bar_zone"</span>, <span class="key">to_pos</span>: [5, 10] }
-    <span class="key">interact</span>:
-      <span class="key">cross</span>: { <span class="key">constraints</span>: [<span class="str">"access"</span>], <span class="key">key_required</span>: <span class="str">"village_key"</span> }</code></pre>
-
-<!-- ═══════ 6. CONSTRAINTS + LEDGER ═══════ -->
-<h2>6. Constraint Registry + Ledger <span class="en">约束注册中心 + 资源账本</span></h2>
-
-<div class="card-grid">
-<div class="card c-pur"><h4 style="color:var(--purple)">ConstraintRegistry</h4>
-<p><code>match(agent_act, target_act) → set[name]</code> — only constraints registered by <strong>both</strong> activate.<br/>
-<code>apply(name, agent, target, action, ledger)</code> — dispatch to constraint class.</p></div>
-<div class="card c-grn"><h4 style="color:var(--green)">ConservationConstraint</h4>
-<p><code>validate</code>: src.balance(resource) ≥ amount<br/>
-<code>apply</code>: ledger.transfer(src, tgt, resource, amount)</p></div>
-<div class="card c-acc"><h4 style="color:var(--accent)">ConsumptionConstraint</h4>
-<p><code>validate</code>: target resource quantity > 0<br/>
-<code>apply</code>: resource-1, apply deltas, if 0→remove entity</p></div>
-<div class="card c-teal"><h4 style="color:var(--teal)">ResourceLedger</h4>
-<p><code>balance(id, res) → int</code> | <code>transfer(src,tgt,res,n)→bool</code><br/>Zero domain knowledge. Flat entity-level balance sheet.<br/>transfer(A,B,x,n) guarantees atomicity — no partial execution.</p></div>
-</div>
+    <span class="kw">def</span> <span class="fn">balance</span>  (entity_id, resource) → <span class="kw">int</span>
+    <span class="kw">def</span> <span class="fn">all_of</span>   (entity_id) → dict[str, int]         <span class="cmt"># → resources channel</span>
+    <span class="kw">def</span> <span class="fn">transfer</span> (src, tgt, resource, amount) → <span class="kw">bool</span>  <span class="cmt"># atomic, no partial</span>
+    <span class="kw">def</span> <span class="fn">deposit</span>  (entity, resource, amount)              <span class="cmt"># world → entity</span>
+    <span class="kw">def</span> <span class="fn">withdraw</span> (entity, resource, amount) → <span class="kw">bool</span>    <span class="cmt"># entity → void</span></code></pre>
 
 <div class="callout co-acc">
-<strong>引擎何时校验 / When does the engine validate:</strong><br/>
-<strong>NPC→Item (Direct):</strong> validate + apply immediately — no proposal phase.<br/>
-<strong>NPC→NPC (Proposal-Consent):</strong> Phase 1: <code>can_propose</code> check (balance satisfies). Phase 3: validate + apply only on accept. On reject: only clear pending proposal. On counter: delete old pending, write new.
+<strong>Ledger as sensory channel / 账本作为感官通道:</strong> <code>ResourceSource.collect()</code> calls <code>ledger.all_of(agent.id)</code> → ctx["resources"] → LLM sees: <code>gold: 45\npotions: 2</code>. The LLM perceives resource changes just as it perceives sensory changes. The ledger is a state store — the channel is the perception interface.
 </div>
 
-<!-- ═══════ 7. FILE IMPACT ═══════ -->
-<h2>7. File Impact <span class="en">文件改动</span></h2>
+<!-- ═══════ 8. FILE IMPACT ═══════ -->
+<h2>8. File Impact + Extension <span class="en">文件改动 + 扩展指南</span></h2>
 
 <table>
 <tr><th>File</th><th>Action</th><th>~Lines</th><th>Notes</th></tr>
-<tr><td><code>src/core/ledger.py</code></td><td style="color:var(--teal)">NEW</td><td>~45</td><td>ResourceLedger — flat balance sheet, atomic transfer</td></tr>
-<tr><td><code>src/core/constraints/<wbr>__init__.py</code></td><td style="color:var(--teal)">NEW</td><td>~25</td><td>ConstraintRegistry — match() + @register decorator</td></tr>
-<tr><td><code>src/core/constraints/<wbr>conservation.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>ConservationConstraint — validate balance, apply transfer</td></tr>
-<tr><td><code>src/core/constraints/<wbr>consumption.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>ConsumptionConstraint — validate qty, apply decrement+deltas</td></tr>
-<tr><td><code>src/layers/agent.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+6</td><td>+<code>_pending_proposal: dict</code> + <code>can_propose()</code></td></tr>
-<tr><td><code>src/channel.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+35</td><td>+ResourceSource, +ActionSource, +ProposalSource</td></tr>
-<tr><td><code>src/systems/<wbr>interaction.py</code></td><td style="color:var(--purple)">MODIFY</td><td>+40/-15</td><td>Unified dispatch: proposal protocol + direct execution</td></tr>
-<tr><td><code>src/loop.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+12</td><td>FLUSH: propose→store pending / accept→execute constraint / reject→clear</td></tr>
-<tr><td><code>config/channels.yaml</code></td><td style="color:var(--green)">YAML</td><td>+9</td><td>+resources, +actions, +pending_proposals channels</td></tr>
-<tr><td><code>config/prompts.yaml</code></td><td style="color:var(--green)">YAML</td><td>+15</td><td>+resources, +interact_options, +pending_proposals slots</td></tr>
-<tr><td><code>config/world.yaml</code></td><td style="color:var(--green)">YAML</td><td>+30/entity</td><td>Add interact: + resources: blocks per entity</td></tr>
+<tr><td><code>src/core/constraints/<wbr>__init__.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>Constraint ABC + @register + match()</td></tr>
+<tr><td><code>src/core/constraints/<wbr>conservation.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>Worked example — balance check + atomic transfer</td></tr>
+<tr><td><code>src/core/constraints/<wbr>consumption.py</code></td><td style="color:var(--teal)">NEW</td><td>~30</td><td>Quantity check + deltas + auto-remove</td></tr>
+<tr><td><code>src/core/ledger.py</code></td><td style="color:var(--teal)">NEW</td><td>~45</td><td>ResourceLedger — flat balance sheet</td></tr>
+<tr><td><code>src/layers/agent.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+6</td><td>+_pending_proposal dict</td></tr>
+<tr><td><code>src/channel.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+35</td><td>+ResourceSource, +ActionSource</td></tr>
+<tr><td><code>src/systems/<wbr>interaction.py</code></td><td style="color:var(--purple)">MODIFY</td><td>+40/-15</td><td>Unified dispatch + constraint loop</td></tr>
+<tr><td><code>src/loop.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+12</td><td>propose/accept/reject flows</td></tr>
+<tr><td><code>config/</code> (4 files)</td><td style="color:var(--green)">YAML</td><td>+40</td><td>channels, slots, slot_groups, world</td></tr>
 </table>
 
 <div class="callout co-grn">
-<strong>总计 / Total:</strong> ~230 lines new Python (4 new files), ~70 lines YAML config edits. loop.py +12 lines. Logger zero changes. Existing 159 tests zero impact. New feature = new tests only. All NPC↔NPC, NPC↔Item, Item→NPC interactions unified under one <code>interact()</code> dispatch.
+<strong>Total / 总计:</strong> ~230 lines new Python (4 new files). ~70 lines YAML config. loop.py +12 lines. Logger zero changes. 159 tests zero impact. <strong>All NPC↔NPC, NPC↔Item, Item→NPC interactions under one unified <code>interact()</code>. All constraints under one unified <code>Constraint</code> interface.</strong>
 </div>
 
-<!-- ═══════ 8. PHILOSOPHY ═══════ -->
-<h2>8. Design Philosophy Alignment <span class="en">设计哲学对齐</span></h2>
+<div class="card-grid">
+<div class="card c-pri"><h4 style="color:var(--primary)">+New Entity Type</h4><p>1 file: <code>world.yaml</code>. Add interact: + resources: blocks.</p></div>
+<div class="card c-grn"><h4 style="color:var(--green)">+New Constraint</h4><p>1 file: <code>constraints/new.py</code> (30 lines). @register("new"). Then YAML: <code>constraints: ["new"]</code>.</p></div>
+<div class="card c-pur"><h4 style="color:var(--purple)">+New Action</h4><p>1 file: <code>world.yaml</code>. Add key to entity's <code>interact:</code> block.</p></div>
+<div class="card c-acc"><h4 style="color:var(--accent)">+New Resource</h4><p>1 file: <code>world.yaml</code>. Add to resources: block. Zero constraint changes.</p></div>
+</div>
+
+<!-- ═══════ 9. PHILOSOPHY ═══════ -->
+<h2>9. Design Philosophy <span class="en">设计哲学对齐</span></h2>
 
 <div class="card-grid">
-<div class="card c-pri"><h4 style="color:var(--primary)">Sensory-driven protocol</h4><p>No "proposal channel". Rachel's LLM perceives via <code>conversation_text</code> + <code>action_feedback</code>. Engine never tells LLM "someone wants to give you gold." LLM figures it out.</p></div>
-<div class="card c-grn"><h4 style="color:var(--green)">Engine validates physics, not economics</h4><p>Constraint checks only physical feasibility (balance ≥ amount). Engine never judges whether a trade is fair, reasonable, or wise.</p></div>
-<div class="card c-pur"><h4 style="color:var(--purple)">Two paradigms, one dispatch</h4><p><code>target.has("agent")</code> is the only branch point. Proposal-Consent vs Direct Execution determined by whether the target has cognition — not by action type name.</p></div>
-<div class="card c-acc"><h4 style="color:var(--accent)">YAML is the extension surface</h4><p>New action type → add YAML key. New constraint → add 1 class. New resource → add resources block. Zero engine dispatch changes.</p></div>
-<div class="card c-teal"><h4 style="color:var(--teal)">Closed loop preserved</h4><p>6 channels → LLM decide → interact dispatch → proposal/execute → ledger update → log → next tick perception. Cycle unchanged across all interaction types.</p></div>
-<div class="card c-red"><h4 style="color:var(--red)">Silence and rejection are valid</h4><p>If Rachel doesn't accept the gold, the engine doesn't force it. If Geralt proposes a trade no one accepts, the proposal sits pending — and the LLM eventually decides to withdraw it. No engine intervention.</p></div>
+<div class="card c-pri"><h4 style="color:var(--primary)">Engine as Constraint-Agnostic Executor</h4><p>The engine loops over constraint names. Calls <code>validate()</code>. Calls <code>apply()</code>. Never distinguishes conservation from capacity from reputation. The constraint class encapsulates its own physics.</p></div>
+<div class="card c-grn"><h4 style="color:var(--green)">Sensory-Driven Consent</h4><p>No "proposal channel". The target LLM perceives through <code>conversation_text</code>. The engine never tells LLM "someone wants to give you gold." LLM infers it from dialogue — just as humans do.</p></div>
+<div class="card c-pur"><h4 style="color:var(--purple)">Physics ≠ Economics</h4><p>Constraints validate physical feasibility — balance, durability, capacity. The engine never judges whether a trade is fair, a gift is appropriate, or a duel is wise. LLM decides. Engine checks laws.</p></div>
+<div class="card c-acc"><h4 style="color:var(--accent)">@register is the Extension Boundary</h4><p>New constraint = 1 new file + @register. Zero engine changes. The constraint paradigm is the grammar — conservation is one sentence in that grammar.</p></div>
+<div class="card c-teal"><h4 style="color:var(--teal)">Closed Loop Across All Interactions</h4><p>6 channels → LLM decide → interact dispatch → constraint loop → ledger update → log → next tick perception. Cycle invariant across NPC↔NPC, NPC↔Item, Item→NPC.</p></div>
+<div class="card c-red"><h4 style="color:var(--red)">Silence, Rejection, Emptiness</h4><p>If Rachel doesn't accept the gold, the engine doesn't force it. If Geralt proposes a trade no one takes, the pending proposal sits — LLM eventually decides to withdraw. No engine intervention.</p></div>
 </div>
 
 <hr>
-<p style="text-align:center;color:var(--muted);font-size:12px">AgentWorld Async · Unified Interact Architecture · v2.0 · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:12px">AgentWorld Async · Unified Interact + Universal Constraint Paradigm · v2.1 · Asher · 2026</p>
 <p style="text-align:center;color:var(--muted);font-size:11px">Designed with impeccable · product register · OKLCH sky-blue dark</p>
 
 </div>
