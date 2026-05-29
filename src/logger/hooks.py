@@ -27,8 +27,10 @@ class Log:
         self._decide   = _noop
         self._result   = _noop
         self._error_fn  = _noop
-        self._warning  = _noop
-        self._llm_fn   = _noop
+        self._warning = _noop
+        self._llm_fn = _noop
+        self._info   = _noop
+        self._info    = _noop
         self._session  = None
         self._enabled  = False
         self._close_future = None
@@ -102,6 +104,12 @@ class Log:
                       module=module, message=message,
                       **kwargs)
 
+    def info(self, agent: str = "system", *, module: str = "",
+             message: str = "", **kwargs):
+        self._info(agent=agent, phase="info",
+                   module=module, message=message,
+                   **kwargs)
+
     def llm(self, provider: str, latency_ms: float, tokens: int = 0,
             error: bool = False, **kwargs):
         self._llm_fn(agent="llm", phase="llm",
@@ -120,8 +128,9 @@ class Log:
         self._decide    = self._session.write
         self._result    = self._session.write
         self._error_fn  = self._session.write
-        self._warning   = self._session.write
-        self._llm_fn    = self._session.write
+        self._warning = self._session.write
+        self._llm_fn  = self._session.write
+        self._info    = self._session.write
         self._enabled   = True
 
     def disable(self):

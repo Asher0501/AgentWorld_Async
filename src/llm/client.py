@@ -27,7 +27,8 @@ def _retry(fn, max_retries: int, name: str) -> str:
 
 
 class LLMClient:
-    def __init__(self, config: dict, concurrency_gate=None, telemetry=None):
+    def __init__(self, config: dict, concurrency_gate=None, telemetry=None,
+                 credential_search_paths: list = None):
         self.model = config.get("model", "gpt-4o")
         self.max_retries = config.get("max_retries", 2)
 
@@ -37,7 +38,7 @@ class LLMClient:
         self.provider = config.get("provider", "openai")
 
         if not api_key:
-            base_url, api_key = self._find_credentials(self.provider)
+            base_url, api_key = self._find_credentials(self.provider, credential_search_paths or [])
 
         self.api_key = api_key
         self.base_url = base_url or config.get("base_url", "")
@@ -54,7 +55,7 @@ class LLMClient:
             return os.environ.get(val[2:-1], "")
         return val
 
-    def _find_credentials(self, preferred: str):
+    def _find_credentials(self, preferred: str, search_paths: list = None):
         if preferred == "minimax":
             api_key = os.environ.get("MINIMAX_API_KEY", "").strip()
             if api_key:
@@ -69,7 +70,7 @@ class LLMClient:
                       os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
                 return url, api_key
 
-        config_paths = [
+        config_paths = search_paths or [
             os.path.expanduser("~/.openclaw/agents/coder/agent/models.json"),
             os.path.expanduser("~/.openclaw/agents/life/agent/models.json"),
         ]

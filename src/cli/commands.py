@@ -7,6 +7,7 @@ from .config import load_config
 from .world_setup import spawn_world, get_autonomous_agents
 from .loop_factory import build_loop_config, setup_agent_drives
 from .runner import run_concurrent
+from logger import log
 
 
 async def cmd_test(args):
@@ -16,7 +17,8 @@ async def cmd_test(args):
     world, brain, systems = spawn_world(cfg)
     agents = get_autonomous_agents(world)
     if not agents:
-        print("No autonomous agents found in world.yaml.")
+        log.info(agent="cli", module="cli",
+                 message="No autonomous agents found in world.yaml.")
         return
     setup_agent_drives(agents, sim, sim.get("currency", "coins"))
     loop_cfg = build_loop_config(sim, cfg["labels"])
@@ -40,6 +42,9 @@ async def cmd_test(args):
     sp = cfg["labels"].get("sensory_prompts", {})
     if "auditory" in sp:
         sp["auditory"]["window_seconds"] = int(clock.speech_window)
+    log.info(agent="cli", module="cli",
+             message=f"DecisionClock: tick={clock.decision_tick:.1f}s "
+                     f"speech_window={int(clock.speech_window)}s scale={clock.scale:.2f}")
     print(f"  DecisionClock: tick={clock.decision_tick:.1f}s "
           f"speech_window={int(clock.speech_window)}s scale={clock.scale:.2f}", flush=True)
 
@@ -98,8 +103,13 @@ async def cmd_test(args):
         except (asyncio.CancelledError, Exception): pass
 
     elapsed = time.time() - t_start
-    from logger import log
     gs = log.summary() or {}
+    log.info(agent="cli", module="cli",
+             message=f"Complete: {elapsed:.0f}s, written={gs.get('total_written',0)}, "
+                     f"gate={gs.get('phase_counts',{}).get('gate',0)} "
+                     f"decide={gs.get('phase_counts',{}).get('decide',0)} "
+                     f"result={gs.get('phase_counts',{}).get('result',0)} "
+                     f"errors={gs.get('total_errors',0)}")
     print(f"  Complete: {elapsed:.0f}s")
     print(f"  Logger: {gs.get('total_written', 0)} entries")
     if args.validate:

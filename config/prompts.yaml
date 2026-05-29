@@ -289,3 +289,4 @@ sensory_prompts:
 text_labels:
   empty_memory: "无"
   memory_entry: "[+{rel}s] {text}"
+  memory_evicted: "[+{seconds}s] （{evicted_count}条更早的记忆已被归档）"

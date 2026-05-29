@@ -21,6 +21,7 @@ class LoopConfig:
     labels: dict = field(default_factory=dict)
     default_patience: int = 5
     memory_prompt_count: int = 5
+    file_output_dir: str = "AutoGenSim/output"
 
 
 def _build_decision_ctx(agent, al, world, sensory, assembler, cfg, delta_text) -> dict:
@@ -111,7 +112,8 @@ async def run_agent(agent, world, brain, assembler, systems,
                 fo = enqueued_decision.get("file_output", {})
                 if fo and fo.get("filename") and fo.get("content"):
                     import os as _os
-                    out_dir = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "AutoGenSim", "output")
+                    out_dir = os.path.join(os.path.dirname(
+                        os.path.dirname(os.path.abspath(__file__))), cfg.file_output_dir)
                     _os.makedirs(out_dir, exist_ok=True)
                     out_path = _os.path.join(out_dir, f"{agent.id}_{fo['filename']}")
                     with open(out_path, "w") as _f:

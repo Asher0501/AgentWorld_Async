@@ -17,6 +17,7 @@ def build_loop_config(sim: dict, labels: dict) -> LoopConfig:
         labels=labels,
         default_patience=sim.get("default_patience", 5),
         memory_prompt_count=sim.get("memory_prompt_count", 5),
+        file_output_dir=sim.get("file_output_dir", "AutoGenSim/output"),
     )
 
 
