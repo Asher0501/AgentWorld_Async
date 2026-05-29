@@ -79,7 +79,7 @@ class InteractionSystem:
             )
 
         # ④ NPC→Item: interact_narrative LLM
-        narrative = story or f"{agent.name}对{target.name}做了交互"
+        narrative = story or ""
         action_text = decision.get("action", "")
         narrative, llm2_prompt, llm2_output = await self._resolve_npc_item(agent, target, action_text, story, narrative, world)
 

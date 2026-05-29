@@ -76,10 +76,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                         result = await interaction.interact(agent, target, enqueued_decision, world)
                         agent.last_action_time = world.clock.now()
                         al._last_target_name = target.name
-                        al._last_expects_reply = bool(enqueued_decision.get("expects_reply"))
                         al._last_intent = enqueued_decision.get("intent", "")
-                        al._last_action_ts = time.time()
-                        al._last_action_drives = {k: round(float(v), 1) for k, v in drives.attrs.items()}
                         log.result(agent=name, action=action_text,
                                    target=target_name, target_id=target.id,
                                    narrative=result.narrative,

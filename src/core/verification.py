@@ -30,10 +30,10 @@ def check_bounds(entity, deltas: dict, currency_key: str, drive_min: float, driv
         new_val = current + delta
         if attr == currency_key:
             if new_val < 0:
-                return f"{attr} would go negative: {current} + {delta} = {new_val}"
+                return f"{attr}: {current} + {delta} = {new_val} < 0"
         else:
             if new_val < drive_min:
-                return f"{attr} would go below min: {current} + {delta} = {new_val}"
+                return f"{attr}: {current} + {delta} = {new_val} < {drive_min}"
             if new_val > drive_max:
-                return f"{attr} would go above max: {current} + {delta} = {new_val}"
+                return f"{attr}: {current} + {delta} = {new_val} > {drive_max}"
     return None

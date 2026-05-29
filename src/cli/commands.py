@@ -180,9 +180,8 @@ def cmd_validate_config(args):
             if slot_name not in all_slots:
                 errors.append(f"Template '{tpl_name}' references undefined slot '{slot_name}'")
 
-    known_ctx = {"main_thread", "name", "persona", "drives_table", "delta_text",
-                 "zone_name", "sensory_text", "memory_text", "messages_text",
-                 "interactable_text", "visible_text", "hearing_text", "round",
+    known_ctx = {"main_thread", "name", "personality", "drives_table", "delta_text",
+                 "zone_name", "sensory_text", "memory_text",
                  "caller_name", "caller_id", "target_name", "target_id",
                  "gate_text", "item_narrative",
                  "conversation_text", "traits_text",

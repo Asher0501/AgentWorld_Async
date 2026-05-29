@@ -53,8 +53,6 @@ class AgentLayerSource:
         for f in fields:
             if f == "personality":
                 result[f] = agent.name + " — " + (al.personality or "")
-            elif f == "persona":
-                result[f] = agent.name + " — " + (al.personality or "")
             elif f == "name":
                 result[f] = agent.name
             elif f == "main_thread":

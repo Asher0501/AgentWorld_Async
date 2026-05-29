@@ -26,7 +26,7 @@ templates:
       - gate_highlight
       - recent_memory
       - conversation_context
-      - intent_context
+      - action_feedback
       - action_scope
       - output_contract
     output_schema: decision_output

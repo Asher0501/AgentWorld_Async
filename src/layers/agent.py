@@ -37,12 +37,8 @@ class AgentLayer(Layer):
 
     # ── Conversation state (factual — LLM decides what to do with it) ──
     _last_target_name: str = ""
-    _last_expects_reply: bool = False
-    _pending_narrative: str = ""   # NPC→Item narrative queues here, LLM #1 decides
-    _conversation_buffer: list = field(default_factory=list)  # recent dialogue exchange [{speaker, text, ts}]
-    _reply_deadline: float = 0.0  # when to give up waiting for a reply (time.time() + patience)
+    _pending_narrative: str = ""
+    _conversation_buffer: list = field(default_factory=list)
 
     # ── Intent tracking ──
     _last_intent: str = ""
-    _last_action_ts: float = 0.0
-    _last_action_drives: dict = field(default_factory=dict)
