@@ -30,10 +30,8 @@ class Log:
         self._warning = _noop
         self._llm_fn = _noop
         self._info   = _noop
-        self._info    = _noop
-        self._session  = None
-        self._enabled  = False
-        self._close_future = None
+        self._session = None
+        self._enabled = False
 
     # ── public hook methods (sync) ──
 
@@ -138,7 +136,7 @@ class Log:
             return
         self._enabled = False
         self._gate = self._decide = self._result = _noop
-        self._error_fn = self._warning = self._llm_fn = _noop
+        self._error_fn = self._warning = self._llm_fn = self._info = _noop
         s = self._session
         self._session = None
         if s:

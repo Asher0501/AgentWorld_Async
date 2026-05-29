@@ -4,7 +4,7 @@ Engine reports facts, LLM decides. Records: how long each call took.
 Provides median latency for WorldClock calibration.
 """
 
-import time, threading, math
+import time, threading
 
 
 class TelemetryCollector:

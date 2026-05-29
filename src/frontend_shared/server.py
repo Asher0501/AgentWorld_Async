@@ -48,7 +48,9 @@ async def start_server(emitter, director, static_dir, port, name):
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"  {name}: http://localhost:{port}")
+    from logger import log
+    log.info(agent="server", module="frontend",
+             message=f"{name} listening on port {port}")
     try:
         await asyncio.Event().wait()
     except asyncio.CancelledError:

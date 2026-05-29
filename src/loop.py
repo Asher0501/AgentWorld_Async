@@ -80,7 +80,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                         al._last_intent = enqueued_decision.get("intent", "")
                         al._last_action_ts = time.time()
                         al._last_action_drives = {k: round(float(v), 1) for k, v in drives.attrs.items()}
-                        log.result(name, action=action_text,
+                        log.result(agent=name, action=action_text,
                                    target=target_name, target_id=target.id,
                                    narrative=result.narrative,
                                    deltas=result.caller_deltas,
@@ -186,7 +186,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                 await asyncio.sleep(cfg.poll_interval)
                 continue
 
-            log.gate(name, triggered=True,
+            log.gate(agent=name, triggered=True,
                      reason=delta_text, zone=agent.zone,
                      nearby=len(zone_entities),
                      drives={k: round(float(v), 1) for k, v in drives.attrs.items()},
@@ -232,7 +232,7 @@ async def run_agent(agent, world, brain, assembler, systems,
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
                     exclude_id=agent.id) if target_name else None
-                log.decide(name, action=action_text,
+                log.decide(agent=name, action=action_text,
                            intent=decision.get("intent", ""),
                            target=target_name,
                            target_id=target.id if target else "",
