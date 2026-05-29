@@ -6,6 +6,8 @@ All controlled-mode semantics in one place.
 """
 import os, yaml
 
+_CFG_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "config")
+
 
 class Director:
     def __init__(self, world):
@@ -16,8 +18,7 @@ class Director:
         self._permissions = self._load_permissions()
 
     def _load_permissions(self) -> dict:
-        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        path = os.path.join(base, "config", "director_permissions.yaml")
+        path = os.path.join(_CFG_ROOT, "director_permissions.yaml")
         with open(path) as f:
             return yaml.safe_load(f)
 

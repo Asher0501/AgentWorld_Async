@@ -13,6 +13,8 @@ from agent.drives import DriveSystem
 from agent.sensory_memory import SensoryMemory
 from agent.memory import AgentMemory
 
+_CFG_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "config")
+
 
 class World:
     def __init__(self, world_config: dict, systems: dict):
@@ -41,8 +43,7 @@ class World:
         self._load_entities(world_config.get("entities", []))
 
     def _load_slot_groups(self) -> dict:
-        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        path = os.path.join(base, "config", "slot_groups.yaml")
+        path = os.path.join(_CFG_ROOT, "slot_groups.yaml")
         with open(path) as f:
             return yaml.safe_load(f)
 

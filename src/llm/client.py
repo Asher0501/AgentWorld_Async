@@ -125,6 +125,9 @@ class LLMClient:
                     self._telemetry.record(self.provider, "chat", _dt_ms)
                 except Exception:
                     pass
+            from logger import log
+            log.llm(provider=self.provider, latency_ms=_dt_ms,
+                    error=self._hit_429)
             if self._gate:
                 if self._hit_429:
                     self._gate.report_429()
