@@ -31,9 +31,9 @@ async def cmd_test(args):
     max_cc = max((g.limit for g in cfg["concurrency_gates"].values()), default=1)
     if telemetry.warmed_up:
         measured_tick = telemetry.median_latency * len(agents) / max(max_cc, 1)
-        decision_tick = max(2.0, measured_tick)
+        decision_tick = max(2.0, min(3.0, measured_tick))
     else:
-        decision_tick = max(2.0, 4.0 * len(agents) / max(max_cc, 1))
+        decision_tick = max(2.0, min(3.0, 4.0 * len(agents) / max(max_cc, 1)))
     clock = DecisionClock(
         decision_tick=decision_tick,
         reference_tick=sim.get("reference_decision_tick", 5.0),
