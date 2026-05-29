@@ -197,8 +197,8 @@ async def test_event_bus_queuefull_logs_warning(caplog):
         eb.emit({"n": i})
 
     # Should have logged at least one warning
-    # Note: agent_logging may not use Python's logging module directly,
-    # so caplog might not capture it. We verify by code inspection instead.
+    # Note: logger hooks replace agent_logging entirely.
+    # The QueueFull handler must log a warning, not silently pass.
     from event_bus import EventBus as EB
     import inspect
     src = inspect.getsource(EB.emit)
@@ -246,7 +246,7 @@ def test_loop_error_logs_to_collector():
 
 
 # ═══════════════════════════════════════════════════════════════
-# #13: agent_logging debug at key paths (Phase 3)
+# #13: log.gate + log.decide at key paths
 # ═══════════════════════════════════════════════════════════════
 
 def test_agent_logging_at_delta_trigger():
@@ -254,15 +254,14 @@ def test_agent_logging_at_delta_trigger():
     from loop import run_agent
     import inspect
     src = inspect.getsource(run_agent)
-    assert 'DELTA triggered' in src, "Must log at delta gate trigger"
     assert 'log.gate(' in src, "Must use log.gate"
 
 
 def test_agent_logging_at_enqueue():
-    """Verify debug log is emitted when action is enqueued."""
+    """Verify log.decide() is called at ENQUEUE phase."""
     from loop import run_agent
     import inspect
     src = inspect.getsource(run_agent)
-    assert 'ENQUEUE:' in src, "Must log at ENQUEUE phase"
+    assert 'log.decide(' in src, "Must use log.decide"
 
 

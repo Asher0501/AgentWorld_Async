@@ -25,7 +25,7 @@ def final_drive_health(traces: list[dict]) -> dict:
             final_snapshots[a] = snapshots[-1][1]
 
     # Classify each attribute per agent
-    status_counts: dict[str, int] = {"ok": 0, "high": 0, "extreme": 0}
+    status_counts: dict[str, int] = {"0-50": 0, "50-80": 0, "80+": 0}
     per_agent_detail = {}
     for a, drives in final_snapshots.items():
         agent_status = {}
@@ -33,11 +33,11 @@ def final_drive_health(traces: list[dict]) -> dict:
             if attr == "coins":
                 continue
             if 0 <= val <= 50:
-                tag = "ok"
+                tag = "0-50"
             elif 50 < val <= 80:
-                tag = "high"
+                tag = "50-80"
             else:
-                tag = "extreme"
+                tag = "80+"
             status_counts[tag] += 1
             agent_status[attr] = f"{val:.0f}"
         per_agent_detail[a] = agent_status
@@ -46,7 +46,7 @@ def final_drive_health(traces: list[dict]) -> dict:
     return {
         "per_agent": per_agent_detail,
         "distribution": {k: f"{v}/{total}" for k, v in status_counts.items()},
-        "summary": f"{status_counts['ok']} ok, {status_counts['high']} high, {status_counts['extreme']} extreme",
+        "summary": f"{status_counts.get('0-50',0)} ok, {status_counts.get('50-80',0)} high, {status_counts.get('80+',0)} extreme",
     }
 
 
@@ -81,11 +81,11 @@ def drive_convergence(traces: list[dict]) -> dict:
     trends = {}
     for k, v in avg_changes.items():
         if v < -5:
-            trends[k] = "↓ satisfied"
+            trends[k] = f"↓ ({v:+.1f})"
         elif v > 5:
-            trends[k] = "↑ increasing"
+            trends[k] = f"↑ ({v:+.1f})"
         else:
-            trends[k] = "~ stable"
+            trends[k] = f"~ ({v:+.1f})"
 
     return {
         "avg_net_change": avg_changes,

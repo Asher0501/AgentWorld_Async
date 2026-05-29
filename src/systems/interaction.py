@@ -3,10 +3,7 @@ interact() 是唯一入口。NPC→NPC: 纯同步写层。NPC→Item: +1 LLM。
 """
 import json
 import time
-import logging
 from dataclasses import dataclass, field
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass

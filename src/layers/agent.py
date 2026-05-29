@@ -44,6 +44,5 @@ class AgentLayer(Layer):
 
     # ── Intent tracking ──
     _last_intent: str = ""
-    _last_intent_target: str = ""
     _last_action_ts: float = 0.0
     _last_action_drives: dict = field(default_factory=dict)

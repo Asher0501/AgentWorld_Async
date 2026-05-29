@@ -15,7 +15,6 @@ fields:
   agent.traits:                 2
   agent.drives.*:               2
   agent._last_intent:           2
-  agent._last_intent_target:    2
   # Level 3 — Admin
   agent.pos:                    3
   agent.zone:                   3

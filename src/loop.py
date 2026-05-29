@@ -47,7 +47,6 @@ async def run_agent(agent, world, brain, assembler, systems,
     interaction = systems["interaction"]
     labels = cfg.labels
 
-    import agent_logging
     from logger import log
     err_backoff: dict[str, int] = {}
     while time.time() < end:
@@ -185,8 +184,6 @@ async def run_agent(agent, world, brain, assembler, systems,
                 await asyncio.sleep(cfg.poll_interval)
                 continue
 
-            agent_logging.debug(f"[{name}] DELTA triggered — LLM being called")
-
             log.gate(name, triggered=True,
                      reason=delta_text, zone=agent.zone,
                      nearby=len(zone_entities),
@@ -230,7 +227,6 @@ async def run_agent(agent, world, brain, assembler, systems,
             target_name = decision.get("target_name")
             action_text = decision.get("action")
             if action_text:
-                agent_logging.debug(f"[{name}] ENQUEUE: {action_text[:50]}")
                 target = interaction.find_entity_by_name(
                     agent.zone, target_name, world.entities,
                     exclude_id=agent.id) if target_name else None
