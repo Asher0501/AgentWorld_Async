@@ -102,16 +102,11 @@ slots:
       ## 对话
       {conversation_text}
 
-  intent_context:
+  action_feedback:
     condition: last_intent
     template: |
-      ## 上一轮
-      你打算: {last_intent}
-      对象: {last_target}
-      期待回复: {last_expects_reply}
-      之后:
-      {conversation_since_last_action}
-      变化: {drive_delta_since_last_action}
+      ## 上轮行动
+      意图: {last_intent} → {last_target}
 
   action_scope:
     template: |

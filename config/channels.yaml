@@ -14,8 +14,7 @@ channels:
     fields: [personality, name, main_thread, conversation_text, item_narrative]
 
   - source: agent_layer
-    fields: [last_intent, last_target, last_expects_reply,
-             conversation_since_last_action, drive_delta_since_last_action]
+    fields: [last_intent, last_target]
 
   - source: world
     fields: [zone_name, zone_width, zone_height, pos_x, pos_y, gate_text]

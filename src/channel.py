@@ -63,12 +63,6 @@ class AgentLayerSource:
                 result[f] = al._last_intent or ""
             elif f == "last_target":
                 result[f] = al._last_target_name or ""
-            elif f == "last_expects_reply":
-                result[f] = str(al._last_expects_reply)
-            elif f == "conversation_since_last_action":
-                result[f] = self._conv_since_text(al)
-            elif f == "drive_delta_since_last_action":
-                result[f] = self._drive_delta_text(al)
             elif f == "conversation_text":
                 result[f] = self._conversation_text(al)
             elif f == "item_narrative":
@@ -85,24 +79,6 @@ class AgentLayerSource:
             ts = int(time.time() - e["ts"])
             lines.append(f"[{ts}s前] {e['speaker']}: {e['text']}")
         return "\n".join(lines)
-
-    def _conv_since_text(self, al) -> str:
-        since = [e for e in al._conversation_buffer if e["ts"] > al._last_action_ts]
-        lines = [f"- {e['speaker']}: {e['text']}" for e in since[-5:] if e.get("text")]
-        return "\n".join(lines) if lines else ""
-
-    def _drive_delta_text(self, al) -> str:
-        drives_now = al.drives.attrs
-        old = al._last_action_drives
-        if not old:
-            return ""
-        lines = []
-        for k in sorted(set(old) | set(drives_now)):
-            d = round(float(drives_now.get(k, 0)) - float(old.get(k, 0)), 1)
-            if d != 0:
-                dir_sym = "↑" if d > 0 else "↓"
-                lines.append(f"- {k} {dir_sym}{abs(d)}")
-        return "\n".join(lines) if lines else ""
 
 
 class WorldSource:

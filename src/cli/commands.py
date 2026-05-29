@@ -187,8 +187,7 @@ def cmd_validate_config(args):
                  "gate_text", "item_narrative",
                  "conversation_text", "traits_text",
                  "drive_min", "drive_max",
-                 "last_intent", "last_target", "last_expects_reply",
-                 "conversation_since_last_action", "drive_delta_since_last_action"}
+                 "last_intent", "last_target"}
     for slot_name, slot in all_slots.items():
         cond = slot.get("condition", "")
         if cond and cond not in known_ctx:
