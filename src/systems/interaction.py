@@ -72,13 +72,14 @@ class InteractionSystem:
 
         # ③ NPC→NPC: done
         if target.has("agent"):
-            if not story:
+            narrative = story or dialogue
+            if not narrative:
                 raise RuntimeError(
-                    f"NPC→NPC interaction {agent.name}→{target.name}: LLM produced no narrative (story is empty)")
+                    f"NPC→NPC {agent.name}→{target.name}: LLM produced no story or dialogue")
             return ActionResult(
                 target_id=target.id,
                 caller_deltas=self_deltas,
-                narrative=story,
+                narrative=narrative,
             )
 
         # ④ NPC→Item: interact_narrative LLM
