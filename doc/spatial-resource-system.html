@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Unified Spatial Object + Constraint System — AgentWorld Async</title>
+<title>Unified Spatial Object + Constraint System — Final Design</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   :root{
@@ -20,19 +20,18 @@
   body{background:var(--bg);color:var(--ink);font:15px/1.85 "PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
   .wrapper{max-width:960px;margin:0 auto;padding:56px 32px 72px}
   .hero{text-align:center;padding:44px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
-  .hero h1{font-size:30px;font-weight:800;color:var(--primary);letter-spacing:-0.5px;margin-bottom:8px;text-wrap:balance}
+  .hero h1{font-size:30px;font-weight:800;color:var(--primary);letter-spacing:-0.5px;margin-bottom:8px}
   .hero .sub{font-size:15px;color:var(--muted);margin-bottom:18px;line-height:1.7}
   .hero .tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .tag{padding:4px 14px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:0.2px}
   .tag-prim{background:var(--primary-bg);color:var(--primary)}.tag-grn{background:var(--green-bg);color:var(--green)}.tag-pur{background:var(--purple-bg);color:var(--purple)}.tag-acc{background:var(--accent-bg);color:var(--accent)}.tag-teal{background:var(--teal-bg);color:var(--teal)}
-  h2{font-size:22px;font-weight:700;color:var(--primary);margin:52px 0 16px;padding-bottom:6px;border-bottom:2px solid var(--border);letter-spacing:-0.3px}
+  h2{font-size:22px;font-weight:700;color:var(--primary);margin:52px 0 16px;padding-bottom:6px;border-bottom:2px solid var(--border)}
   h3{font-size:17px;font-weight:600;color:var(--ink);margin:30px 0 10px}
   p,li{font-size:14.5px;color:var(--ink);margin:6px 0;line-height:1.8}
-  ul,ol{margin:6px 0 6px 22px}li{margin:4px 0}
   code{background:var(--code-inline);padding:2px 7px;border-radius:4px;font-size:13px;font-family:"Cascadia Code","Fira Code",monospace;color:var(--primary);border:1px solid var(--border)}
   pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.6;margin:10px 0;border:1px solid var(--border)}
   pre code{background:none;padding:0;display:block;border:none}
-  .kw{color:var(--purple)}.str{color:var(--accent)}.fn{color:var(--primary)}.cmt{color:var(--muted)}.key{color:var(--teal)}
+  .kw{color:var(--purple)}.str{color:var(--accent)}.fn{color:var(--primary)}.cmt{color:var(--muted)}
   .diagram{display:flex;justify-content:center;margin:24px 0}
   .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin:16px 0}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
@@ -47,10 +46,9 @@
   tr:hover{background:var(--surface)}td:first-child{font-family:"Cascadia Code","Fira Code",monospace;font-size:12.5px;color:var(--primary)}
   .en{color:var(--muted);font-style:italic;margin-left:6px;font-size:13.5px}.en::before{content:"— "}
   hr{border:none;border-top:1px solid var(--border);margin:32px 0}
-  .flow{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin:12px 0;font-size:13px;line-height:2.1}
-  .flow .arrow{color:var(--muted);margin:0 8px}
-  .flow .label{color:var(--primary);font-weight:600}
-  .flow .dim{color:var(--muted)}
+  .trace{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:10px 0;font-size:12.5px;line-height:1.8}
+  .trace .arrow{color:var(--muted)}.trace .label{color:var(--primary);font-weight:600}
+  .why-box{background:var(--accent-bg);border-left:3px solid var(--accent);padding:10px 14px;margin:8px 0 4px 0;font-size:13px;color:var(--ink);border-radius:0 6px 6px 0}
   @media(max-width:768px){.wrapper{padding:24px 16px}.card-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -59,279 +57,392 @@
 
 <div class="hero">
   <h1>Unified Spatial Object + Constraint System</h1>
-  <p class="sub">没有协议——只有观察 + 行动。拿出东西，对方看到，自己判断。<br/>物品只知坐标。半径即权限。归属是 LLM 从感官推断的。<br/><span class="en">No protocol — just observation + action. Take it out. They see it. They decide. Items know only coordinates. Radius is permission. Ownership is LLM inference.</span></p>
+  <p class="sub">观察 + 行动。无协议。物理即账本。半径即权限。<br/><span class="en">Observe + Act. No protocol. Physics is the ledger. Radius is permission.</span></p>
   <div class="tags">
-    <span class="tag tag-prim">Observe+Act</span>
-    <span class="tag tag-grn">NPC-Driven Move</span>
-    <span class="tag tag-pur">Constraint System</span>
-    <span class="tag tag-acc">Radius = Permission</span>
-    <span class="tag tag-teal">Bilingual 中英</span>
+    <span class="tag tag-prim">SpatialObject</span>
+    <span class="tag tag-grn">Constraint</span>
+    <span class="tag tag-pur">SpatialProxy</span>
+    <span class="tag tag-acc">Observe+Act</span>
+    <span class="tag tag-teal">No New Channel</span>
   </div>
 </div>
 
-<!-- ═══════ 1. CORE PRINCIPLES ═══════ -->
-<h2>1. Core Principles <span class="en">核心原则</span></h2>
+<!-- ═══════ 1. OVERVIEW ═══════ -->
+<h2>1. Design Principles <span class="en">设计原则</span></h2>
 
 <div class="card-grid">
-  <div class="card c-pri"><h4 style="color:var(--primary)">① 物品是被动的</h4><p>物品只知道自己的空间状态——<code>qty_at(x,y)</code>、<code>radius_at(x,y)</code>、<code>move(from,to,qty,r)</code>。没有 <code>owner</code>、没有 <code>transfer</code>、没有 <code>belongs_to</code>。只能被移动——不知道谁在移动它。<span class="en">Items are passive — they don't know who owns them.</span></p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">② NPC 是主动的</h4><p>NPC 决定移动什么。参数全是纯坐标。Geralt 把金币从 (12,7) 移到 (12,8)，Rachel 从 (12,8) 移到 (14,9)。引擎不知道"交易"——只知道两次 <code>move()</code>。<span class="en">NPCs decide what to move. All parameters are pure coordinates.</span></p></div>
-  <div class="card c-pur"><h4 style="color:var(--purple)">③ 约束即物理</h4><p>约束校验物理可行性。位置上有足够的数量吗？耐久够吗？冷却好了吗？约束不判断"交易是否公平"。只判断物理可行性。<span class="en">Constraints validate physical feasibility — nothing more.</span></p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">④ 归属 = LLM 推断</h4><p>引擎不记录"金币属于 Geralt"。引擎只报告金币在某个坐标。LLM 从 sensory 看到"金币在 Geralt 身旁"——自己推断归属。<span class="en">Ownership is LLM inference — not a data structure.</span></p></div>
-  <div class="card c-teal"><h4 style="color:var(--teal)">⑤ 半径即权限</h4><p>radius=0 → sensory 不可见 → LLM 不知道存在 → 不可能 move。radius=1 → 可见 + interact_radius 控制能否够到。radius≥5 → view_radius 内可见。不需要 access-control 约束。<span class="en">Radius is permission. No extra access-control code.</span></p></div>
-  <div class="card c-pri"><h4 style="color:var(--primary)">⑥ 不建新通道</h4><p>SpatialObject 不是新的 channel——是现有 sensory 系统遍历的数据源之一。现有管线不变：<code>SensorySystem.update → channels → SensorySource → ctx</code>。<span class="en">No new channel. SpatialObject is a data source within the existing sensory pipeline.</span></p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">物品是被动的</h4><p>SpatialObject 只知自己的空间状态。没有 <code>owner</code>、没有 <code>transfer</code>。被 NPC 调用 <code>move(from, to, qty, r)</code>。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">NPC 是主动的</h4><p>NPC 决定移动什么。参数全是自然语言（take_out / take / put_away）。引擎 dispatch 到 SpaceObject.move()。</p></div>
+  <div class="card c-pur"><h4 style="color:var(--purple)">约束是物理定律</h4><p>约束校验物理可行性。不判断"交易是否公平"。独立注册、独立触发。</p></div>
+  <div class="card c-acc"><h4 style="color:var(--accent)">归属 = LLM 推断</h4><p>引擎只报位置。LLM 从 sensory 看"金币在 Geralt 手里"——自己推断归属。</p></div>
+  <div class="card c-teal"><h4 style="color:var(--teal)">Observation + Action</h4><p>拿出东西 → 对方看到 → 自己判断。无协议，无 pending，无两阶段。</p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">同一条感官管线</h4><p>SpatialProxy 和苹果箱走完全相同的 sensory pipeline。不建新通道。</p></div>
 </div>
 
-<!-- ═══════ 2. PIPELINE ═══════ -->
-<h2>2. Sensory Pipeline — How Gold Appears <span class="en">感官管线——金币如何出现</span></h2>
+<!-- ═══════ 2. SPATIAL OBJECT ═══════ -->
+<h2>2. SpatialObject — 空间物体 <span class="en">物品只知坐标，不知归属</span></h2>
 
-<div class="flow">
-  <span class="label">sensory.py: SensorySystem.update(observer, entities, world)</span><br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> <span class="dim">现在:</span> candidate_ids = world.get_nearby_ids(zone, pos, view_radius)<br/>
-  <span class="arrow">│</span>         遍历 entities → observe(distance) → 写入 observer.sensory.channels<br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> <span class="label" style="color:var(--green)">改后:</span> ↑ 同上（NPC · Item · Gate 不变）<br/>
-  <span class="arrow">│</span>         <span style="color:var(--green)"><strong>+</strong> 遍历 world.spatial_objects.all_near(observer.pos, view_radius)</span><br/>
-  <span class="arrow">│</span>         <span class="dim">跳过 r=0 的堆叠 — pocket 里的东西不可见</span><br/>
-  <span class="arrow">│</span>         <span class="dim">渲染: "Gold (0格, r=1) — 金色物体在 12,8"</span><br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">└─</span> observer.sensory.channels["spatial"] = {<br/>
-       &nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">"gold_12_8": SensorRecord(name="Gold", distance=0, data={qty:5, r:1})</span><br/>
-       &nbsp;&nbsp;&nbsp;&nbsp;<span class="dim">"sword_14_9": SensorRecord(name="IronSword", distance=1, data={r:1})</span><br/>
-       }<br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">└─</span> <span class="label">channel.py: SensorySource.collect()</span> <span class="dim">— 不变</span><br/>
-  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> ↓<br/>
-  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> ctx["sensory_text"] <span class="arrow">→</span> <span class="label">prompts.yaml: {sensory_text}</span> <span class="arrow">→</span> LLM 看到感官文本
+<h3>2.1 基类接口</h3>
+<pre><code><span class="kw">class</span> <span class="fn">SpatialObject</span>(ABC):
+    <span class="cmt"># 所有空间物体的统一接口。GoldCoin、IronSword、AppleCrate 全部实现</span>
+    <span class="cmt"># 引擎只知此接口——不知道"这个是金币还是剑"</span>
+
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">move</span>(self, from_pos, to_pos, qty, new_radius):
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 所有物体统一的"移动"操作。Class Singleton 改注册表字典条目——Entity 改自身 pos 属性。参数全是纯坐标 (x,y)——物品不知道谁在移动自己。<br/>
+  <strong>谁调:</strong> NPC 执行 take_out / take / put_away / give 时，引擎 dispatch 到这里。<br/>
+  <strong>什么时候调:</strong> 约束全部通过后——PRE 组校验了"来源位置有足够数量"——才执行 move。
 </div>
 
-<div class="callout co-grn">
-  <strong>零新通道。</strong> 现有 5 通道 (sensory · drives · memory · delta · feedback) 不变。sensory 管线不变——SpatialObject 只是 sensory 系统遍历时多查了一张空间注册表。SensorySource.collect() 一行不改。
+<pre><code>    @abstractmethod
+    <span class="kw">def</span> <span class="fn">qty_at</span>(self, pos) → <span class="kw">int</span>:
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 约束校验的核心——"这个位置有足够的数量吗"。Class Singleton 查 _registry[pos].qty；Entity 返回 1 或 0。<br/>
+  <strong>谁调:</strong> `qty_non_negative.validate()`——在 agent 执行 move 前查询。<br/>
+  <strong>什么时候调:</strong> PRE 阶段——在执行任何物理变更之前。
 </div>
 
-<!-- ═══════ 3. ARCHITECTURE ═══════ -->
-<h2>3. System Architecture <span class="en">系统架构</span></h2>
+<pre><code>    @abstractmethod
+    <span class="kw">def</span> <span class="fn">radius_at</span>(self, pos) → <span class="kw">int</span>:
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 可见半径决定谁能看见这个物体。r=0 不可见，r=1 手中可见，r≥5 远处可见。<br/>
+  <strong>谁调:</strong> Sensory 系统——all_near() 内部遍历所有注册条目，用 radius 判断是否渲染。<br/>
+  <strong>什么时候调:</strong> SensorySystem.update()——每个 tick、每个 observer。
+</div>
 
-<div class="diagram">
-<svg width="880" height="500" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker id="sa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.420 0.135 220)"/></marker>
-    <marker id="sb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.460 0.145 285)"/></marker>
-    <marker id="sc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.480 0.145 155)"/></marker>
-  </defs>
+<pre><code>    @abstractmethod
+    <span class="kw">def</span> <span class="fn">all_near</span>(self, center_pos, view_radius) → list[dict]:
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 感官系统查询"observer 附近有什么物体"。返回所有在半径内的堆叠——跳过 r=0 且不在 observer 自身位置的条目。<br/>
+  <strong>谁调:</strong> SensorySystem.update()——遍历 entity 后追加遍历 SpatialObject registries。<br/>
+  <strong>什么时候调:</strong> Phase 1 SENSE——每个 agent 每 tick 一次。
+</div>
 
-  <!-- L1 -->
-  <rect x="20" y="10" width="840" height="48" rx="10" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="440" y="32" text-anchor="middle" font-size="14" font-weight="800" fill="var(--primary)">LAYER 1 · YAML Definition · 声明层</text>
-  <text x="440" y="50" text-anchor="middle" font-size="10" fill="var(--muted)">entity 声明 spatial_type · constraints · 初始资源 · 初始 position + radius</text>
+<h3>2.2 Class Singleton 实现 — GoldCoin</h3>
+<pre><code><span class="kw">class</span> <span class="fn">ClassSingleton</span>(SpatialObject):
+    <span class="cmt"># 一个类一张空间注册表。所有可互换物共享此实现。</span>
+    <span class="cmt"># 引擎不区分 GoldCoin 和 Apple——都是 ClassSingleton 实例。</span>
 
-  <line x1="440" y1="58" x2="440" y2="76" stroke="var(--primary)" stroke-width="1.5" marker-end="url(#sa)"/>
+    _registry: dict[tuple, dict] = {}     <span class="cmt"># {(x,y): {"qty":50, "radius":0}}</span>
 
-  <!-- L2 -->
-  <rect x="20" y="82" width="840" height="165" rx="10" fill="var(--surface)" stroke="var(--purple)" stroke-width="2"/>
-  <text x="440" y="106" text-anchor="middle" font-size="14" font-weight="800" fill="var(--purple)">LAYER 2 · Engine Modules · 引擎模块</text>
-  <line x1="40" y1="116" x2="840" y2="116" stroke="var(--border)" stroke-width="1"/>
+    <span class="kw">def</span> <span class="fn">move</span>(self, from_pos, to_pos, qty, new_radius):
+        <span class="kw">if</span> from_pos <span class="kw">not in</span> self._registry:
+            <span class="kw">return</span> False
+        <span class="kw">if</span> self._registry[from_pos][<span class="str">"qty"</span>] < qty:
+            <span class="kw">return</span> False
+        self._registry[from_pos][<span class="str">"qty"</span>] -= qty
+        <span class="kw">if</span> self._registry[from_pos][<span class="str">"qty"</span>] == 0:
+            <span class="kw">del</span> self._registry[from_pos]
+        <span class="kw">if</span> to_pos <span class="kw">not in</span> self._registry:
+            self._registry[to_pos] = {<span class="str">"qty"</span>: 0, <span class="str">"radius"</span>: new_radius}
+        self._registry[to_pos][<span class="str">"qty"</span>] += qty
+        self._registry[to_pos][<span class="str">"radius"</span>] = new_radius
+        <span class="kw">return</span> True</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> GoldCoin 是可互换的——50 个金币在同一个位置不需要 50 个 entity。一张字典、qty 字段、一组坐标就够了。<br/>
+  <strong>谁调:</strong> NPC 执行 take_out / take / put_away / give 时引擎 dispatch 到这里。<br/>
+  <strong>什么时候调:</strong> 约束全部通过后。如果 qty 不足，move 返回 False——但正常情况下约束已护住。
+</div>
 
-  <rect x="45" y="128" width="230" height="52" rx="8" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
-  <text x="160" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">SpatialObject</text>
-  <text x="160" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">move(xy→xy) · qty_at(xy) · radius_at(xy)</text>
+<pre><code>    <span class="kw">def</span> <span class="fn">qty_at</span>(self, pos) → <span class="kw">int</span>:
+        <span class="kw">return</span> self._registry.get(pos, {}).get(<span class="str">"qty"</span>, 0)</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 约束校验用——"Geralt 手上有多少金币"。返回 0 意味着该位置没有金币。<br/>
+  <strong>谁调:</strong> qty_non_negative.validate()——PRE 阶段，在执行 move 之前。
+</div>
 
-  <rect x="295" y="128" width="260" height="52" rx="8" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
-  <text x="425" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--purple)">Constraint System</text>
-  <text x="425" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">activation() · timing(pre/exec/post) · validate() · apply()</text>
+<pre><code>    <span class="kw">def</span> <span class="fn">all_near</span>(self, center_pos, view_radius) → list[dict]:
+        result = []
+        <span class="kw">for</span> pos, entry <span class="kw">in</span> self._registry.items():
+            <span class="kw">if</span> entry[<span class="str">"radius"</span>] == 0:
+                <span class="kw">continue</span>                       <span class="cmt"># r=0 pocket — 不可见</span>
+            d = <span class="fn">abs</span>(pos[0] - center_pos[0]) + <span class="fn">abs</span>(pos[1] - center_pos[1])
+            <span class="kw">if</span> d <= max(entry[<span class="str">"radius"</span>], view_radius):
+                result.append({<span class="str">"pos"</span>: pos, <span class="str">"qty"</span>: entry[<span class="str">"qty"</span>], <span class="str">"radius"</span>: entry[<span class="str">"radius"</span>], <span class="str">"distance"</span>: d})
+        <span class="kw">return</span> result</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> Sensory 系统查询"observer 附近有什么"。跳过所有 r=0 条目。<br/>
+  <strong>谁调:</strong> SensorySystem.update()——每个 agent 每 tick 一次。遍历所有 SpatialObject 注册表。<br/>
+  <strong>关键修正:</strong> 需要加一个特殊情况——r=0 且 pos==observer.pos（自己的口袋）→ 包含。否则 NPC 看不见自己的金币。在 sensory.py 的调用侧处理，不改 SpatialObject。
+</div>
 
-  <rect x="575" y="128" width="260" height="52" rx="8" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="705" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Mapping</text>
-  <text x="705" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">take_out · put_away · take · give → move(xy)</text>
+<h3>2.3 Entity 实现 — IronSword</h3>
+<pre><code><span class="kw">class</span> <span class="fn">EntitySpatial</span>(SpatialObject):
+    <span class="cmt"># 唯一物品——剑、门、陷阱。每个都是独立的 entity。</span>
 
-  <!-- sensory line -->
-  <rect x="220" y="194" width="440" height="44" rx="8" fill="var(--code-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="214" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">Sensory System (existing pipeline)</text>
-  <text x="440" y="230" text-anchor="middle" font-size="9.5" fill="var(--muted)">entities + <tspan font-weight="700" fill="var(--green)">spatial_objects</tspan> → channels → SensorySource → ctx</text>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, entity):
+        self._entity = entity
 
-  <line x1="440" y1="247" x2="440" y2="265" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#sb)"/>
+    <span class="kw">def</span> <span class="fn">move</span>(self, from_pos, to_pos, qty, new_radius):
+        self._entity.pos = to_pos               <span class="cmt"># 唯一物品——直接改坐标</span>
+        <span class="kw">return</span> True
 
-  <!-- L3 -->
-  <rect x="20" y="272" width="840" height="120" rx="10" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="296" text-anchor="middle" font-size="14" font-weight="800" fill="var(--green)">LAYER 3 · Perception Loop · 感知闭环</text>
-  <line x1="40" y1="306" x2="840" y2="306" stroke="var(--border)" stroke-width="1"/>
+    <span class="kw">def</span> <span class="fn">qty_at</span>(self, pos) → <span class="kw">int</span>:
+        <span class="kw">return</span> 1 <span class="kw">if</span> self._entity.pos == list(pos) <span class="kw">else</span> 0   <span class="cmt"># 在此位置返回 1，否则 0</span>
 
-  <rect x="50" y="318" width="148" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="124" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">sensory (含 spatial)</text>
-  <rect x="214" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="274" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">drives</text>
-  <rect x="350" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="410" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">memory</text>
-  <rect x="486" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="546" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">delta</text>
-  <rect x="622" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="682" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">feedback</text>
+    <span class="kw">def</span> <span class="fn">all_near</span>(self, center_pos, view_radius) → list[dict]:
+        d = <span class="fn">abs</span>(self._entity.pos[0] - center_pos[0]) + <span class="fn">abs</span>(self._entity.pos[1] - center_pos[1])
+        <span class="kw">if</span> d <= max(self._entity.radius, view_radius):
+            <span class="kw">return</span> [{<span class="str">"pos"</span>: self._entity.pos, <span class="str">"qty"</span>: 1, <span class="str">"radius"</span>: self._entity.radius}]
+        <span class="kw">return</span> []</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 确保剑和金币共享同一接口——约束系统不需要区分对象类型。qty_at 返回 0/1 而非查字典——但 validate 代码完全一致。<br/>
+  <strong>谁调:</strong> 同 ClassSingleton——约束和感官系统统一调用。<br/>
+  <strong>主要用例:</strong> 耐久度检查、是否存在的校验、唯一的可拾取物品。
+</div>
 
-  <line x1="124" y1="340" x2="124" y2="356" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="274" y1="340" x2="274" y2="356" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="410" y1="340" x2="410" y2="356" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="546" y1="340" x2="546" y2="356" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="682" y1="340" x2="682" y2="356" stroke="var(--muted)" stroke-width="1"/>
+<!-- ═══════ 3. SPATIAL PROXY ═══════ -->
+<h2>3. SpatialProxy — 桥接 <span class="en">将 SpatialObject 注入现有 entity 管线</span></h2>
 
-  <rect x="180" y="360" width="160" height="20" rx="4" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
-  <text x="260" y="374" text-anchor="middle" font-size="10" fill="var(--primary)">ctx dict → LLM</text>
-  <rect x="374" y="360" width="130" height="20" rx="4" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
-  <text x="439" y="374" text-anchor="middle" font-size="10" fill="var(--purple)">decision → execute</text>
-  <rect x="538" y="360" width="140" height="20" rx="4" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="608" y="374" text-anchor="middle" font-size="10" fill="var(--accent)">interact() → move(xy)</text>
+<pre><code><span class="kw">class</span> <span class="fn">SpatialProxy</span>:
+    <span class="cmt"># 30 行薄包装——将 GoldCoin 的一个位置堆叠变成 entity-like 对象</span>
+    <span class="cmt"># 解决: 13 处 world.entities 遍历——不改这 13 处代码——SpatialProxy 直接存入</span>
 
-  <line x1="608" y1="380" x2="608" y2="394" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="608" y1="394" x2="250" y2="394" stroke="var(--green)" stroke-width="1.5" marker-end="url(#sc)"/>
-  <text x="420" y="390" text-anchor="middle" font-size="9" fill="var(--green)">closed loop — next tick channels reflect new reality ↑</text>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, spatial_obj, pos, qty, r, zone):
+        self.id   = f<span class="str">"spatial:{spatial_obj.name}_{pos[0]}_{pos[1]}"</span>
+        self.name  = spatial_obj.name
+        self.zone  = zone        <span class="cmt"># find_entity_by_name 需要 zone 过滤</span>
+        self._pos  = pos         <span class="cmt"># distance_to 需要坐标</span>
+        self._obj  = spatial_obj <span class="cmt"># 实际 SpatialObject——供 action dispatch</span>
+        self._qty  = qty
+        self._r    = r
+        self._stub = _SpatialInteractionLayer()  <span class="cmt"># interaction_radius=1</span></code></pre>
 
-  <rect x="730" y="318" width="110" height="22" rx="4" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="785" y="334" text-anchor="middle" font-size="10" fill="var(--accent)">logger → SQLite</text>
+<div class="callout co-pri">
+  <strong>为什么要有 SpatialProxy:</strong> GoldCoin 是 class singleton——不在 world.entities 里。现有 13 处代码遍历 world.entities 查找可交互对象。SpatialProxy 把 GoldCoin 的一次位置堆叠包装成 entity-like 对象——直接存入 world.entities。这 13 处代码零改动。<br/><br/>
+  <strong>生命周期:</strong> 每个 tick，sensory 系统查询所有 SpatialObject.all_near()——每个可见堆叠生成了一个 SpatialProxy——注入 world.entities——sensory 继续遍历——堆叠出现在感官文本里。堆叠被感知后，spatial proxy 从 world.entities 中移除。<br/><br/>
+  <strong>不要新建文件——30 行在 interaction.py 中。</strong>
+</div>
 
-  <text x="440" y="415" text-anchor="middle" font-size="11" fill="var(--muted)">引擎不知任何领域语义 · 只执行物理 move() + 约束校验</text>
-  <text x="440" y="435" text-anchor="middle" font-size="11" fill="var(--muted)">5 通道 → LLM decide → move(xy) → constraints → world updates → next tick</text>
-  <text x="440" y="455" text-anchor="middle" font-size="11" fill="var(--green)" font-weight="600">零新通道 · 现有 sensory 管线复用 · SpatialObject 是数据源 — 不是通道</text>
-</svg>
+<pre><code>    <span class="cmt"># ── 实体标识 (find_entity_by_name / logger) ──</span>
+    @property
+    <span class="kw">def</span> <span class="fn">pos</span>(self): <span class="kw">return</span> self._pos</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> sensory system 调 distance_to——需要两个 entity 都有 pos。SpatialProxy 暴露 pos——与 Entity.pos 完全相同的接口。
+</div>
+
+<pre><code>    <span class="cmt"># ── Layer 检查 (find_entity_by_name / can_interact 的过滤) ──</span>
+    <span class="kw">def</span> <span class="fn">has</span>(self, key):  <span class="kw">return</span> key == <span class="str">"interaction"</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> find_entity_by_name 过滤 `if not e.has("interaction"): continue`。can_interact 过滤 `if not target.has("interaction"): return False`。SpatialProxy 必须通过这两个过滤——所以暴露 `has("interaction") → True`。<br/>
+  <strong>这不是伪装——这是正确的: GoldCoin 的堆叠是可交互的——暴露 interaction layer 是准确的。</strong><br/>
+  <strong>重要:</strong> 不暴露 `has("spatial") → True`——不需要。spatial target 和 item 走同一条路径。交互系统的 else 分支通过检查 `get("interaction")` 上是否有 spatial 标记来分派。
+</div>
+
+<pre><code>    <span class="kw">def</span> <span class="fn">get</span>(self, key):
+        <span class="kw">if</span> key == <span class="str">"interaction"</span>:
+            <span class="kw">return</span> self._stub    <span class="cmt"># 暴露 interaction_radius=1</span>
+        <span class="kw">return</span> <span class="kw">None</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> can_interact 调 `target.get("interaction").interaction_radius`。SpatialProxy 暴露一个 stub interaction layer——interaction_radius=1。<br/>
+  <strong>为什么半径是 1:</strong> 近距离——agent 必须紧邻才能交互。这和 NPC↔NPC 的 interaction_radius 一致。
+</div>
+
+<pre><code>    <span class="cmt"># ── Sensory  (layers 遍历 → observe → 感官文本) ──</span>
+    @property
+    <span class="kw">def</span> <span class="fn">layers</span>(self):
+        <span class="kw">return</span> {<span class="str">"visual"</span>: self._visual_layer, <span class="str">"interaction"</span>: self._stub}</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> sensory.py 遍历 `entity.layers.items()`——对每个有 `observe()` 的层调 `observe(d)`。这是金币作为感官物体被感知的方式。<br/>
+  <strong>为什么暴露视觉层:</strong> 金币通过视觉层暴露给 LLM。不暴露听觉层——金币不会说话。<br/>
+  <strong>注意:</strong> 暴露两个层: visual (感官) + interaction (can_interact 检查)。这是和苹果箱一样的层组合。
+</div>
+
+<pre><code>    <span class="kw">def</span> <span class="fn">distance_to</span>(self, other):
+        <span class="kw">return</span> <span class="fn">abs</span>(self._pos[0] - other.pos[0]) + <span class="fn">abs</span>(self._pos[1] - other.pos[1])</code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> sensory 系统调 `observer.distance_to(entity)` 计算距离。can_interact 检查距离是否在 interaction_radius 内。<br/>
+  <strong>实现:</strong> 曼哈顿距离——与 Entity.distance_to 相同。
 </div>
 
 <!-- ═══════ 4. CONSTRAINT ═══════ -->
 <h2>4. Constraint System <span class="en">约束系统</span></h2>
 
-<div class="card-grid">
-  <div class="card c-pur"><h4 style="color:var(--purple)">activation() — 触发条件</h4><p>双方都在 action 的 <code>constraints</code> 列表里声明了此约束 → 激活。单方声明 → 不触发。</p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">timing — 触发时机</h4><p><code>pre</code> 执行前校验 · <code>exec</code> 执行中操作 · <code>post</code> 执行后记录</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">validate() → bool</h4><p>校验物理可行性。不通过 → 引擎停止。LLM 下轮从感官感知失败原因。</p></div>
-  <div class="card c-pri"><h4 style="color:var(--primary)">apply()</h4><p>只在 validate 通过后调用。原子操作——无状态残留。</p></div>
+<h3>4.1 Constraint ABC</h3>
+<pre><code><span class="kw">class</span> <span class="fn">Constraint</span>(ABC):
+    <span class="cmt"># 所有物理定律的基类。30 行。引擎只知此接口。</span>
+    <span class="cmt"># 新增约束 = 继承此基类 + @register 装饰器 + YAML 声明一次。</span>
+
+    timing: str = <span class="str">"pre"</span>            <span class="cmt"># "pre" / "exec" / "post" — 约束自己声明</span>
+
+    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def) → <span class="kw">bool</span>:
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 不是每个约束每次交互都触发。约束自己决定"这次需要我吗"。引擎循环所有约束，逐个调 activation()——True 的参与本轮。<br/>
+  <strong>什么情况会 True:</strong> qty_non_negative → "resource" in action_def。conservation → "transfer" in action_def。durability → target 是 entity 且有 durability 属性。<br/>
+  <strong>引擎不知道激活条件——每个约束自己决定。</strong>
 </div>
 
-<pre><code><span class="cmt"># 引擎一行调用。Zero domain knowledge.</span>
-constraints.process(entities, action_def, world)
-
-<span class="cmt"># 模块内部 — 按 timing 分组，逐个 validate + apply</span>
-<span class="kw">def</span> <span class="fn">process</span>(entities, action_def, world):
-    active = [c <span class="kw">for</span> c <span class="kw">in</span> ALL <span class="kw">if</span> c.activation(entities, action_def)]
-    <span class="kw">for</span> group <span class="kw">in</span> [<span class="str">"pre"</span>, <span class="str">"exec"</span>, <span class="str">"post"</span>]:
-        <span class="kw">for</span> c <span class="kw">in</span> group_by(active, group):
-            ok, reason = c.validate(entities, action_def, world)
-            <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=c, reason=reason)
-            c.apply(entities, action_def, world)
-    <span class="kw">return</span> Result(ok=True)
-
-<span class="cmt"># 引擎不知道任何约束名。不知道 gold 是什么。不知道 "consent" 是什么。</span></code></pre>
-
-<div class="callout co-pur">
-  <strong>新增约束:</strong> 三步——写一个 25 行的 class + <code>@register("name")</code> 装饰器 + 在 YAML 某个 action 的 <code>constraints:</code> 列表里声明。引擎零改动。
+<pre><code>    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world) → (bool, str):
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 校验物理可行性。返回 (通过, 失败原因)。引擎按 timing 分组——每个组内逐个 validate——任一失败→停止。<br/>
+  <strong>什么情况会失败:</strong> qty_non_negative——obj.qty_at(pos) < amount。<br/>
+  <strong>失败后发生了什么:</strong> 引擎返回 Result(failed=c, reason=reason)。LLM 下轮通过感官通道感知失败原因。
 </div>
 
-<!-- ═══════ 5. GOLD SCENARIO ═══════ -->
-<h2>5. Concrete Scenario: Gold Changes Hands <span class="en">具体场景：金币易手</span></h2>
-
-<p>没有协议。没有 pending。没有两阶段。Geralt 拿出金币。Rachel 看到金币和对话——自己决定拿不拿。</p>
-
-<div class="diagram">
-<svg width="880" height="440" viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker id="ta" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.420 0.135 220)"/></marker>
-    <marker id="tb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.480 0.145 155)"/></marker>
-    <marker id="tc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.520 0.155 45)"/></marker>
-  </defs>
-
-  <!-- TICK N -->
-  <rect x="15" y="8" width="850" height="24" rx="5" fill="var(--primary-bg)"/>
-  <text x="440" y="25" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Tick N — Geralt 拿出金币 · 写对话 · 两个独立的 self-action</text>
-
-  <rect x="25" y="42" width="395" height="78" rx="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="222" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">Geralt 的两个 self-action</text>
-  <text x="222" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">① take_out(gold, 5): <tspan font-family="monospace">GoldCoin.move(pos,hand,5,r=1)</tspan></text>
-  <text x="222" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">② talk(Rachel): "这 5 个金币你收下" → 写 auditory layer</text>
-  <text x="222" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">物品不知道谁在移动它 · 引擎不知道"take_out"的含义</text>
-
-  <line x1="420" y1="82" x2="445" y2="82" stroke="var(--primary)" stroke-width="2" marker-end="url(#ta)"/>
-
-  <rect x="450" y="42" width="415" height="78" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="2"/>
-  <text x="657" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--red)">Rachel 的感官通道</text>
-  <text x="657" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">③ sensory: Gold (0格, r=1) — 在 Geralt 手的位置</text>
-  <text x="657" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">④ conversation_text: "[1s前] Geralt: 收下这 5 个金币"</text>
-  <text x="657" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">⑤ LLM 自己推理: "他拿出金币 + 说'收下' → 他想给我 → 我收不收？"</text>
-
-  <!-- TICK N+1 -->
-  <line x1="440" y1="120" x2="440" y2="140" stroke="var(--green)" stroke-width="1.5" marker-end="url(#tb)"/>
-
-  <rect x="15" y="146" width="850" height="24" rx="5" fill="var(--green-bg)"/>
-  <text x="440" y="163" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Tick N+1 — Rachel 决定拿 · 推约束 · 引擎执行 move</text>
-
-  <rect x="40" y="180" width="800" height="105" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">Rachel: take(gold, from_hand, to_hand, 5, r=1)</text>
-
-  <text x="130" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑥ action="take" → 引擎解析: from_pos=Geralt.hand, to_pos=Rachel.hand</text>
-  <text x="130" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑦ 约束: qty_non_negative (pre) — qty_at(Geralt.hand)≥5 → ✓</text>
-  <text x="130" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑧ EXEC: none. POST: log.result()</text>
-
-  <text x="440" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑨ <tspan font-family="monospace">GoldCoin.move(G.hand,R.hand,5,r=1)</tspan></text>
-  <text x="440" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑩ Rachel: <tspan font-family="monospace">put_away(gold,5)</tspan> → move(hand,pocket,5,r=0)</text>
-  <text x="440" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑪ GoldCoin._registry 更新</text>
-
-  <!-- TICK N+2 -->
-  <line x1="440" y1="285" x2="440" y2="305" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#tc)"/>
-
-  <rect x="15" y="312" width="850" height="24" rx="5" fill="var(--accent-bg)"/>
-  <text x="440" y="329" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Tick N+2 — Closed Loop · 闭环感知</text>
-
-  <rect x="100" y="346" width="680" height="52" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
-  <text x="440" y="366" text-anchor="middle" font-size="10.5" fill="var(--ink)">Geralt: 手边金币 qty=0 → sensory 显示不在了 → "她收了。"</text>
-  <text x="440" y="386" text-anchor="middle" font-size="10.5" fill="var(--ink)">Rachel: 口袋金币 qty=8 (was 3) → "收入 +5。"</text>
-
-  <text x="440" y="425" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">没有 proposal。没有 pending。没有两阶段。</text>
-  <text x="440" y="445" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">只有拿出 + 对话。对方看到 + 听到。自己判断。自己 move。</text>
-</svg>
+<pre><code>    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world):
+        <span class="kw">pass</span></code></pre>
+<div class="why-box">
+  <strong>为什么要有:</strong> 执行物理操作。只在 validate 通过后调用。原子——一次完成。<br/>
+  <strong>什么约束用 apply:</strong> conservation——ledger.transfer()。consumption——qty-1 + deltas + 若归零则移除。qty_non_negative——pass（纯门控——move 由 SpatialObject 执行）。<br/>
+  <strong>为什么不是每个约束都需要 apply:</strong> 门控型约束（qty check）只校验不执行。操作型约束（consumption）校验通过后执行物理操作。
 </div>
 
-<div class="callout co-acc">
-  <strong>核心洞察:</strong> 交易是两个 NPC 各自独立的自发行为——没有协议层。Geralt 只是拿出了金币（一个 self-action）。Rachel 只是看到了金币和对话（sensory），自己决定拿了而已（另一个 self-action）。引擎从始至终只知道两次 <code>move()</code>。不存在"交易"这个引擎概念。
+<h3>4.2 Registry + process()</h3>
+<pre><code><span class="kw">class</span> <span class="fn">ConstraintRegistry</span>:
+    _constraints: dict[str, Constraint] = {}                    <span class="cmt"># {"qty_non_negative": instance}</span>
+
+    <span class="kw">def</span> <span class="fn">register</span>(self, name, constraint):                    <span class="cmt"># 一行装饰器</span>
+        self._constraints[name] = constraint
+
+    <span class="kw">def</span> <span class="fn">process</span>(self, entities, action_def, world):            <span class="cmt"># 引擎一行调</span>
+        active = [c <span class="kw">for</span> c <span class="kw">in</span> self._constraints.values()
+                  <span class="kw">if</span> c.activation(entities, action_def)]
+        <span class="kw">for</span> group <span class="kw">in</span> [<span class="str">"pre"</span>, <span class="str">"exec"</span>, <span class="str">"post"</span>]:
+            <span class="kw">for</span> c <span class="kw">in</span> [c <span class="kw">for</span> c <span class="kw">in</span> active <span class="kw">if</span> c.timing == group]:
+                ok, reason = c.validate(entities, action_def, world)
+                <span class="kw">if not</span> ok:
+                    <span class="kw">return</span> ProcessResult(failed=c.name, reason=reason)
+                c.apply(entities, action_def, world)
+        <span class="kw">return</span> ProcessResult(ok=True)</code></pre>
+<div class="why-box">
+  <strong>为什么要有 process:</strong> 引擎唯一调用的入口。不认识约束名——不认识 timing——不认识 gold。只循环 + 分组 + 调 validate + 调 apply。<br/>
+  <strong>谁调:</strong> interaction.py 在交互执行前调 constraints.process()。<br/>
+  <strong>为什么分组:</strong> pre 失败→不执行任何 apply。exec 失败→不执行 post。post 不做门控——只记日志。三个组在逻辑上有序——但引擎只循环。
 </div>
 
-<h3>5.1 Action Mapping — 引擎负责算坐标 <span class="en">动作映射</span></h3>
+<h3>4.3 qty_non_negative — 具体约束</h3>
+<pre><code>@register(<span class="str">"qty_non_negative"</span>)
+<span class="kw">class</span> <span class="fn">QtyNonNegativeConstraint</span>(Constraint):
+    timing = <span class="str">"pre"</span>       <span class="cmt"># 在 action 执行前校验</span>
 
-<p>LLM 输出自然语言动作。引擎负责翻译成坐标。</p>
+    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def):
+        <span class="kw">return</span> <span class="str">"resource"</span> <span class="kw">in</span> action_def      <span class="cmt"># 涉及资源 → 需要数量校验</span></code></pre>
+<div class="why-box">
+  <strong>为什么检查 "resource" 字段:</strong> 不是每个交互都涉及资源。talk() 不用校验数量。take_out(gold,5) 定义了 resource 和 qty——需要校验。<br/>
+  <strong>什么交互有 "resource":</strong> take_out、take、give、eat、pick_up——任何移动或消耗物品的交互。<br/>
+  <strong>什么交互没有 "resource":</strong> talk、walk、follow、open。
+</div>
 
+<pre><code>    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world):
+        obj  = action_def[<span class="str">"spatial_obj"</span>]       <span class="cmt"># GoldCoin / IronSword / AppleCrate</span>
+        pos  = action_def[<span class="str">"from_pos"</span>]          <span class="cmt"># 从哪个位置移出</span>
+        need = action_def.get(<span class="str">"qty"</span>, 1)         <span class="cmt"># 需要多少</span>
+        have = obj.qty_at(pos)                    <span class="cmt"># 该位置当前有多少</span>
+        ok = have >= need
+        reason = f<span class="str">"{obj.name}: need {need}, have {have}"</span> <span class="kw">if not</span> ok <span class="kw">else</span> <span class="str">""</span>
+        <span class="kw">return</span> ok, reason</code></pre>
+<div class="why-box">
+  <strong>为什么调 qty_at(pos):</strong> 不查"谁的余额"——只查"这个位置有多少"。引擎不知道所有权。<br/>
+  <strong>什么情况会失败:</strong> Geralt 只有 3 金币在金库，想 take_out 5 金币 → have=3, need=5 → False → "Gold: need 5, have 3"。<br/>
+  <strong>失败后:</strong> 引擎停止。Geralt 下轮感官感知口袋金币没变——LLM 自己推理"钱不够"。
+</div>
+
+<pre><code>    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world):
+        <span class="kw">pass</span>      <span class="cmt"># 门控约束——不做物理操作</span></code></pre>
+<div class="why-box">
+  <strong>为什么不执行 move:</strong> 移动是 SpatialObject.move() 的事——不是约束的事。约束只做准入控制。引擎在 process() 返回 ok 后自己调 SpatialObject.move()。
+</div>
+
+<!-- ═══════ 5. PIPELINE ═══════ -->
+<h2>5. Full Pipeline — GoldCoin 如何进入 LLM 感官 <span class="en">完整管线</span></h2>
+
+<div class="trace">
+  <span class="label">Tick start — Sensory Phase</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">sensory.py: update()</span><br/>
+  <span class="arrow">│    └─</span> 遍历 world.entities (NPC + Item + Gate + <span style="color:var(--green);font-weight:700">SpatialProxy</span>)<br/>
+  <span class="arrow">│    └─</span> 遍历 world._spatial_objects (class singleton registries)<br/>
+  <span class="arrow">│         └─</span> <span style="color:var(--green)">GoldCoin.all_near(agent.pos, view_radius)</span><br/>
+  <span class="arrow">│              └─</span> r=0 跳过。r=1 在 hand → 返回 [{pos, qty:5, r:1, distance:0}]<br/>
+  <span class="arrow">│              └─</span> 每个条目 → SpatialProxy(pos, qty, r, zone) → 注入 world.entities<br/>
+  <span class="arrow">│    └─</span> 再次遍历 entities → 现在 SpatialProxy 也在其中了<br/>
+  <span class="arrow">│         └─</span> SpatialProxy.layers["visual"].observe(d) → {qty:5, r:1}<br/>
+  <span class="arrow">│         └─</span> → observer.sensory.channels["visual"]["gold_12_8"] = SensorRecord(name="Gold", distance=0, data={qty:5})<br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">sensory_memory.py: to_prompt("visual", cfg)</span><br/>
+  <span class="arrow">│    └─</span> sensory_prompts.yaml visual entry: <span class="str">"{"{name} ({distance}格)"}"</span><br/>
+  <span class="arrow">│    └─</span> → <span class="str">"Gold (0格)"</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">channel.py: SensorySource.collect()</span><br/>
+  <span class="arrow">│    └─</span> ctx[<span class="str">"sensory_text"</span>] = <span class="str">"## 视觉\nGold (0格)\n苹果箱 (3格)\n..."</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">└─</span> <span class="label">prompts.yaml: {sensory_text}</span> → LLM sees: <span class="str">"Gold (0格)"</span>
+</div>
+
+<div class="trace" style="margin-top:16px">
+  <span class="label">Tick — Action Dispatch</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> LLM decides: <code>"take_out gold 5"</code> → engine dispatch<br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">interaction.py: find_entity_by_name("gold")</span><br/>
+  <span class="arrow">│    └─</span> 遍历 world.entities → SpatialProxy.name == "Gold" → 返回<br/>
+  <span class="arrow">│    └─</span> has("interaction")→True — 通过过滤<br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">interaction.py: can_interact(agent, gold_proxy)</span><br/>
+  <span class="arrow">│    └─</span> gold_proxy.has("interaction") → True<br/>
+  <span class="arrow">│    └─</span> distance ≤ interaction_radius (1) → 实际上对于 take_out 等 self-action 不需要距离检查<br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">interaction.py: interact(agent, gold_proxy, decision, world)</span><br/>
+  <span class="arrow">│    └─</span> has("agent") → False → 走 NPC→Item 路径<br/>
+  <span class="arrow">│    └─</span> 检查 decision.interact 是否为已知 spatial action → 是 → dispatch<br/>
+  <span class="arrow">│         └─</span> <span style="color:var(--green)">constraints.process(entities, action_def, world)</span><br/>
+  <span class="arrow">│         └─</span> <span style="color:var(--green)">GoldCoin.move(pocket, hand, 5, r=1)</span><br/>
+  <span class="arrow">│    └─</span> log.result() → sensory_next_tick → Gold is now at hand, r=1
+</div>
+
+<!-- ═══════ 6. YAML CONFIG ═══════ -->
+<h2>6. YAML Configuration <span class="en">YAML 配置</span></h2>
+
+<h3>6.1 world.yaml — Entity 声明</h3>
+<pre><code><span class="cmt"># NPC — 声明初始资源</span>
+- <span class="kw">id</span>: geralt
+  <span class="kw">agent</span>:
+    <span class="kw">resources</span>:
+      <span class="kw">gold</span>: 50        <span class="cmt"># → GoldCoin._registry[(12,7)] = {qty:50, r:0}</span>
+      <span class="kw">potions</span>: 2       <span class="cmt"># → Potion._registry[(12,7)] = {qty:2, r:0}</span>
+
+<span class="cmt"># Spatial Item — 声明为 spatial object</span>
+- <span class="kw">id</span>: gold_coin_type
+  <span class="kw">spatial</span>:
+    <span class="kw">class</span>: GoldCoin      <span class="cmt"># 类名 → 映射到 Python class</span>
+    <span class="kw">type</span>: class_singleton  <span class="cmt"># 类单例（可互换） vs entity（唯一）</span>
+    <span class="kw">constraints</span>: [<span class="str">"qty_non_negative"</span>]</code></pre>
+
+<h3>6.2 sensory_prompts.yaml — 模板（可选：精细控制）</h3>
+<pre><code><span class="cmt"># 现有 visual 配置已够——如果不想加 spatial 通道，spatial objects 走 visual。</span>
+<span class="cmt"># 如果希望区分"这是堆叠 vs 这是物体"——加此条目：</span>
+<span class="kw">spatial</span>:
+  <span class="kw">header</span>: <span class="str">"## 物品"</span>
+  <span class="kw">state</span>: <span class="str">"{name} ×{qty} ({distance}格)"</span>
+  <span class="kw">detail</span>: <span class="str">"  {detail}"</span></code></pre>
+
+<h3>6.3 不需要修改的 YAML</h3>
 <table>
-<tr><th>LLM decides · LLM 决定</th><th>Engine translates · 引擎翻译</th><th>SpatialObject call</th></tr>
-<tr><td><code>take_out(gold, 5)</code></td><td>r=0 在 agent.pos → r=1 在 agent.hand_pos</td><td><code>move(agent.pos, hand, 5, r=1)</code></td></tr>
-<tr><td><code>put_away(gold, 5)</code></td><td>r=1 在 agent.hand_pos → r=0 在 agent.pos</td><td><code>move(hand, agent.pos, 5, r=0)</code></td></tr>
-<tr><td><code>take(gold, 5, from=Geralt)</code></td><td>从 Geralt 手的位置 → agent 手的位置</td><td><code>move(geralt.hand, agent.hand, 5, r=1)</code></td></tr>
-<tr><td><code>give(gold, 5, to=Rachel)</code></td><td>从 agent 手的位置 → Rachel 手的位置</td><td><code>move(agent.hand, rachel.hand, 5, r=1)</code></td></tr>
+<tr><th>文件</th><th>需要改？</th><th>原因</th></tr>
+<tr><td><code>channels.yaml</code></td><td style="color:var(--green);font-weight:700">不需要</td><td>SpatialProxy 通过现有 visual/interaction 通道——sensory 系统自动包含</td></tr>
+<tr><td><code>prompts.yaml</code> slots</td><td style="color:var(--green);font-weight:700">不需要</td><td><code>sensory_text</code> 现有 slot 自动包含 spatial——通道模板驱动</td></tr>
+<tr><td><code>slot_groups.yaml</code></td><td style="color:var(--green);font-weight:700">不需要</td><td>Spatial 对象不参与 slot 激活控制——那是 NPC 的事</td></tr>
 </table>
 
-<div class="callout co-pur">
-  <strong>LLM 不需要知道坐标。</strong> LLM 只需要知道"我拿出 5 金币"——引擎负责算出从哪移到哪。LLM 看到的是感官文本，输出的是自然语言动作。引擎在中间负责坐标翻译。
-</div>
-
-<!-- ═══════ 6. INTEGRATION POINTS ═══════ -->
-<h2>6. Integration Points <span class="en">集成要点 — 6 个改动</span></h2>
+<!-- ═══════ 7. INTEGRATION ═══════ -->
+<h2>7. Integration Points <span class="en">集成点 — 6 个改动</span></h2>
 
 <table>
-<tr><th style="width:4%">#</th><th style="width:22%">What · 做什么</th><th style="width:28%">Where · 位置</th><th style="width:46%">How · 如何改</th></tr>
-<tr><td>1</td><td>GoldCoin registry 初始化</td><td><code>world.py: _load_entities()</code></td><td>entity 的 <code>resources: {gold: 50}</code> 解析时: <code>GoldCoin._registry[(entity.pos)] = {qty: 50, r: 0}</code></td></tr>
-<tr><td>2</td><td>Sensory 遍历 spatial objects</td><td><code>sensory.py: update()</code></td><td>现有 entity 遍历后，追加遍历 <code>world.spatial_objects.all_near(pos, r)</code>。r=0 + pos==observer.pos → 包含。r=0 + pos≠observer.pos → 跳过</td></tr>
-<tr><td>3</td><td>NPC 移动携带 r=0 物品</td><td><code>entity.py: move_to()</code> 或 <code>loop.py</code></td><td>移动前记录 old_pos。移动后遍历 spatial registries: 所有 r=0 且在 old_pos 的堆叠 → move(old_pos, new_pos, qty, 0)</td></tr>
-<tr><td>4</td><td>find_entity_by_name 扩展</td><td><code>interaction.py: find_entity_by_name()</code></td><td>查 entities 之前先查 spatial registry。返回 SpatialProxy 对象</td></tr>
-<tr><td>5</td><td>can_interact 适配</td><td><code>interaction.py: can_interact()</code></td><td>SpatialProxy 提供 has() stub。坐标计算 distance</td></tr>
-<tr><td>6</td><td>Action Mapping</td><td><code>interaction.py: interact()</code></td><td>take_out / put_away / take / give → 引擎算出 from/to pos → 调 SpatialObject.move()。约束在 move 前触发</td></tr>
+<tr><th style="width:4%">#</th><th style="width:22%">What</th><th style="width:24%">Where</th><th style="width:50%">How</th></tr>
+<tr><td>1</td><td>GoldCoin 注册表初始化</td><td><code>world.py: _load_entities()</code></td><td>entity 的 <code>resources:</code> 块 → <code>GoldCoin._registry[(entity.pos)] = {qty, r:0}</code></td></tr>
+<tr><td>2</td><td>SpatialProxy 注入 entities + sensory 遍历</td><td><code>sensory.py: update()</code></td><td>entity 遍历后：遍历 world._spatial_objects → all_near() → SpatialProxy → 注入 entities。r=0+pos==observer.pos → 包含（自己的口袋）。r=0+pos≠observer.pos → 跳过</td></tr>
+<tr><td>3</td><td>NPC 移动携带 r=0 物品</td><td><code>entity.py: move_to()</code></td><td>移动前记录 old_pos。移动后遍历 spatial registries：所有 r=0+pos==old_pos → move(old, new, qty, 0)</td></tr>
+<tr><td>4</td><td>find_entity_by_name 通过 spatial</td><td><code>interaction.py: find_entity_by_name()</code></td><td>entities 遍历已通过 SpatialProxy——零改动。SpatialProxy.has("interaction")→True 满足过滤</td></tr>
+<tr><td>5</td><td>spatial action dispatch</td><td><code>interaction.py: interact()</code></td><td>else 分支：检查 decision.interact 是否为已知 spatial action → constraints.process() + SpatialObject.move()</td></tr>
+<tr><td>6</td><td>NPC self-inventory 可见</td><td><code>sensory.py</code> 或 <code>channel.py</code></td><td>对自己的 r=0 库存——LLM 需要知道自己有什么。要么在 sensory 调用侧包含——要么在 channel 中暴露自省文本</td></tr>
 </table>
-
-<!-- ═══════ 7. EVOLUTION ═══════ -->
-<h2>7. Evolution <span class="en">演进</span></h2>
-
-<table>
-<tr><th>Stage</th><th>What</th><th>Data Model</th><th>Sensory</th><th>Access Control</th></tr>
-<tr><td style="color:var(--primary);font-weight:700">v1<br/>Accounting</td><td>数字账本</td><td><code>ledger[id]={gold:50}</code></td><td>resources channel (独立)</td><td><code>balance(id)≥n</code></td></tr>
-<tr><td style="color:var(--green);font-weight:700">v2<br/>Spatial Resource</td><td>类单例注册表</td><td><code>GoldCoin._registry[pos]={qty,r}</code></td><td>SpatialSource channel (新通道)</td><td><code>qty_at(pos)≥n</code></td></tr>
-<tr><td style="color:var(--purple);font-weight:700">v3<br/>Spatial Object</td><td>gold+sword 统一</td><td>class singleton + entity 同接口</td><td>SpatialSource channel</td><td><code>obj.qty_at(pos)≥n</code></td></tr>
-<tr><td style="color:var(--accent);font-weight:700">v4<br/>Observe+Act</td><td>物品不知归属<br/>归属=LLM推断<br/>无proposal/pending</td><td>同 v3。move() 纯坐标。<br/>LLM用take_out/put_away/take<br/>引擎负责算坐标</td><td style="color:var(--green);font-weight:700"><strong>现有感官管线复用</strong><br/>零新通道</td><td><strong>radius + interact_radius</strong><br/>零额外代码</td></tr>
-</table>
-
-<div class="callout co-pur">
-  <strong>核心轨迹:</strong> v1→v4 从"引擎知道归属 + 独立通道"到"引擎不知道归属 + 零新通道"。每一层删掉一个概念。v4 删掉了独立的 resources 通道——金币和 NPC 走同一条 sensory 管线。
-</div>
 
 <!-- ═══════ 8. FILE IMPACT ═══════ -->
 <h2>8. Implementation <span class="en">实现概要</span></h2>
@@ -339,24 +450,56 @@ constraints.process(entities, action_def, world)
 <table>
 <tr><th>File</th><th>Lines</th><th>Purpose</th></tr>
 <tr><td><code>src/core/spatial/__init__.py</code></td><td>~60</td><td>SpatialObject ABC — 统一接口基类</td></tr>
-<tr><td><code>src/core/spatial/class_singleton.py</code></td><td>~50</td><td>ClassSingleton — 共享注册表</td></tr>
-<tr><td><code>src/core/spatial/entity_impl.py</code></td><td>~30</td><td>EntityImpl — 唯一物品</td></tr>
+<tr><td><code>src/core/spatial/class_singleton.py</code></td><td>~50</td><td>ClassSingleton — 共享注册表，可堆叠可拆分</td></tr>
+<tr><td><code>src/core/spatial/entity_impl.py</code></td><td>~30</td><td>EntitySpatial — 唯一物品包装</td></tr>
 <tr><td><code>src/core/constraints/__init__.py</code></td><td>~40</td><td>Constraint ABC + Registry + process()</td></tr>
-<tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td>~25</td><td>数量非负约束</td></tr>
-  <tr><td><code>src/systems/interaction.py</code></td><td>+25 / -5</td><td>Action Mapping + 约束集成到 interact()</td></tr>
-  <tr><td><code>src/systems/sensory.py</code></td><td>+15</td><td>遍历 spatial objects</td></tr>
-<tr><td><code>src/core/world.py</code></td><td>+10</td><td>解析 resources → 初始化 spatial registry</td></tr>
-<tr><td><code>src/entity/entity.py</code></td><td>+5</td><td>move_to() 携带 r=0 物品</td></tr>
-<tr><td><code>config/</code></td><td>+30</td><td>Action 注册 + Constraint 注册 + Entity 空间声明</td></tr>
+<tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td>~25</td><td>数量非负约束 — activation + validate + apply</td></tr>
+<tr><td><code>src/systems/interaction.py</code></td><td>+30</td><td>SpatialProxy (内联 30 行) + spatial action dispatch</td></tr>
+<tr><td><code>src/systems/sensory.py</code></td><td>+15</td><td>遍历 spatial objects，注入 SpatialProxy</td></tr>
+<tr><td><code>src/core/world.py</code></td><td>+10</td><td>_load_entities 读 resources → 初始化 registries</td></tr>
+<tr><td><code>src/entity/entity.py</code></td><td>+5</td><td>move_to() 携带 r=0 spatial objects</td></tr>
+<tr><td><code>config/</code></td><td>+30</td><td>world.yaml 的 resources 块 + 可选 sensory_prompts 的 spatial 条目</td></tr>
 </table>
 
 <div class="callout co-grn">
-  <strong>总计:</strong> ~290 行新 Python，~30 行 YAML。不改 sensory_source。不改 channel 系统。不改 loop.py 核心逻辑。不改现有 5 通道结构。没有 action_interface 抽象——结构简单到只有 move + constraint。
+  <strong>总计:</strong> ~295 行新 Python，~30 行 YAML。不改 loop.py 结构。不改 channel 系统。不建新通道。不改 5 通道感知结构。只有 <code>sensory.py</code> 加 15 行遍历 spatial objects。<br/><br/>
+  <strong>新增 5 个文件 + 修改 3 个文件。</strong>
+</div>
+
+<!-- ═══════ 9. SCENARIO ═══════ -->
+<h2>9. Complete Scenario — Gold Transfer <span class="en">完整金币转移场景</span></h2>
+
+<div class="trace">
+  <span class="label">Tick N — Geralt: take_out gold 5 + talk</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> TakeOut action dispatch → <span style="color:var(--green)">constraints.process()</span><br/>
+  <span class="arrow">│    └─</span> qty_non_negative: GoldCoin.qty_at(pocket)=50 ≥ 5 → ✓<br/>
+  <span class="arrow">│    └─</span> <span style="color:var(--green)">GoldCoin.move(pocket, hand, 5, r=1)</span><br/>
+  <span class="arrow">├─</span> Talk action → write auditory layer<br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">Rachel's sensory:</span><br/>
+  <span class="arrow">│    └─</span> Gold (0格, r=1) — golden object at Geralt's hand position<br/>
+  <span class="arrow">│    └─</span> conversation: "[1s前] Geralt: take these 5 coins"<br/>
+  <span class="arrow">│    └─</span> <span style="color:var(--accent)">LLM: "he's offering me gold. I'll take it."</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">├─</span> <span class="label">Tick N+1 — Rachel: take gold 5 from Geralt</span><br/>
+  <span class="arrow">│    └─</span> <span style="color:var(--green)">constraints.process()</span><br/>
+  <span class="arrow">│         └─</span> qty_non_negative: GoldCoin.qty_at(Geralt.hand)=5 ≥ 5 → ✓<br/>
+  <span class="arrow">│         └─</span> <span style="color:var(--green)">GoldCoin.move(Geralt.hand, Rachel.hand, 5, r=1)</span><br/>
+  <span class="arrow">│    └─</span> Rachel: put_away gold 5 → <span style="color:var(--green)">GoldCoin.move(hand, pocket, 5, r=0)</span><br/>
+  <span class="arrow">│</span><br/>
+  <span class="arrow">└─</span> <span class="label">Tick N+2 — Both perceive:</span><br/>
+  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> Geralt: gold gone from hand → pocket 45 left. "She took it."<br/>
+  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> Rachel: pocket 8 (was 3). "Income +5."
+</div>
+
+<div class="callout co-acc" style="margin-top:16px">
+  <strong>无 proposal。无 pending。无两阶段。</strong> 只有拿出 + 对话。对方看到 + 听到。自己判断。自己 move。引擎只知道两次 move()——不知道"交易"。
 </div>
 
 <hr>
-<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Spatial Object + Constraint System · v5.0 · Asher · 2026</p>
-<p style="text-align:center;color:var(--muted);font-size:12px">No protocol. No pending. No two-phase. Just observe + act.</p>
+<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Spatial Object + Constraint System · Final Design · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:12px">Items are passive. NPCs decide. Constraints validate physics. LLM infers ownership. No protocol — just observe + act.</p>
 
 </div>
 </body>
