@@ -59,9 +59,9 @@
 
 <div class="hero">
   <h1>Unified Spatial Object + Constraint System</h1>
-  <p class="sub">物品只知坐标。NPC 只知空间。半径即权限。<br/>不建新通道——现有的 sensory 管线上开一个口。<br/><span class="en">Items know only coordinates. NPCs know only space. Radius is permission. No new channel — just one opening in the existing sensory pipeline.</span></p>
+  <p class="sub">没有协议——只有观察 + 行动。拿出东西，对方看到，自己判断。<br/>物品只知坐标。半径即权限。归属是 LLM 从感官推断的。<br/><span class="en">No protocol — just observation + action. Take it out. They see it. They decide. Items know only coordinates. Radius is permission. Ownership is LLM inference.</span></p>
   <div class="tags">
-    <span class="tag tag-prim">Passive Objects</span>
+    <span class="tag tag-prim">Observe+Act</span>
     <span class="tag tag-grn">NPC-Driven Move</span>
     <span class="tag tag-pur">Constraint System</span>
     <span class="tag tag-acc">Radius = Permission</span>
@@ -141,8 +141,8 @@
   <text x="425" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">activation() · timing(pre/exec/post) · validate() · apply()</text>
 
   <rect x="575" y="128" width="260" height="52" rx="8" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="705" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Interface</text>
-  <text x="705" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">consent · direct · exchange — propose→accept→execute</text>
+  <text x="705" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Mapping</text>
+  <text x="705" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">take_out · put_away · take · give → move(xy)</text>
 
   <!-- sensory line -->
   <rect x="220" y="194" width="440" height="44" rx="8" fill="var(--code-bg)" stroke="var(--green)" stroke-width="2"/>
@@ -225,8 +225,10 @@ constraints.process(entities, action_def, world)
 <!-- ═══════ 5. GOLD SCENARIO ═══════ -->
 <h2>5. Concrete Scenario: Gold Changes Hands <span class="en">具体场景：金币易手</span></h2>
 
+<p>没有协议。没有 pending。没有两阶段。Geralt 拿出金币。Rachel 看到金币和对话——自己决定拿不拿。</p>
+
 <div class="diagram">
-<svg width="880" height="460" viewBox="0 0 880 460" xmlns="http://www.w3.org/2000/svg">
+<svg width="880" height="440" viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="ta" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.420 0.135 220)"/></marker>
     <marker id="tb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.480 0.145 155)"/></marker>
@@ -235,67 +237,85 @@ constraints.process(entities, action_def, world)
 
   <!-- TICK N -->
   <rect x="15" y="8" width="850" height="24" rx="5" fill="var(--primary-bg)"/>
-  <text x="440" y="25" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Tick N — Geralt 拿出金币 · 纯坐标 move · 无约束触发</text>
+  <text x="440" y="25" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Tick N — Geralt 拿出金币 · 写对话 · 两个独立的 self-action</text>
 
   <rect x="25" y="42" width="395" height="78" rx="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="222" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">Geralt 操作 · LLM 决策</text>
-  <text x="222" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">① LLM 看到 sensory 有 Rachel · 决定拿出 5 金币</text>
-  <text x="222" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">② Engine: <tspan font-family="monospace">GoldCoin.move((12,7),(12,8),5,r=1)</tspan></text>
-  <text x="222" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">registry: (12,7)50→45 · (12,8)0→5 r=1 · 无约束</text>
+  <text x="222" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">Geralt 的两个 self-action</text>
+  <text x="222" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">① take_out(gold, 5): <tspan font-family="monospace">GoldCoin.move(pos,hand,5,r=1)</tspan></text>
+  <text x="222" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">② talk(Rachel): "这 5 个金币你收下" → 写 auditory layer</text>
+  <text x="222" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">物品不知道谁在移动它 · 引擎不知道"take_out"的含义</text>
 
   <line x1="420" y1="82" x2="445" y2="82" stroke="var(--primary)" stroke-width="2" marker-end="url(#ta)"/>
 
   <rect x="450" y="42" width="415" height="78" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="2"/>
-  <text x="657" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--red)">Rachel 感知</text>
-  <text x="657" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">③ sensory: Gold (0格, r=1) — 在 (12,8) 金色物体</text>
-  <text x="657" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">④ conversation: "收下这 5 个金币"</text>
-  <text x="657" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">LLM 推理: 他给钱。收下。→ accept</text>
+  <text x="657" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="var(--red)">Rachel 的感官通道</text>
+  <text x="657" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">③ sensory: Gold (0格, r=1) — 在 Geralt 手的位置</text>
+  <text x="657" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">④ conversation_text: "[1s前] Geralt: 收下这 5 个金币"</text>
+  <text x="657" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">⑤ LLM 自己推理: "他拿出金币 + 说'收下' → 他想给我 → 我收不收？"</text>
 
   <!-- TICK N+1 -->
   <line x1="440" y1="120" x2="440" y2="140" stroke="var(--green)" stroke-width="1.5" marker-end="url(#tb)"/>
 
   <rect x="15" y="146" width="850" height="24" rx="5" fill="var(--green-bg)"/>
-  <text x="440" y="163" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Tick N+1 — Rachel accept · 约束触发 · 引擎执行</text>
+  <text x="440" y="163" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Tick N+1 — Rachel 决定拿 · 推约束 · 引擎执行 move</text>
 
-  <rect x="40" y="180" width="800" height="115" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">interaction.interact(rachel, gold, accept_consent, world)</text>
+  <rect x="40" y="180" width="800" height="105" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="440" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">Rachel: take(gold, from_hand, to_hand, 5, r=1)</text>
 
-  <text x="130" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑤ dispatch: accept_consent interface</text>
-  <text x="130" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑥ constraints.process() — pre group</text>
-  <text x="130" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑦ qty_non_negative: qty_at(12,8)≥5 → ✓</text>
-  <text x="130" y="278" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑧ EXEC: none. POST: log.result()</text>
+  <text x="130" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑥ action="take" → 引擎解析: from_pos=Geralt.hand, to_pos=Rachel.hand</text>
+  <text x="130" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑦ 约束: qty_non_negative (pre) — qty_at(Geralt.hand)≥5 → ✓</text>
+  <text x="130" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑧ EXEC: none. POST: log.result()</text>
 
-  <text x="440" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑨ <tspan font-family="monospace">GoldCoin.move((12,8),(14,9),5,r=1)</tspan></text>
-  <text x="440" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑩ Rachel: <tspan font-family="monospace">GoldCoin.move((14,9),(14,8),5,r=0)</tspan></text>
-  <text x="440" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑪ registry: (12,8)0 · (14,8)5 r=0 · (14,9)0</text>
+  <text x="440" y="224" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑨ <tspan font-family="monospace">GoldCoin.move(G.hand,R.hand,5,r=1)</tspan></text>
+  <text x="440" y="242" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑩ Rachel: <tspan font-family="monospace">put_away(gold,5)</tspan> → move(hand,pocket,5,r=0)</text>
+  <text x="440" y="260" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑪ GoldCoin._registry 更新</text>
 
   <!-- TICK N+2 -->
-  <line x1="440" y1="295" x2="440" y2="315" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#tc)"/>
+  <line x1="440" y1="285" x2="440" y2="305" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#tc)"/>
 
-  <rect x="15" y="322" width="850" height="24" rx="5" fill="var(--accent-bg)"/>
-  <text x="440" y="339" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Tick N+2 — Closed Loop · 闭环感知</text>
+  <rect x="15" y="312" width="850" height="24" rx="5" fill="var(--accent-bg)"/>
+  <text x="440" y="329" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Tick N+2 — Closed Loop · 闭环感知</text>
 
-  <rect x="100" y="356" width="680" height="52" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
-  <text x="440" y="376" text-anchor="middle" font-size="10.5" fill="var(--ink)">Geralt sensory: (12,8) gold qty=0 → 金币不在了。pocket (12,7) 45 left → "她收了。"</text>
-  <text x="440" y="396" text-anchor="middle" font-size="10.5" fill="var(--ink)">Rachel sensory: pocket (14,8) gold qty=8 (was 3) → "收入 +5。"</text>
+  <rect x="100" y="346" width="680" height="52" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="440" y="366" text-anchor="middle" font-size="10.5" fill="var(--ink)">Geralt: 手边金币 qty=0 → sensory 显示不在了 → "她收了。"</text>
+  <text x="440" y="386" text-anchor="middle" font-size="10.5" fill="var(--ink)">Rachel: 口袋金币 qty=8 (was 3) → "收入 +5。"</text>
 
-  <text x="440" y="435" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">物品一次都不知道"属于谁"。所有 move() 参数全是纯坐标。</text>
-  <text x="440" y="453" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">NPC 各自 move。约束校验物理可行性。归属是 LLM 从感官中推断的。</text>
+  <text x="440" y="425" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">没有 proposal。没有 pending。没有两阶段。</text>
+  <text x="440" y="445" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">只有拿出 + 对话。对方看到 + 听到。自己判断。自己 move。</text>
 </svg>
 </div>
 
+<div class="callout co-acc">
+  <strong>核心洞察:</strong> 交易是两个 NPC 各自独立的自发行为——没有协议层。Geralt 只是拿出了金币（一个 self-action）。Rachel 只是看到了金币和对话（sensory），自己决定拿了而已（另一个 self-action）。引擎从始至终只知道两次 <code>move()</code>。不存在"交易"这个引擎概念。
+</div>
+
+<h3>5.1 Action Mapping — 引擎负责算坐标 <span class="en">动作映射</span></h3>
+
+<p>LLM 输出自然语言动作。引擎负责翻译成坐标。</p>
+
+<table>
+<tr><th>LLM decides · LLM 决定</th><th>Engine translates · 引擎翻译</th><th>SpatialObject call</th></tr>
+<tr><td><code>take_out(gold, 5)</code></td><td>r=0 在 agent.pos → r=1 在 agent.hand_pos</td><td><code>move(agent.pos, hand, 5, r=1)</code></td></tr>
+<tr><td><code>put_away(gold, 5)</code></td><td>r=1 在 agent.hand_pos → r=0 在 agent.pos</td><td><code>move(hand, agent.pos, 5, r=0)</code></td></tr>
+<tr><td><code>take(gold, 5, from=Geralt)</code></td><td>从 Geralt 手的位置 → agent 手的位置</td><td><code>move(geralt.hand, agent.hand, 5, r=1)</code></td></tr>
+<tr><td><code>give(gold, 5, to=Rachel)</code></td><td>从 agent 手的位置 → Rachel 手的位置</td><td><code>move(agent.hand, rachel.hand, 5, r=1)</code></td></tr>
+</table>
+
+<div class="callout co-pur">
+  <strong>LLM 不需要知道坐标。</strong> LLM 只需要知道"我拿出 5 金币"——引擎负责算出从哪移到哪。LLM 看到的是感官文本，输出的是自然语言动作。引擎在中间负责坐标翻译。
+</div>
+
 <!-- ═══════ 6. INTEGRATION POINTS ═══════ -->
-<h2>6. Integration Points <span class="en">集成要点 — 7 个改动的具体位置</span></h2>
+<h2>6. Integration Points <span class="en">集成要点 — 6 个改动</span></h2>
 
 <table>
 <tr><th style="width:4%">#</th><th style="width:22%">What · 做什么</th><th style="width:28%">Where · 位置</th><th style="width:46%">How · 如何改</th></tr>
 <tr><td>1</td><td>GoldCoin registry 初始化</td><td><code>world.py: _load_entities()</code></td><td>entity 的 <code>resources: {gold: 50}</code> 解析时: <code>GoldCoin._registry[(entity.pos)] = {qty: 50, r: 0}</code></td></tr>
-<tr><td>2</td><td>Sensory 遍历 spatial objects</td><td><code>sensory.py: update()</code></td><td>现有 entity 遍历后，追加遍历 <code>world.spatial_objects.all_near(pos, r)</code>。r=0 跳过。写入 <code>observer.sensory.channels["spatial"]</code></td></tr>
+<tr><td>2</td><td>Sensory 遍历 spatial objects</td><td><code>sensory.py: update()</code></td><td>现有 entity 遍历后，追加遍历 <code>world.spatial_objects.all_near(pos, r)</code>。r=0 + pos==observer.pos → 包含。r=0 + pos≠observer.pos → 跳过</td></tr>
 <tr><td>3</td><td>NPC 移动携带 r=0 物品</td><td><code>entity.py: move_to()</code> 或 <code>loop.py</code></td><td>移动前记录 old_pos。移动后遍历 spatial registries: 所有 r=0 且在 old_pos 的堆叠 → move(old_pos, new_pos, qty, 0)</td></tr>
-<tr><td>4</td><td>find_entity_by_name 扩展</td><td><code>interaction.py: find_entity_by_name()</code></td><td>查 entities 之前先查 spatial registry。返回 proxy 对象（有 has/distance_to/id/name）</td></tr>
-<tr><td>5</td><td>can_interact 适配</td><td><code>interaction.py: can_interact()</code></td><td>SpatialObject proxy 提供 has() stub。agent 的 distance 通过坐标计算——SpatialObject 有坐标</td></tr>
-<tr><td>6</td><td>interact() 重构为 action interface</td><td><code>interaction.py: interact()</code></td><td>删 <code>target.has("agent")</code> 分支。改为: 读 action_def.interface → dispatch to ActionInterface.execute()</td></tr>
-<tr><td>7</td><td>约束集成到 interact</td><td><code>action_interface.py: execute()</code></td><td>consent interface 在 accept 阶段调 <code>constraints.process()</code>。direct interface 直接调用。</td></tr>
+<tr><td>4</td><td>find_entity_by_name 扩展</td><td><code>interaction.py: find_entity_by_name()</code></td><td>查 entities 之前先查 spatial registry。返回 SpatialProxy 对象</td></tr>
+<tr><td>5</td><td>can_interact 适配</td><td><code>interaction.py: can_interact()</code></td><td>SpatialProxy 提供 has() stub。坐标计算 distance</td></tr>
+<tr><td>6</td><td>Action Mapping</td><td><code>interaction.py: interact()</code></td><td>take_out / put_away / take / give → 引擎算出 from/to pos → 调 SpatialObject.move()。约束在 move 前触发</td></tr>
 </table>
 
 <!-- ═══════ 7. EVOLUTION ═══════ -->
@@ -306,7 +326,7 @@ constraints.process(entities, action_def, world)
 <tr><td style="color:var(--primary);font-weight:700">v1<br/>Accounting</td><td>数字账本</td><td><code>ledger[id]={gold:50}</code></td><td>resources channel (独立)</td><td><code>balance(id)≥n</code></td></tr>
 <tr><td style="color:var(--green);font-weight:700">v2<br/>Spatial Resource</td><td>类单例注册表</td><td><code>GoldCoin._registry[pos]={qty,r}</code></td><td>SpatialSource channel (新通道)</td><td><code>qty_at(pos)≥n</code></td></tr>
 <tr><td style="color:var(--purple);font-weight:700">v3<br/>Spatial Object</td><td>gold+sword 统一</td><td>class singleton + entity 同接口</td><td>SpatialSource channel</td><td><code>obj.qty_at(pos)≥n</code></td></tr>
-<tr><td style="color:var(--accent);font-weight:700">v4<br/>Passive Object</td><td>物品不知归属<br/>归属=LLM推断</td><td>同 v3。move() 纯坐标。<br/>无 owner · 无 transfer</td><td style="color:var(--green);font-weight:700"><strong>现有感官管线复用</strong><br/>零新通道</td><td><strong>radius + interact_radius</strong><br/>零额外代码</td></tr>
+<tr><td style="color:var(--accent);font-weight:700">v4<br/>Observe+Act</td><td>物品不知归属<br/>归属=LLM推断<br/>无proposal/pending</td><td>同 v3。move() 纯坐标。<br/>LLM用take_out/put_away/take<br/>引擎负责算坐标</td><td style="color:var(--green);font-weight:700"><strong>现有感官管线复用</strong><br/>零新通道</td><td><strong>radius + interact_radius</strong><br/>零额外代码</td></tr>
 </table>
 
 <div class="callout co-pur">
@@ -323,21 +343,20 @@ constraints.process(entities, action_def, world)
 <tr><td><code>src/core/spatial/entity_impl.py</code></td><td>~30</td><td>EntityImpl — 唯一物品</td></tr>
 <tr><td><code>src/core/constraints/__init__.py</code></td><td>~40</td><td>Constraint ABC + Registry + process()</td></tr>
 <tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td>~25</td><td>数量非负约束</td></tr>
-<tr><td><code>src/core/action_interface.py</code></td><td>~55</td><td>ActionInterface ABC + Consent + Direct</td></tr>
-<tr><td><code>src/systems/sensory.py</code></td><td>+15</td><td>遍历 spatial objects (不改现有逻辑)</td></tr>
-<tr><td><code>src/systems/interaction.py</code></td><td>+30 / -10</td><td>重构为 action interface 派发 + 约束集成</td></tr>
+  <tr><td><code>src/systems/interaction.py</code></td><td>+25 / -5</td><td>Action Mapping + 约束集成到 interact()</td></tr>
+  <tr><td><code>src/systems/sensory.py</code></td><td>+15</td><td>遍历 spatial objects</td></tr>
 <tr><td><code>src/core/world.py</code></td><td>+10</td><td>解析 resources → 初始化 spatial registry</td></tr>
 <tr><td><code>src/entity/entity.py</code></td><td>+5</td><td>move_to() 携带 r=0 物品</td></tr>
 <tr><td><code>config/</code></td><td>+30</td><td>Action 注册 + Constraint 注册 + Entity 空间声明</td></tr>
 </table>
 
 <div class="callout co-grn">
-  <strong>总计:</strong> ~350 行新 Python，~30 行 YAML。不改 sensor_source。不改 channel 系统。不改 loop.py 核心逻辑。不改现有 5 通道结构。唯一的新增管线开口在 <code>sensory.py:update()</code>——15 行。
+  <strong>总计:</strong> ~290 行新 Python，~30 行 YAML。不改 sensory_source。不改 channel 系统。不改 loop.py 核心逻辑。不改现有 5 通道结构。没有 action_interface 抽象——结构简单到只有 move + constraint。
 </div>
 
 <hr>
-<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Spatial Object + Constraint System · v4.1 · Asher · 2026</p>
-<p style="text-align:center;color:var(--muted);font-size:12px">No new channels. One opening in the existing sensory pipeline — 15 lines.</p>
+<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Spatial Object + Constraint System · v5.0 · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:12px">No protocol. No pending. No two-phase. Just observe + act.</p>
 
 </div>
 </body>
