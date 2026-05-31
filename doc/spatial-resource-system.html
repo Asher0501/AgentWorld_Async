@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Unified Item System — AgentWorld Async</title>
+<title>Unified Item + Constraint System — AgentWorld Async</title>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   :root{
@@ -48,7 +48,6 @@
   .trace{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:10px 0;font-size:12.5px;line-height:1.8}
   .trace .arrow{color:var(--muted)}.trace .label{color:var(--primary);font-weight:600}
   .why-box{background:var(--accent-bg);border-left:3px solid var(--accent);padding:10px 14px;margin:6px 0;font-size:13px;color:var(--ink);border-radius:0 6px 6px 0}
-  .diff-add{color:var(--green);font-weight:600}.diff-rem{color:var(--red);text-decoration:line-through}
   @media(max-width:768px){.wrapper{padding:24px 16px}.card-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -57,286 +56,223 @@
 
 <div class="hero">
   <h1>Unified Item + Constraint System</h1>
-  <p class="sub">所有物品都是 Entity。唯一的区别是 <code>qty</code>。<br/>qty=1 是唯一物。qty>1 是可互换物。其余全部统一。<br/><span class="en">All items are Entity. The only difference is <code>qty</code>. qty=1 = unique. qty>1 = fungible. Everything else is unified.</span></p>
+  <p class="sub">Item 只有 3 个原子接口。约束绑在 entity 上——任何 qty 变更都触发。<br/>LLM 输出自然语言——引擎推断意图——调对应的原子操作。<br/><span class="en">Items have only 3 atomic operations. Constraints bind to entities — any qty change triggers. LLM uses natural language — engine infers intent — calls the right atomic op.</span></p>
   <div class="tags">
-    <span class="tag tag-prim">All Entity</span>
-    <span class="tag tag-grn">qty is Switch</span>
-    <span class="tag tag-pur">Constraint</span>
-    <span class="tag tag-acc">Observe+Act</span>
-    <span class="tag tag-teal">No New Files</span>
+    <span class="tag tag-prim">3 Atomic Ops</span>
+    <span class="tag tag-grn">Entity-Bound Constraints</span>
+    <span class="tag tag-pur">LLM Natural Language</span>
+    <span class="tag tag-acc">r=-1 Self-Visible</span>
+    <span class="tag tag-teal">All Entity</span>
   </div>
 </div>
 
-<!-- ═══════ 1. THE UNIFICATION ═══════ -->
-<h2>1. The Unification <span class="en">统一：qty 是唯一开关</span></h2>
+<!-- ═══════ 1. PRINCIPLES ═══════ -->
+<h2>1. Design Principles <span class="en">设计原则</span></h2>
 
 <div class="card-grid">
-  <div class="card c-pri"><h4 style="color:var(--primary)">qty = 1 (唯一物)</h4><p>IronSword · OakDoor · PoisonTrap。每个 entity 只有一个——move 就是改 <code>entity.pos</code>。</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">qty > 1 (可互换物)</h4><p>GoldCoin · Apple · Potion。每个 entity 有一堆——move 是两个 entity 的 qty 加减。归零时 entity 消失。</p></div>
-  <div class="card c-pur"><h4 style="color:var(--purple)">零新概念</h4><p>不需要 SpatialObject ABC。不需要 ClassSingleton。不需要 SpatialProxy。所有物品已是 <code>Entity</code> + <code>private_attrs</code> + <code>layers</code>。</p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">零新文件</h4><p>不建新模块。entity.py 加 split/merge。interaction.py 加约束 dispatch。sensory.py 已支持——entity 遍历不变。AppleCrate 的这个模式已经被证明了。</p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">① Item 只有原子 CRUD</h4><p><code>split(qty)</code> / <code>merge(other)</code> / <code>move_to(pos)</code>。这就是一切。没有 take_out / put_away / give —— LLM 描述意图，引擎调原子的 split/merge/move_to。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">② 约束绑在 entity 上</h4><p>不绑在 action 上。gold entity 声明 <code>constraints: [qty_non_negative]</code>——任何代码路径修改 qty 都触发校验。捡钱、赚、偷——全走同一约束。</p></div>
+  <div class="card c-pur"><h4 style="color:var(--purple)">③ LLM 自然语言</h4><p>LLM 不说 <code>"take_out"</code>。LLM 说 <code>"这5个金币你收下"</code> + <code>item_ops: [{split:5, to:hand, r:1}]</code>。引擎推断出要 split gold entity。</p></div>
+  <div class="card c-acc"><h4 style="color:var(--accent)">④ r=-1 仅自己可见</h4><p>口袋 entity 的 radius=-1。sensory 一行过滤：<code>r<0 and pos!=observer → skip</code>。零特殊情况。</p></div>
+  <div class="card c-teal"><h4 style="color:var(--teal)">⑤ 全 Entity 统一</h4><p>Gold 是 Entity。Sword 是 Entity。唯一的区别是 <code>private_attrs.qty</code>。qty=1 是唯一物——qty>1 是可互换物。</p></div>
 </div>
 
-<div class="callout co-grn">
-  <strong>苹果箱已经是这个模式。</strong> <code>private_attrs.apple_count: 10</code>。只是缺少移动语义和约束。把 qty 从语义扩展为物理——不建新概念——是从现有结构扩展的。<br/><br/>
-  <span class="en">AppleCrate already uses this pattern. <code>private_attrs.apple_count: 10</code>. Just missing movement + constraints. Qty expanded from semantic to physical — no new concepts — extension of existing structure.</span>
-</div>
+<!-- ═══════ 2. ENTITY + QTY ═══════ -->
+<h2>2. Entity with qty <span class="en">Entity + qty — 全物统一</span></h2>
 
-<!-- ═══════ 2. ENTITY WITH QTY ═══════ -->
-<h2>2. Entity with qty — How It Works <span class="en">带 qty 的 Entity——如何工作</span></h2>
-
-<h3>2.1 YAML 声明 —— 和 AppleCrate 完全一样</h3>
+<h3>2.1 YAML — Gold 和 Sword 的声明完全同结构</h3>
 <pre><code><span class="cmt"># 唯一物 — qty=1 隐式</span>
 - <span class="kw">id</span>: iron_sword
-  <span class="kw">zone</span>: bar_zone
-  <span class="kw">pos</span>: [10, 15]
+  <span class="kw">zone</span>: bar_zone  <span class="kw">pos</span>: [10, 15]
   <span class="kw">interaction</span>:
-    <span class="kw">private_attrs</span>:
-      <span class="kw">durability</span>: 100
-      <span class="kw">radius</span>: 1               <span class="cmt"># visible in hand</span>
+    <span class="kw">private_attrs</span>: {<span class="kw">durability</span>: 100, <span class="kw">radius</span>: 1}
 
-<span class="cmt"># 可互换物 — qty=50</span>
+<span class="cmt"># 可互换物 — qty=50, 约束绑在 entity 上</span>
 - <span class="kw">id</span>: gold_geralt_pocket
-  <span class="kw">zone</span>: bar_zone
-  <span class="kw">pos</span>: [12, 7]               <span class="cmt"># 在 Geralt 的口袋位置</span>
+  <span class="kw">zone</span>: bar_zone  <span class="kw">pos</span>: [12, 7]
   <span class="kw">interaction</span>:
-    <span class="kw">private_attrs</span>:
-      <span class="kw">qty</span>: 50                    <span class="cmt"># ← 这就是区别。就这么一个字段。</span>
-      <span class="kw">radius</span>: -1              <span class="cmt"># invisible — only self sees pocket</span>
+    <span class="kw">constraints</span>: [<span class="str">"qty_non_negative"</span>]     <span class="cmt">← 任何 qty 变更都触发</span>
+    <span class="kw">private_attrs</span>: {<span class="kw">qty</span>: 50, <span class="kw">radius</span>: -1}  <span class="cmt">← r=-1: 仅 Geralt 可见</span>
   <span class="kw">visual</span>:
-    <span class="kw">properties</span>:
-      <span class="kw">look</span>: <span class="str">"golden coins"</span></code></pre>
+    <span class="kw">properties</span>: {<span class="kw">look</span>: <span class="str">"golden coins"</span>}</code></pre>
 
 <div class="callout co-pri">
-  <strong>为什么优雅：</strong>世界上的每个物体都是一个 entity。qty=1 → 唯一。qty=50 → 可互换。不需要注册表、不需要 singleton、不需要 proxy。AppleCrate 已经是 <code>private_attrs.apple_count: 10</code>——只是缺乏移动语义。把它从"数字属性"变成"物理属性"——就是全部的工作。<br/><br/>
-  <span class="en"><strong>Why this is elegant:</strong> Every object in the world is an entity. qty=1 = unique. qty=50 = fungible. No registry, no singleton, no proxy. AppleCrate already has <code>private_attrs.apple_count: 10</code> — it's just missing movement semantics. Turn it from a "numeric property" into a "physical property" — that's the entire job.</span>
+  <strong>约束不绑在 action 上——绑在 entity 上。</strong> Gold entity 的 qty 字段只要被修改——不管是 split 还是 merge 还是外部 Director.set——<code>qty_non_negative</code> 都触发。因为约束是 entity 的属性——不是某种特定交互的属性。<br/><br/>
+  <span class="en"><strong>Constraints bind to entities, not actions.</strong> When gold entity's qty is modified — whether by split, merge, or external Director.set — <code>qty_non_negative</code> fires. Because the constraint belongs to the entity — not to a specific interaction type.</span>
 </div>
 
-<h3>2.2 Entity 方法 —— 在现有 entity.py 中加</h3>
-<pre><code><span class="cmt"># entity.py — 现有 Entity 类 + 2 个新方法</span>
-
-<span class="kw">class</span> <span class="fn">Entity</span>:
-    <span class="cmt"># ── 现有字段 (不变) ──</span>
+<h3>2.2 Entity 的 3 个原子方法</h3>
+<pre><code><span class="kw">class</span> <span class="fn">Entity</span>:
+    <span class="cmt"># ── 现有字段和方法 (不变) ──</span>
     id: str; name: str; zone: str; pos: list[int]
     layers: dict; private_attrs: dict
+    <span class="kw">def</span> <span class="fn">has</span>(key) → bool; <span class="kw">def</span> <span class="fn">get</span>(key); <span class="kw">def</span> <span class="fn">distance_to</span>(other) → int
 
-    <span class="cmt"># ── 现有方法 (不变) ──</span>
-    <span class="kw">def</span> <span class="fn">has</span>(self, key): <span class="kw">return</span> key <span class="kw">in</span> self.layers
-    <span class="kw">def</span> <span class="fn">get</span>(self, key): <span class="kw">return</span> self.layers.get(key)
-    <span class="kw">def</span> <span class="fn">distance_to</span>(self, other): <span class="kw">return</span> abs(self.pos[0]-other.pos[0]) + abs(self.pos[1]-other.pos[1])
-    <span class="kw">def</span> <span class="fn">move_to</span>(self, target_pos): self.pos = target_pos  <span class="cmt"># + grid update + carry r=0 items</span>
-
-<span class="cmt"># ── 新方法: qty 操作 ──</span>
-
-    <span class="kw">def</span> <span class="fn">has_qty</span>(self) → <span class="kw">bool</span>:
-        <span class="kw">return</span> self.get(<span class="str">"interaction"</span>).private_attrs.get(<span class="str">"qty"</span>, 1) > 1</code></pre>
+<span class="cmt"># 新增: 3 个原子操作</span>
+<span class="kw">def</span> <span class="fn">split</span>(self, qty: int) → <span class="str">"Entity"</span> | <span class="kw">None</span>:
+    <span class="cmt"># 从此 entity 分出 qty 个。返回新 entity。qty 不足 → None。</span></code></pre>
 <div class="why-box">
-  <strong>为什么要有:</strong> 判断"这是唯一物还是可互换物"。qty=1 的 item 不需要堆叠/拆分——qty>1 的 item 需要。<br/>
-  <strong>谁调:</strong> interaction.py 执行 move 操作前——决定走"改坐标"还是"改 qty"。<br/>
-  <strong>默认值是 1:</strong> 没有显式 qty 的 item 就是唯一物——和 AppleCrate 的默认 qty=1 一致。
+  <strong>为什么要有:</strong> 所有 qty>1 的 entity 都需要拆分操作。<br/>
+  <strong>调用时机:</strong> Geralt 从口袋拿出 5 金币——split(5) → 新 entity(qty=5) 在 hand 位置。<br/>
+  <strong>约束先触发:</strong> entity 的 constraints 在 split 前被 check——qty 够不够。
 </div>
 
-<pre><code>    <span class="kw">def</span> <span class="fn">split</span>(self, qty: int) → <span class="str">"Entity"</span>:
-        <span class="cmt"># 从此 entity 分出 qty 个。返回新 entity。</span>
-        <span class="kw">if not</span> self.has_qty(): <span class="kw">return None</span>
-        have = self.private_attrs[<span class="str">"qty"</span>]
-        <span class="kw">if</span> have <= qty: <span class="kw">return None</span>
-        self.private_attrs[<span class="str">"qty"</span>] -= qty
-        <span class="kw">return</span> Entity(..., private_attrs={<span class="str">"qty"</span>: qty, ...})</code></pre>
+<pre><code><span class="kw">def</span> <span class="fn">merge</span>(self, other: <span class="str">"Entity"</span>) → <span class="kw">bool</span>:
+    <span class="cmt"># 把 other 的 qty 合入 self。同位置同类型才可合并。other 归零→消失。</span></code></pre>
 <div class="why-box">
-  <strong>为什么要有:</strong> Geralt 从口袋拿出 5 个金币——源 entity 的 qty 从 50 变 45，新 entity 有 qty=5，位置在 hand。<br/>
-  <strong>谁调:</strong> interaction.py 执行 take_out action 时——split source entity，把新 entity 的 pos 设为 hand。<br/>
-  <strong>约束先检查:</strong> qty_non_negative 在 split 之前校验 source entity 有足够数量。
+  <strong>为什么要有:</strong> Rachel 把手上的金币放进口袋——两个 gold entity 在同一位置合并。<br/>
+  <strong>调用时机:</strong> LLM 决定"收好金币"——引擎找到同位置、同类型的 entity——merge。<br/>
+  <strong>归零:</strong> other entity 的 qty 变成 0——标记移除——sensory 下轮不再渲染。
 </div>
 
-<pre><code>    <span class="kw">def</span> <span class="fn">merge</span>(self, other: <span class="str">"Entity"</span>) → <span class="kw">bool</span>:
-        <span class="cmt"># 把 other 的 qty 合入 self。如果 self 没有 qty 或不是同类型 → False。</span>
-        <span class="kw">if not</span> self.has_qty() <span class="kw">or not</span> other.has_qty(): <span class="kw">return False</span>
-        self.private_attrs[<span class="str">"qty"</span>] += other.private_attrs[<span class="str">"qty"</span>]
-        other.private_attrs[<span class="str">"qty"</span>] = 0
-        <span class="kw">return True</span></code></pre>
-<div class="why-box">
-  <strong>为什么要有:</strong> Rachel 把金币从手里放进口袋——手上的 entity 和口袋里的 entity 是同类型——合并 qty。手上的 entity 归零→消失。<br/>
-  <strong>谁调:</strong> interaction.py 执行 put_away action 时——合并手 entity 和口袋 entity。或同位置的两个同类型堆叠自然合并。<br/>
-  <strong>归零时:</strong> qty 归零的 entity 标记为移除——sensory 系统下轮不会再看到。
+<pre><code><span class="kw">def</span> <span class="fn">move_to</span>(self, target_pos):  <span class="cmt"># 已有 —— 不变</span>
+    <span class="cmt"># 改 entity 位置。唯一物和可互换物通用。</span></code></pre>
+
+<!-- ═══════ 3. LLM DECISION ═══════ -->
+<h2>3. LLM Decision — Natural Language + item_ops <span class="en">LLM 决策：自然语言 + item_ops</span></h2>
+
+<p>LLM 不需要知道 <code>split</code> / <code>merge</code> 这些接口名。LLM 输出自然语言意图——引擎从感官上下文中推断具体操作。</p>
+
+<pre><code><span class="cmt"># LLM 的 JSON 输出 — 自然语言为主，item_ops 是辅助字段</span>
+{
+  <span class="str">"action"</span>: <span class="str">"拿出5枚金币放在手心"</span>,
+  <span class="str">"dialogue"</span>: <span class="str">"这5个金币你收下"</span>,
+  <span class="str">"target_name"</span>: <span class="str">"Rachel"</span>,
+  
+  <span class="str">"item_ops"</span>: [{                            <span class="cmt"># ← 可选: LLM 描述涉及物品的操作</span>
+    <span class="str">"entity"</span>: <span class="str">"gold"</span>,                        <span class="cmt"># 哪个 entity</span>
+    <span class="str">"qty"</span>: 5,                               <span class="cmt"># 涉及多少</span>
+    <span class="str">"to"</span>: <span class="str">"hand"</span>,                            <span class="cmt"># 移动到哪 (optional)</span>
+    <span class="str">"radius"</span>: 1                            <span class="cmt"># 新半径 (optional)</span>
+  }]
+}</code></pre>
+
+<div class="callout co-acc">
+  <strong>引擎做的事:</strong> 读取 <code>item_ops</code>——遍历每个 op——从 world.entities 找到对应 entity——检查 entity 上的 constraints——通过后调 <code>entity.split(qty)</code> 或 <code>entity.move_to(pos)</code>。引擎不知道"这是拿出金币"——只知道"这里有个 entity，它要拆出 5 个，移动到 hand 位置，半径设为 1"。<br/><br/>
+  <span class="en"><strong>What the engine does:</strong> reads <code>item_ops</code> — for each op — finds the entity in world.entities — checks constraints on the entity — if pass, calls <code>entity.split(qty)</code> or <code>entity.move_to(pos)</code>. Engine doesn't know "this is taking out gold" — it just knows "this entity needs to split 5, move to hand position, radius=1".</span>
 </div>
 
-<!-- ═══════ 3. CONSTRAINT SYSTEM ═══════ -->
-<h2>3. Constraint System <span class="en">约束系统</span></h2>
+<!-- ═══════ 4. CONSTRAINT SYSTEM ═══════ -->
+<h2>4. Constraint System <span class="en">约束系统</span></h2>
 
-<h3>3.1 Constraint ABC</h3>
+<p>约束绑在 entity 的 <code>constraints</code> 列表上——不是绑在 action 上。任何代码路径修改 entity 的 qty，都先检查 entity 上的约束。</p>
+
+<h3>4.1 Constraint ABC</h3>
 <pre><code><span class="kw">class</span> <span class="fn">Constraint</span>(ABC):
-    <span class="cmt"># 所有物理定律基类。30 行。引擎只知 activation + timing + validate + apply。</span>
+    <span class="cmt"># 30 行基类。新增约束 = 继承此类 + @register 装饰器。</span>
     timing: str = <span class="str">"pre"</span>
 
-    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def) → <span class="kw">bool</span>: <span class="kw">pass</span></code></pre>
+    <span class="kw">def</span> <span class="fn">activation</span>(self, entity, op) → <span class="kw">bool</span>:
+        <span class="kw">pass</span></code></pre>
 <div class="why-box">
-  <strong>为什么要有:</strong> 约束自己决定"这次需要我吗"。不每个约束每次交互都触发。引擎循环所有约束——调 activation()→True 的参与本轮。<br/>
-  <strong>qty_non_negative 什么时候激活:</strong> <code>"resource" in action_def</code> — 涉及资源操作才需要数量校验。talk 不需要。<br/>
-  <strong>引擎不知道激活条件——每个约束自己决定。</strong>
+  <strong>为什么:</strong> 约束自己判断是否需要触发。不是每个 entity 都有 qty 约束。<br/>
+  <strong>qty_non_negative 激活:</strong> entity 的 constraints 表里有它 + op 涉及 qty 修改 → True。<br/>
+  <strong>引擎不知道激活条件——约束自己决定。</strong>
 </div>
 
-<pre><code>    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world) → (bool, str): <span class="kw">pass</span></code></pre>
+<pre><code>    <span class="kw">def</span> <span class="fn">validate</span>(self, entity, op, world) → (bool, str):
+        <span class="kw">pass</span></code></pre>
 <div class="why-box">
-  <strong>为什么要有:</strong> 校验物理可行性。返回 (通过, 失败原因)。引擎按 timing 分组——每个组内逐个 validate——任一失败→停止。<br/>
-  <strong>失败后:</strong> 引擎返回 failed=constraint_name + reason。LLM 下轮从感官通道感知失败——自己决定换策略。
+  <strong>为什么:</strong> 校验物理可行性。返回 (通过, 失败原因)。<br/>
+  <strong>不通过:</strong> 引擎不执行 entity 的 qty 修改。LLM 下轮从感官感知失败。
 </div>
 
-<pre><code>    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world): <span class="kw">pass</span></code></pre>
+<pre><code>    <span class="kw">def</span> <span class="fn">apply</span>(self, entity, op, world):
+        <span class="kw">pass</span></code></pre>
 <div class="why-box">
-  <strong>为什么要有:</strong> 只在 validate 通过后调用。原子操作——无状态残留。<br/>
-  <strong>门控约束:</strong> qty_non_negative — pass（只校验不执行——split 由 entity 执行）。<br/>
-  <strong>操作约束:</strong> consumption — qty-1 + deltas。
+  <strong>为什么:</strong> 只在 validate 通过后调用。原子——无状态残留。<br/>
+  <strong>门控约束:</strong> qty_non_negative — pass（不做操作——split 由 Entity 执行）。<br/>
+  <strong>操作约束:</strong> consumption — 消耗后 entity 归零→移除。
 </div>
 
-<h3>3.2 Registry + process()</h3>
-<pre><code><span class="kw">class</span> <span class="fn">ConstraintRegistry</span>:
-    _constraints: dict[str, Constraint] = {}
+<h3>4.2 Engine Dispatch — 任何 qty 变更都经过这里</h3>
+<pre><code><span class="kw">def</span> <span class="fn">modify_entity_qty</span>(entity, op, world):
+    <span class="cmt"># entity 的 qty 被修改的唯一入口。任何代码路径都走这里。</span>
+    <span class="cmt"># LLM 自然语言描述 → 引擎推断 → 调 split/merge → 调此函数 → 约束触发。</span>
 
-    <span class="kw">def</span> <span class="fn">process</span>(self, entities, action_def, world):
-        active = [c <span class="kw">for</span> c <span class="kw">in</span> self._constraints.values()
-                  <span class="kw">if</span> c.activation(entities, action_def)]
-        <span class="kw">for</span> group <span class="kw">in</span> [<span class="str">"pre"</span>, <span class="str">"exec"</span>, <span class="str">"post"</span>]:
-            <span class="kw">for</span> c <span class="kw">in</span> [c <span class="kw">for</span> c <span class="kw">in</span> active <span class="kw">if</span> c.timing == group]:
-                ok, reason = c.validate(entities, action_def, world)
-                <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=c.name, reason=reason)
-                c.apply(entities, action_def, world)
-        <span class="kw">return</span> Result(ok=True)</code></pre>
+    constraints_list = entity.interaction.constraints     <span class="cmt"># e.g. ["qty_non_negative"]</span>
+    <span class="kw">for</span> name <span class="kw">in</span> constraints_list:
+        c = REGISTRY[name]
+        <span class="kw">if</span> c.activation(entity, op):
+            ok, reason = c.validate(entity, op, world)
+            <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=name, reason=reason)
+            c.apply(entity, op, world)
+    <span class="kw">return</span> Result(ok=True)</code></pre>
 <div class="why-box">
-  <strong>引擎一行调:</strong> <code>constraints.process(entities, action_def, world)</code>。不认识约束名、不认识 timing、不认识 gold。只循环 + 分组 + 调 validate + 调 apply。<br/>
-  <strong>分组原因:</strong> pre 失败→不执行任何 apply。exec 失败→不执行 post。post 不计分——只记录。三个组有序——引擎只循环。
+  <strong>为什么这是唯一入口:</strong> 无论 LLM 怎么描述意图——"拿出金币"、"给金币"、"偷金币"、"捡金币"——最终都是调 entity.split() / merge() / move_to()。而这三个方法内部都先调 <code>modify_entity_qty</code>——触发 entity 上的约束。<br/>
+  <strong>不需要新的接口:</strong> 捡钱？entity.split(amount_from_ground)。赚到钱？entity.split(amount_from_reward)。都是 split。不需要每个场景都加接口名。
 </div>
 
-<h3>3.3 qty_non_negative — 具体约束</h3>
-<pre><code>@<span class="fn">register</span>(<span class="str">"qty_non_negative"</span>)
-<span class="kw">class</span> <span class="fn">QtyNonNegativeConstraint</span>(Constraint):
-    timing = <span class="str">"pre"</span>
+<!-- ═══════ 5. RADIUS MODEL ═══════ -->
+<h2>5. Radius Model <span class="en">半径模型</span></h2>
 
-    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def):
-        <span class="kw">return</span> <span class="str">"resource"</span> <span class="kw">in</span> action_def</code></pre>
-<div class="why-box">
-  <strong>为什么查 "resource" 字段:</strong> 不是每个交互都涉及资源。talk 不用数量校验。take_out(gold,5) 定义了 resource 和 qty——需要校验。<br/>
-  <strong>真触发:</strong> take_out / take / give / eat / pick_up — 移动或消耗物品。<br/>
-  <strong>不触发:</strong> talk / walk / follow / open — 无资源操作。
-</div>
-
-<pre><code>    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world):
-        source = action_def[<span class="str">"source_entity"</span>]       <span class="cmt"># Entity 对象</span>
-        need   = action_def[<span class="str">"qty"</span>]
-        have   = source.private_attrs.get(<span class="str">"qty"</span>, 1)
-        ok     = have >= need
-        reason = f<span class="str">"{source.name}: need {need}, have {have}"</span> <span class="kw">if not</span> ok <span class="kw">else</span> <span class="str">""</span>
-        <span class="kw">return</span> ok, reason</code></pre>
-<div class="why-box">
-  <strong>参数 source_entity:</strong> 引擎在执行 action 前找到源 entity——Spatial getter——从 find_entity_by_name 返回。<br/>
-  <strong>为什么 private_attrs.get("qty", 1):</strong> 默认 1 — 唯一物品的 qty 总是 ≥1（entity 存在）。<br/>
-  <strong>失败时:</strong> 引擎停止。LLM 下轮感官感知状态不变——自己推理"数量不够"。
-</div>
-
-<pre><code>    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world):
-        <span class="kw">pass</span>    <span class="cmt"># 门控 — split 由 Entity 执行</span></code></pre>
-<div class="why-box">
-  <strong>为什么不执行 split:</strong> 物理操作是 entity.split() 的事——不是约束的事。约束只做准入控制。引擎在 process() 返回 ok 后自己调 entity.split()。
-</div>
-
-<!-- ═══════ 4. HOW ITEMS APPEAR IN SENSORY ═══════ -->
-<h2>4. How Items Appear in Sensory <span class="en">物品如何进入感官</span></h2>
-
-<div class="trace">
-  <span class="label">sensory.py: update()</span><br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> world.get_nearby_ids(zone, pos, view_radius)<br/>
-  <span class="arrow">│</span> <span class="dim">→ 返回附近所有 entity ID — 包括 GoldCoin entity、AppleCrate entity</span><br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> 遍历每个 entity → 迭代 entity.layers<br/>
-  <span class="arrow">│    ├─</span> visual layer: observe(d) → {look: "golden coins", qty: 5}<br/>
-  <span class="arrow">│    └─</span> → observer.sensory.channels["visual"]["gold_hand"] = SensorRecord(...)<br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> <span class="label">to_prompt("visual", cfg)</span><br/>
-  <span class="arrow">│    └─</span> template: <span class="str">"{name} ({distance}格)"</span><br/>
-  <span class="arrow">│    └─</span> → <span class="str">"Gold (0格)"</span><br/>
-  <span class="arrow">│</span><br/>
-  <span class="arrow">└─</span> ctx["sensory_text"] → LLM sees <span class="str">"Gold (0格)"</span><br/>
-  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="dim">—— 和 AppleCrate 完全相同的路径。零改动。</span>
-</div>
+<table>
+<tr><th>radius</th><th>语义</th><th>Sensory 规则</th><th>谁可以 move</th></tr>
+<tr><td><code>-1</code></td><td>口袋 / 贴身</td><td>仅 observer.pos == entity.pos 可见</td><td>仅该位置的 NPC</td></tr>
+<tr><td><code>0</code></td><td>隐藏</td><td>永不可见</td><td>无人 (需先变成可见)</td></tr>
+<tr><td><code>1</code></td><td>手中</td><td>distance ≤ view_radius 可见</td><td>interact_radius 内</td></tr>
+<tr><td><code>≥5</code></td><td>地面</td><td>distance ≤ max(r, view_radius) 可见</td><td>view_radius 内</td></tr>
+</table>
 
 <div class="callout co-grn">
-  <strong>r=-1 (口袋/贴身):</strong> <code>r &lt; 0</code> 的 entity 仅对自身位置可见。sensory 只需一行过滤：<code>if entity.private_attrs.get("radius",1) &lt; 0 and entity.pos != observer.pos: continue</code>。零特殊情况。私密——仅自己看到。<br/>
-  <strong>r=0 (隐藏):</strong> 永不可见——如埋在地下的物品。<br/>
-  <strong>r=1 (手中):</strong> 正常可见——distance ≤ view_radius。<br/>
-  <strong>r≥5 (地面):</strong> 远处可见——distance ≤ max(radius, view_radius)。<br/><br/>
-  <span class="en"><strong>r=-1 (pocket):</strong> entities with <code>r &lt; 0</code> are visible only to the observer at that position. One filter line in sensory: <code>if radius &lt; 0 and entity.pos != observer.pos: continue</code>. Zero special cases. Private — self only.</span>
+  <strong>sensory 一行:</strong> <code>if entity.radius &lt; 0 and entity.pos != observer.pos: continue</code> —— 零特殊情况。负半径天然表达"私密——仅对身在此位置者可见"。
 </div>
 
-<!-- ═══════ 5. FULL SCENARIO ═══════ -->
-<h2>5. Complete Scenario — Gold Transfer <span class="en">完整场景——金币转移</span></h2>
+<!-- ═══════ 6. SCENARIO ═══════ -->
+<h2>6. Full Scenario — Gold Transfer <span class="en">完整场景——金币转移</span></h2>
 
 <div class="trace">
-  <span class="label">Tick N — Geralt: take_out gold 5 + talk</span><br/>
+  <span class="label">Tick N — Geralt: 拿出 5 金币 + 说话</span><br/>
   <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> <span class="label">constraints.process([geralt_entity, gold_entity], action_def)</span><br/>
-  <span class="arrow">│    └─</span> qty_non_negative.activation → "resource" in action_def → True<br/>
+  <span class="arrow">├─</span> LLM: <code>{action: "拿出5枚金币", item_ops: [{entity:"gold", qty:5, to:"hand", radius:1}]}</code><br/>
+  <span class="arrow">├─</span> 引擎: 找到 gold entity → entity.constraints = [qty_non_negative]<br/>
+  <span class="arrow">├─</span> <span class="label">modify_entity_qty(gold_entity, {qty:5, to:hand, r:1})</span><br/>
   <span class="arrow">│    └─</span> qty_non_negative.validate → gold_entity.qty=50 ≥ 5 → ✓<br/>
-  <span class="arrow">│    └─</span> qty_non_negative.apply → pass<br/>
-  <span class="arrow">│    └─</span> <span style="color:var(--green);font-weight:700">gold_entity.split(5)</span> → qty:50→45, new_entity(qty=5, pos=hand, r=1)<br/>
-  <span class="arrow">├─</span> Talk → write auditory layer<br/>
+  <span class="arrow">│    └─</span> <span style="color:var(--green)">gold_entity.split(5)</span> → 源 qty:50→45, 新 entity(qty=5, r=1) 在 hand 位置<br/>
+  <span class="arrow">├─</span> LLM: <code>{dialogue: "这5个金币你收下"}</code> → write auditory layer<br/>
   <span class="arrow">│</span><br/>
   <span class="arrow">├─</span> <span class="label">Rachel's sensory:</span><br/>
   <span class="arrow">│    └─</span> Gold (0格, r=1) — at Geralt's hand position<br/>
-  <span class="arrow">│    └─</span> conversation: "[1s前] Geralt: take these 5 coins"<br/>
-  <span class="arrow">│    └─</span> <span style="color:var(--accent)">LLM: "gold in his hand + 他说'收下' → 我拿不拿？"</span><br/>
+  <span class="arrow">│    └─</span> conversation: "[1s] Geralt: 这5个金币你收下"<br/>
+  <span class="arrow">│    └─</span> <span style="color:var(--accent)">LLM: "他拿出金币 + 说'收下' → 我要拿吗？"</span><br/>
   <span class="arrow">│</span><br/>
-  <span class="arrow">├─</span> <span class="label">Tick N+1 — Rachel: take gold 5 from Geralt</span><br/>
-  <span class="arrow">│    └─</span> <span style="color:var(--green)">constraints.process()</span><br/>
-  <span class="arrow">│         └─</span> qty_non_negative: gold_hand_entity.qty=5 ≥ 5 → ✓<br/>
-  <span class="arrow">│         └─</span> gold_hand_entity.pos = Rachel.hand_pos  ← 唯一：直接改坐标<br/>
-  <span class="arrow">│    └─</span> <span style="color:var(--green)">put_away gold 5</span>: merge hand_entity → pocket_entity.qty 3→8<br/>
-  <span class="arrow">│         └─</span> hand_entity.qty=0 → despawn<br/>
+  <span class="arrow">├─</span> <span class="label">Tick N+1 — Rachel: 拿走金币</span><br/>
+  <span class="arrow">│    └─</span> LLM: <code>{item_ops: [{entity:"gold", qty:5, to:"hand", radius:1, from:Geralt_hand}]}</code><br/>
+  <span class="arrow">│    └─</span> <span class="label">modify_entity_qty(hand_gold, {qty:5, to:Rachel.hand, r:1})</span><br/>
+  <span class="arrow">│         └─</span> qty_non_negative.validate → hand_gold.qty=5 ≥ 5 → ✓<br/>
+  <span class="arrow">│         └─</span> hand_gold.move_to(Rachel.hand_pos) → done<br/>
+  <span class="arrow">│    └─</span> LLM: <code>{item_ops: [{entity:"gold", to:"pocket", radius:-1}]}</code> → merge hand→pocket<br/>
   <span class="arrow">│</span><br/>
-  <span class="arrow">└─</span> <span class="label">Tick N+2 — Both perceive:</span><br/>
-  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> Geralt: gold gone from hand. pocket qty=45. "She took it."<br/>
-  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> Rachel: pocket qty=8 (was 3). "Income +5."
+  <span class="arrow">└─</span> <span class="label">Tick N+2 — 双方感知:</span><br/>
+  <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;</span> Geralt: hand qty=0 → "她收了"。Rachel: pocket qty=8 → "+5"。
 </div>
 
 <div class="callout co-acc">
-  <strong>无 proposal。无 pending。无两阶段。无 SpatialProxy。无 registry。无 singleton。</strong> 只有 entity.split() + entity.merge() + entity.move_to()。引擎只知道这些。不知道"交易"。
+  <strong>无 proposal。无 pending。无两阶段。无 action-specific 接口。</strong> 只有 LLM 的自然语言 + 引擎对 entity 原子操作的执行。约束绑在 entity 上——任何 qty 变更自动触发。
 </div>
-
-<!-- ═══════ 6. COMPARISON ═══════ -->
-<h2>6. What Was Deleted <span class="en">删了什么</span></h2>
-
-<table>
-<tr><th style="width:30%">Deleted Concept</th><th style="width:35%">Replaced By</th><th style="width:35%">Why</th></tr>
-<tr><td><code class="diff-rem">SpatialObject ABC</code></td><td><code>Entity</code> (already exists)</td><td>Entity already has pos, distance_to, layers, private_attrs</td></tr>
-<tr><td><code class="diff-rem">ClassSingleton</code></td><td><code>Entity</code> with <code>qty > 1</code></td><td>Each stack is an entity. No separate registry needed.</td></tr>
-<tr><td><code class="diff-rem">GoldCoin._registry</code></td><td><code>world.entities</code></td><td>All entities already live here. No second container.</td></tr>
-<tr><td><code class="diff-rem">SpatialProxy</code></td><td><code>Entity</code> itself</td><td>No bridge needed — entity is the first-class citizen everywhere.</td></tr>
-<tr><td><code class="diff-rem">EntitySpatial</code></td><td><code>Entity</code> itself</td><td>No wrapper. Entity already has qty via private_attrs.</td></tr>
-</table>
 
 <!-- ═══════ 7. FILE IMPACT ═══════ -->
 <h2>7. Implementation <span class="en">实现</span></h2>
 
 <table>
 <tr><th>File</th><th>Lines</th><th>What</th></tr>
-<tr><td><code>src/entity/entity.py</code></td><td style="color:var(--green);font-weight:700">+25</td><td>split(qty) / merge(other) / has_qty() — 3 methods</td></tr>
-<tr><td><code>src/core/constraints/__init__.py</code></td><td style="color:var(--green);font-weight:700">NEW ~40</td><td>Constraint ABC + Registry + process()</td></tr>
-<tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td style="color:var(--green);font-weight:700">NEW ~25</td><td>First constraint — validate qty_at(souce) ≥ need</td></tr>
-<tr><td><code>src/systems/interaction.py</code></td><td>+25</td><td>Constraints.process() before move. Entity.split/merge dispatch for qty>1 entities</td></tr>
-<tr><td><code>src/systems/sensory.py</code></td><td>+3</td><td>r=0 filter: skip if entity.pos≠observer.pos</td></tr>
-<tr><td><code>src/core/world.py</code></td><td>0</td><td>不需要 — entity 已通过 system._load_entities() 加载</td></tr>
-<tr><td><code>src/entity/entity.py:move_to()</code></td><td>+5</td><td>NPC 移动时——所有同一位置的 r=0 entity 跟着移动</td></tr>
-<tr><td><code>config/world.yaml</code></td><td>+3/entity</td><td>给 GoldCoin entity 加 private_attrs.qty: 50</td></tr>
+<tr><td><code>src/core/constraints/__init__.py</code></td><td style="color:var(--green);font-weight:700">NEW ~40</td><td>Constraint ABC + Registry + modify_entity_qty()</td></tr>
+<tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td style="color:var(--green);font-weight:700">NEW ~25</td><td>First constraint — validate entity.qty ≥ need</td></tr>
+<tr><td><code>src/entity/entity.py</code></td><td>+25</td><td>split(qty) + merge(other) — 2 methods. 内部调 modify_entity_qty</td></tr>
+<tr><td><code>src/systems/interaction.py</code></td><td>+20</td><td>解析 item_ops → 找 entity → 调 split/merge/move_to. 约束自动触发</td></tr>
+<tr><td><code>src/systems/sensory.py</code></td><td>+1</td><td><code>if entity.radius &lt; 0 and entity.pos != observer.pos: continue</code></td></tr>
+<tr><td><code>src/entity/entity.py:move_to()</code></td><td>+5</td><td>NPC 移动时——所有 r=-1 的 entity 在旧位置→跟着移动</td></tr>
+<tr><td><code>config/world.yaml</code></td><td>+3/entity</td><td>给 Gold entity 加 constraints + private_attrs.qty</td></tr>
 </table>
 
 <div class="callout co-grn">
-  <strong>总计:</strong> ~120 行新 Python (2 new files, 3 modified). ~30 行 YAML 配置。不改 loop.py 核心逻辑。不改 channel 系统。不改 5 通道感知结构。<br/><br/>
-  <span class="en"><strong>Total:</strong> ~120 new Python lines (2 new files, 3 modified). ~30 lines YAML config. No loop.py changes. No channel changes. No 5-channel structure changes.</span>
+  <strong>总计:</strong> ~115 行新 Python (2 new files + 3 modified). ~20 行 YAML 配置。不改 loop.py。不改 channel 系统。不改 5 通道结构。<br/><br/>
+  <span class="en"><strong>Total:</strong> ~115 new Python lines (2 new files + 3 modified). ~20 lines YAML config. No loop.py changes. No channel changes. No 5-channel structure changes.</span>
 </div>
 
 <hr>
-<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Item + Constraint System · Final v6 · Asher · 2026</p>
-<p style="text-align:center;color:var(--muted);font-size:12px">All items are Entity. The only difference is qty. No new files — just extend what already exists.</p>
+<p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Item + Constraint System · v7 · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:12px">3 atomic ops. Constraints on entities. LLM natural language. That's it.</p>
 
 </div>
 </body>
