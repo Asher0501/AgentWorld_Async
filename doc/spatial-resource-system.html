@@ -102,7 +102,7 @@
   <span class="kw">interaction</span>:
     <span class="kw">private_attrs</span>:
       <span class="kw">qty</span>: 50                    <span class="cmt"># ← 这就是区别。就这么一个字段。</span>
-      <span class="kw">radius</span>: 0               <span class="cmt"># invisible — in pocket</span>
+      <span class="kw">radius</span>: -1              <span class="cmt"># invisible — only self sees pocket</span>
   <span class="kw">visual</span>:
     <span class="kw">properties</span>:
       <span class="kw">look</span>: <span class="str">"golden coins"</span></code></pre>
@@ -261,8 +261,11 @@
 </div>
 
 <div class="callout co-grn">
-  <strong>半径为 0 的物品 (口袋):</strong> r=0 的 entity 不被 sensory 渲染——不可见。但 agent 自己的 r=0 物品必须可见——否规则不知道自己有什么。在 entity 遍历中加特殊情况：<code>if entity.radius == 0 and entity.pos != observer.pos: continue</code>。<br/><br/>
-  <span class="en"><strong>Radius-0 items (pocket):</strong> entities with r=0 are not rendered by sensory — invisible to others. But the agent's own r=0 items must be visible — otherwise they don't know what they have. Add special case in entity loop: <code>if entity.radius == 0 and entity.pos != observer.pos: continue</code>.</span>
+  <strong>r=-1 (口袋/贴身):</strong> <code>r &lt; 0</code> 的 entity 仅对自身位置可见。sensory 只需一行过滤：<code>if entity.private_attrs.get("radius",1) &lt; 0 and entity.pos != observer.pos: continue</code>。零特殊情况。私密——仅自己看到。<br/>
+  <strong>r=0 (隐藏):</strong> 永不可见——如埋在地下的物品。<br/>
+  <strong>r=1 (手中):</strong> 正常可见——distance ≤ view_radius。<br/>
+  <strong>r≥5 (地面):</strong> 远处可见——distance ≤ max(radius, view_radius)。<br/><br/>
+  <span class="en"><strong>r=-1 (pocket):</strong> entities with <code>r &lt; 0</code> are visible only to the observer at that position. One filter line in sensory: <code>if radius &lt; 0 and entity.pos != observer.pos: continue</code>. Zero special cases. Private — self only.</span>
 </div>
 
 <!-- ═══════ 5. FULL SCENARIO ═══════ -->
