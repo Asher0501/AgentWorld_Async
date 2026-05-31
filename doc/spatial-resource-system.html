@@ -71,7 +71,7 @@
 
 <div class="card-grid">
   <div class="card c-pri"><h4 style="color:var(--primary)">① Item 只有原子 CRUD</h4><p><code>split(qty)</code> / <code>merge(other)</code> / <code>move_to(pos)</code>。这就是一切。没有 take_out / put_away / give —— LLM 描述意图，引擎调原子的 split/merge/move_to。</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">② 约束绑在 entity 上</h4><p>不绑在 action 上。gold entity 声明 <code>constraints: [qty_non_negative]</code>——任何代码路径修改 qty 都触发校验。捡钱、赚、偷——全走同一约束。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">② 约束绑在操作上</h4><p>entity 声明 <code>split: {constraints: [qty_non_negative]}</code>——只有执行 split 时触发。读 qty 不触发。merge 可能绑 capacity 约束。每个操作独立声明。</p></div>
   <div class="card c-pur"><h4 style="color:var(--purple)">③ LLM 自然语言</h4><p>LLM 不说 <code>"take_out"</code>。LLM 说 <code>"这5个金币你收下"</code> + <code>item_ops: [{split:5, to:hand, r:1}]</code>。引擎推断出要 split gold entity。</p></div>
   <div class="card c-acc"><h4 style="color:var(--accent)">④ r=-1 仅自己可见</h4><p>口袋 entity 的 radius=-1。sensory 一行过滤：<code>r<0 and pos!=observer → skip</code>。零特殊情况。</p></div>
   <div class="card c-teal"><h4 style="color:var(--teal)">⑤ 全 Entity 统一</h4><p>Gold 是 Entity。Sword 是 Entity。唯一的区别是 <code>private_attrs.qty</code>。qty=1 是唯一物——qty>1 是可互换物。</p></div>
@@ -87,18 +87,22 @@
   <span class="kw">interaction</span>:
     <span class="kw">private_attrs</span>: {<span class="kw">durability</span>: 100, <span class="kw">radius</span>: 1}
 
-<span class="cmt"># 可互换物 — qty=50, 约束绑在 entity 上</span>
+<span class="cmt"># 可互换物 — qty=50, 约束绑在具体操作上</span>
 - <span class="kw">id</span>: gold_geralt_pocket
   <span class="kw">zone</span>: bar_zone  <span class="kw">pos</span>: [12, 7]
   <span class="kw">interaction</span>:
-    <span class="kw">constraints</span>: [<span class="str">"qty_non_negative"</span>]     <span class="cmt">← 任何 qty 变更都触发</span>
-    <span class="kw">private_attrs</span>: {<span class="kw">qty</span>: 50, <span class="kw">radius</span>: -1}  <span class="cmt">← r=-1: 仅 Geralt 可见</span>
+    <span class="kw">private_attrs</span>: {<span class="kw">qty</span>: 50, <span class="kw">radius</span>: -1}  <span class="cmt">← r=-1: 仅自己可见</span>
+    <span class="kw">ops</span>:
+      <span class="kw">split</span>:  {<span class="kw">constraints</span>: [<span class="str">"qty_non_negative"</span>]}   <span class="cmt">← 拆分时校验数量</span>
+      <span class="kw">merge</span>:  {<span class="kw">constraints</span>: []}                     <span class="cmt">← 合并不校验 (可加 capacity 等)</span>
+      <span class="kw">read_qty</span>: {}                                    <span class="cmt">← 读数量无约束</span>
+      <span class="kw">move_to</span>: {}                                    <span class="cmt">← 移动无约束 (可加 weight 等)</span>
   <span class="kw">visual</span>:
     <span class="kw">properties</span>: {<span class="kw">look</span>: <span class="str">"golden coins"</span>}</code></pre>
 
 <div class="callout co-pri">
-  <strong>约束不绑在 action 上——绑在 entity 上。</strong> Gold entity 的 qty 字段只要被修改——不管是 split 还是 merge 还是外部 Director.set——<code>qty_non_negative</code> 都触发。因为约束是 entity 的属性——不是某种特定交互的属性。<br/><br/>
-  <span class="en"><strong>Constraints bind to entities, not actions.</strong> When gold entity's qty is modified — whether by split, merge, or external Director.set — <code>qty_non_negative</code> fires. Because the constraint belongs to the entity — not to a specific interaction type.</span>
+  <strong>约束绑在操作上——不绑在 entity 上。</strong> Gold entity 的 <code>split</code> 操作声明了 <code>qty_non_negative</code>——只有 split 时触发。读 qty 不需要。merge 可以绑 <code>capacity</code> 约束（未来）。move_to 可以绑 <code>weight</code> 约束（未来）。每个操作独立声明——引擎在 dispatch 到具体操作时，读该操作的约束列表。<br/><br/>
+  <span class="en"><strong>Constraints bind to operations — not to entities.</strong> Gold entity's <code>split</code> op declares <code>qty_non_negative</code> — only triggers on split. Reading qty doesn't need it. Merge can bind <code>capacity</code> (future). move_to can bind <code>weight</code> (future). Each operation declares independently — engine reads the operation's constraint list at dispatch time.</span>
 </div>
 
 <h3>2.2 Entity 的 3 个原子方法</h3>
@@ -185,23 +189,25 @@
   <strong>操作约束:</strong> consumption — 消耗后 entity 归零→移除。
 </div>
 
-<h3>4.2 Engine Dispatch — 任何 qty 变更都经过这里</h3>
-<pre><code><span class="kw">def</span> <span class="fn">modify_entity_qty</span>(entity, op, world):
-    <span class="cmt"># entity 的 qty 被修改的唯一入口。任何代码路径都走这里。</span>
-    <span class="cmt"># LLM 自然语言描述 → 引擎推断 → 调 split/merge → 调此函数 → 约束触发。</span>
+<h3>4.2 Engine Dispatch — 按操作触发约束</h3>
+<pre><code><span class="kw">def</span> <span class="fn">exec_op</span>(entity, op_name, params, world):
+    <span class="cmt"># entity 上的操作被调用的唯一入口。按操作类型读约束列表。</span>
 
-    constraints_list = entity.interaction.constraints     <span class="cmt"># e.g. ["qty_non_negative"]</span>
+    constraints_list = entity.interaction.ops.get(op_name, {}).get(<span class="str">"constraints"</span>, [])
     <span class="kw">for</span> name <span class="kw">in</span> constraints_list:
         c = REGISTRY[name]
-        <span class="kw">if</span> c.activation(entity, op):
-            ok, reason = c.validate(entity, op, world)
-            <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=name, reason=reason)
-            c.apply(entity, op, world)
+        ok, reason = c.validate(entity, params, world)
+        <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=name, reason=reason)
+        c.apply(entity, params, world)
+
+    <span class="cmt"># 约束通过 → 执行操作</span>
+    <span class="kw">if</span> op_name == <span class="str">"split"</span>:   <span class="kw">return</span> entity.split(params[<span class="str">"qty"</span>])
+    <span class="kw">elif</span> op_name == <span class="str">"merge"</span>: <span class="kw">return</span> entity.merge(params[<span class="str">"other"</span>])
+    <span class="kw">elif</span> op_name == <span class="str">"read_qty"</span>: <span class="kw">return</span> entity.qty
     <span class="kw">return</span> Result(ok=True)</code></pre>
 <div class="why-box">
-  <strong>为什么这是唯一入口:</strong> 无论 LLM 怎么描述意图——"拿出金币"、"给金币"、"偷金币"、"捡金币"——最终都是调 entity.split() / merge() / move_to()。而这三个方法内部都先调 <code>modify_entity_qty</code>——触发 entity 上的约束。<br/>
-  <strong>不需要新的接口:</strong> 捡钱？entity.split(amount_from_ground)。赚到钱？entity.split(amount_from_reward)。都是 split。不需要每个场景都加接口名。
-</div>
+  <strong>引擎只做:</strong> 读 entity.ops[op_name].constraints → 按 timing 分组 → 逐个 validate → 通过后执行操作。不知道 gold 是什么——不知道 qty_non_negative 是什么——只知道"这个 entity 的 split 操作声明了这些约束"。<br/>
+  <strong>为什么不查 entity 上的全局约束:</strong> 不同操作需要不同的校验粒度。split 要查 qty。merge 未来要查 capacity。read_qty 不需要任何校验。约束绑在操作上——避免了"每次读 qty 都跑一遍没意义的校验"。</div>
 
 <!-- ═══════ 5. RADIUS MODEL ═══════ -->
 <h2>5. Radius Model <span class="en">半径模型</span></h2>
@@ -225,8 +231,8 @@
   <span class="label">Tick N — Geralt: 拿出 5 金币 + 说话</span><br/>
   <span class="arrow">│</span><br/>
   <span class="arrow">├─</span> LLM: <code>{action: "拿出5枚金币", item_ops: [{entity:"gold", qty:5, to:"hand", radius:1}]}</code><br/>
-  <span class="arrow">├─</span> 引擎: 找到 gold entity → entity.constraints = [qty_non_negative]<br/>
-  <span class="arrow">├─</span> <span class="label">modify_entity_qty(gold_entity, {qty:5, to:hand, r:1})</span><br/>
+  <span class="arrow">├─</span> 引擎: 找到 gold entity → entity.ops["split"].constraints = [qty_non_negative]<br/>
+  <span class="arrow">├─</span> <span class="label">exec_op(gold_entity, "split", {qty:5})</span><br/>
   <span class="arrow">│    └─</span> qty_non_negative.validate → gold_entity.qty=50 ≥ 5 → ✓<br/>
   <span class="arrow">│    └─</span> <span style="color:var(--green)">gold_entity.split(5)</span> → 源 qty:50→45, 新 entity(qty=5, r=1) 在 hand 位置<br/>
   <span class="arrow">├─</span> LLM: <code>{dialogue: "这5个金币你收下"}</code> → write auditory layer<br/>
@@ -238,7 +244,7 @@
   <span class="arrow">│</span><br/>
   <span class="arrow">├─</span> <span class="label">Tick N+1 — Rachel: 拿走金币</span><br/>
   <span class="arrow">│    └─</span> LLM: <code>{item_ops: [{entity:"gold", qty:5, to:"hand", radius:1, from:Geralt_hand}]}</code><br/>
-  <span class="arrow">│    └─</span> <span class="label">modify_entity_qty(hand_gold, {qty:5, to:Rachel.hand, r:1})</span><br/>
+  <span class="arrow">│    └─</span> <span class="label">exec_op(hand_gold, "split", {qty:5})</span><br/>
   <span class="arrow">│         └─</span> qty_non_negative.validate → hand_gold.qty=5 ≥ 5 → ✓<br/>
   <span class="arrow">│         └─</span> hand_gold.move_to(Rachel.hand_pos) → done<br/>
   <span class="arrow">│    └─</span> LLM: <code>{item_ops: [{entity:"gold", to:"pocket", radius:-1}]}</code> → merge hand→pocket<br/>
@@ -248,7 +254,7 @@
 </div>
 
 <div class="callout co-acc">
-  <strong>无 proposal。无 pending。无两阶段。无 action-specific 接口。</strong> 只有 LLM 的自然语言 + 引擎对 entity 原子操作的执行。约束绑在 entity 上——任何 qty 变更自动触发。
+  <strong>无 proposal。无 pending。无两阶段。无 action-specific 接口。</strong> 只有 LLM 的自然语言 + 引擎对 entity 原子操作的执行。约束绑在操作上——按 op_name 读取约束列表——split 校验 qty_non_negative，merge 不校验，read_qty 不校验。
 </div>
 
 <!-- ═══════ 7. FILE IMPACT ═══════ -->
@@ -256,10 +262,10 @@
 
 <table>
 <tr><th>File</th><th>Lines</th><th>What</th></tr>
-<tr><td><code>src/core/constraints/__init__.py</code></td><td style="color:var(--green);font-weight:700">NEW ~40</td><td>Constraint ABC + Registry + modify_entity_qty()</td></tr>
+<tr><td><code>src/core/constraints/__init__.py</code></td><td style="color:var(--green);font-weight:700">NEW ~40</td><td>Constraint ABC + Registry + exec_op()</td></tr>
 <tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td style="color:var(--green);font-weight:700">NEW ~25</td><td>First constraint — validate entity.qty ≥ need</td></tr>
-<tr><td><code>src/entity/entity.py</code></td><td>+25</td><td>split(qty) + merge(other) — 2 methods. 内部调 modify_entity_qty</td></tr>
-<tr><td><code>src/systems/interaction.py</code></td><td>+20</td><td>解析 item_ops → 找 entity → 调 split/merge/move_to. 约束自动触发</td></tr>
+<tr><td><code>src/entity/entity.py</code></td><td>+25</td><td>split(qty) + merge(other) — 2 methods</td></tr>
+<tr><td><code>src/systems/interaction.py</code></td><td>+20</td><td>解析 item_ops → 找 entity → exec_op(entity, op_name, params) → 约束触发</td></tr>
 <tr><td><code>src/systems/sensory.py</code></td><td>+1</td><td><code>if entity.radius &lt; 0 and entity.pos != observer.pos: continue</code></td></tr>
 <tr><td><code>src/entity/entity.py:move_to()</code></td><td>+5</td><td>NPC 移动时——所有 r=-1 的 entity 在旧位置→跟着移动</td></tr>
 <tr><td><code>config/world.yaml</code></td><td>+3/entity</td><td>给 Gold entity 加 constraints + private_attrs.qty</td></tr>
