@@ -14,238 +14,217 @@
     --green:oklch(0.480 0.145 155);--green-bg:oklch(0.930 0.040 155);
     --purple:oklch(0.460 0.145 285);--purple-bg:oklch(0.935 0.035 285);
     --teal:oklch(0.450 0.090 190);--teal-bg:oklch(0.930 0.025 190);
-    --red:oklch(0.460 0.165 20);--red-bg:oklch(0.935 0.035 20);
     --code-bg:oklch(0.965 0.008 95);--code-inline:oklch(0.955 0.012 95)
   }
   body{background:var(--bg);color:var(--ink);font:15px/1.85 "PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
   .wrapper{max-width:960px;margin:0 auto;padding:56px 32px 72px}
-
   .hero{text-align:center;padding:44px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
   .hero h1{font-size:30px;font-weight:800;color:var(--primary);letter-spacing:-0.5px;margin-bottom:8px;text-wrap:balance}
   .hero .sub{font-size:15px;color:var(--muted);margin-bottom:18px;line-height:1.7}
   .hero .tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .tag{padding:4px 14px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:0.2px}
   .tag-prim{background:var(--primary-bg);color:var(--primary)}.tag-grn{background:var(--green-bg);color:var(--green)}.tag-pur{background:var(--purple-bg);color:var(--purple)}.tag-acc{background:var(--accent-bg);color:var(--accent)}.tag-teal{background:var(--teal-bg);color:var(--teal)}
-
   h2{font-size:22px;font-weight:700;color:var(--primary);margin:52px 0 16px;padding-bottom:6px;border-bottom:2px solid var(--border);letter-spacing:-0.3px}
   h3{font-size:17px;font-weight:600;color:var(--ink);margin:30px 0 10px}
   p,li{font-size:14.5px;color:var(--ink);margin:6px 0;line-height:1.8}
-  ul,ol{margin:6px 0 6px 22px}
-  li{margin:4px 0}
-
+  ul,ol{margin:6px 0 6px 22px}li{margin:4px 0}
   code{background:var(--code-inline);padding:2px 7px;border-radius:4px;font-size:13px;font-family:"Cascadia Code","Fira Code",monospace;color:var(--primary);border:1px solid var(--border)}
   pre{background:var(--code-bg);padding:16px 20px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.6;margin:10px 0;border:1px solid var(--border)}
   pre code{background:none;padding:0;display:block;border:none}
   .kw{color:var(--purple)}.str{color:var(--accent)}.fn{color:var(--primary)}.cmt{color:var(--muted)}.key{color:var(--teal)}
-
   .diagram{display:flex;justify-content:center;margin:24px 0}
-
   .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin:16px 0}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
-  .card h4{font-size:14px;margin-bottom:6px;font-weight:600}
-  .card p,.card li{font-size:13.5px;color:var(--muted)}
+  .card h4{font-size:14px;margin-bottom:6px;font-weight:600}.card p,.card li{font-size:13.5px;color:var(--muted)}
   .c-pri{border-left:3px solid var(--primary)}.c-grn{border-left:3px solid var(--green)}.c-pur{border-left:3px solid var(--purple)}.c-acc{border-left:3px solid var(--accent)}.c-teal{border-left:3px solid var(--teal)}
-
   .callout{padding:14px 18px;border-radius:8px;margin:14px 0;font-size:14px;line-height:1.8}
   .co-pri{background:var(--primary-bg);border-left:3px solid var(--primary)}.co-grn{background:var(--green-bg);border-left:3px solid var(--green)}.co-acc{background:var(--accent-bg);border-left:3px solid var(--accent)}.co-pur{background:var(--purple-bg);border-left:3px solid var(--purple)}
   .callout strong{font-weight:700}
-
   table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
   th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
   th{background:var(--surface2);font-weight:700;color:var(--primary);white-space:nowrap;font-size:12.5px}
-  tr:hover{background:var(--surface)}
-  td:first-child{font-family:"Cascadia Code","Fira Code",monospace;font-size:12.5px;color:var(--primary)}
-
+  tr:hover{background:var(--surface)}td:first-child{font-family:"Cascadia Code","Fira Code",monospace;font-size:12.5px;color:var(--primary)}
   .en{color:var(--muted);font-style:italic;margin-left:6px;font-size:13.5px}.en::before{content:"— "}
   hr{border:none;border-top:1px solid var(--border);margin:32px 0}
-  .flow-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px;flex-wrap:wrap}
-  .step-num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:white;text-align:center;line-height:22px;font-size:11px;font-weight:700;flex-shrink:0}
-
   @media(max-width:768px){.wrapper{padding:24px 16px}.card-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrapper">
 
-<!-- ═══════ HERO ═══════ -->
 <div class="hero">
   <h1>Unified Spatial Object + Constraint System</h1>
-  <p class="sub">物品不知道自己属于谁。NPC 自己决定移动什么。<br/>约束是物理定律 — 校验在移动前触发。归属是 LLM 从感官中推断的。<br/><span class="en">Items don't know who owns them. NPCs decide what to move. Constraints are physics — validated before each move. Ownership is inferred by the LLM from sensory input.</span></p>
+  <p class="sub">物品只知坐标。NPC 只知空间。半径即权限。<br/>不需要访问控制约束 — 现有的 radius + interact_radius 已经覆盖。<br/><span class="en">Items know only coordinates. NPCs know only space. Radius is permission. No access-control constraint needed — existing radius + interact_radius already covers it.</span></p>
   <div class="tags">
-    <span class="tag tag-prim">Passive Objects 被动物体</span>
+    <span class="tag tag-prim">Passive Objects</span>
     <span class="tag tag-grn">NPC-Driven Move</span>
     <span class="tag tag-pur">Constraint System</span>
-    <span class="tag tag-acc">Radius = Perception</span>
+    <span class="tag tag-acc">Radius = Permission</span>
     <span class="tag tag-teal">Bilingual 中英</span>
   </div>
 </div>
 
-<!-- ═══════ 1. DESIGN PHILOSOPHY ═══════ -->
-<h2>1. Design Philosophy <span class="en">设计哲学</span></h2>
+<!-- ═══════ 1. CORE PRINCIPLES ═══════ -->
+<h2>1. Core Principles <span class="en">核心原则</span></h2>
 
 <div class="card-grid">
-  <div class="card c-pri"><h4 style="color:var(--primary)">Items are passive · 物品是被动的</h4><p>物品不知道谁持有自己。只知道自己在哪、有多少、能被多远处看到。没有 <code>owner</code> 属性、没有 <code>transfer()</code> 方法、没有 <code>belongs_to</code> 字段。</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">NPCs are active · NPC 是主动的</h4><p>NPC 决定移动什么。Geralt 把金币从口袋拿到手上。Rachel 从 Geralt 手上拿走金币。引擎不判断"交易"——引擎只看到两次独立的 <code>move()</code>。</p></div>
-  <div class="card c-pur"><h4 style="color:var(--purple)">Constraints are physical laws · 约束是物理定律</h4><p>约束校验物理可行性：位置上有足够的数量吗？物品耐久够吗？冷却好了吗？约束不判断"这个交易合理吗"。只判断"能做成吗"。</p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">Ownership is LLM inference · 归属是 LLM 推断</h4><p>引擎不记录"金币属于 Geralt"。引擎只报告金币在 Geralt 口袋里（radius=0）。LLM 自己从感官信息中推断归属。</p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">① 物品是被动的 · Items are passive</h4><p>物品只知道自己的空间状态——<code>qty_at(x,y)</code>、<code>radius_at(x,y)</code>、<code>move(from,to,qty,r)</code>。没有 <code>owner</code>、没有 <code>transfer</code>、没有 <code>belongs_to</code>。只能被移动 — 不知道谁在移动它。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">② NPC 是主动的 · NPCs are active</h4><p>NPC 决定移动什么。所有输入参数都是纯坐标。Geralt 把金币从 (12,7) 移到 (12,8)，Rachel 从 (12,8) 移到 (14,9)。引擎不知道"交易"——只知道两次 <code>move()</code>。</p></div>
+  <div class="card c-pur"><h4 style="color:var(--purple)">③ 约束即物理 · Constraints = physics</h4><p>约束校验物理可行性：那个位置有足够的数量吗？耐久够吗？冷却好了吗？约束不判断"谁的金币"、"交易是否公平"。只判断物理可行性。</p></div>
+  <div class="card c-acc"><h4 style="color:var(--accent)">④ 归属 = LLM 推断 · Ownership = LLM inference</h4><p>引擎不记录"金币属于 Geralt"。引擎只报告金币在某个坐标。LLM 从 sensory 看到"金币在 Geralt 身旁"——自己推断归属。</p></div>
+  <div class="card c-teal"><h4 style="color:var(--teal)">⑤ 半径即权限 · Radius = permission</h4><p>radius=0: sensory 不可见——LLM 根本不知道存在——不可能 move。radius=1: 可见、可交互——LLM 自己决定要不要尝试。不需要额外的 access control 约束。</p></div>
 </div>
 
 <!-- ═══════ 2. ARCHITECTURE ═══════ -->
 <h2>2. System Architecture <span class="en">系统架构</span></h2>
 
 <div class="diagram">
-<svg width="880" height="560" viewBox="0 0 880 560" xmlns="http://www.w3.org/2000/svg">
+<svg width="880" height="520" viewBox="0 0 880 520" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="sa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.420 0.135 220)"/></marker>
     <marker id="sb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.460 0.145 285)"/></marker>
     <marker id="sc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.480 0.145 155)"/></marker>
   </defs>
 
-  <!-- L1: YAML -->
-  <rect x="20" y="10" width="840" height="55" rx="10" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="440" y="32" text-anchor="middle" font-size="14" font-weight="800" fill="var(--primary)">LAYER 1 · YAML Definition · 声明层</text>
-  <text x="440" y="52" text-anchor="middle" font-size="11" fill="var(--muted)">声明实体、资源类型、交互动作、约束绑定 — 全部在此声明 · 引擎不感知</text>
+  <!-- L1 -->
+  <rect x="20" y="10" width="840" height="48" rx="10" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="440" y="32" text-anchor="middle" font-size="14" font-weight="800" fill="var(--primary)">LAYER 1 · YAML · 声明层</text>
+  <text x="440" y="50" text-anchor="middle" font-size="10" fill="var(--muted)">entity 声明: spatial_type · constraints · 初始位置 · 初始 radius</text>
+  <line x1="440" y1="58" x2="440" y2="76" stroke="var(--primary)" stroke-width="1.5" marker-end="url(#sa)"/>
 
-  <line x1="440" y1="65" x2="440" y2="85" stroke="var(--primary)" stroke-width="1.5" marker-end="url(#sa)"/>
+  <!-- L2 -->
+  <rect x="20" y="82" width="840" height="165" rx="10" fill="var(--surface)" stroke="var(--purple)" stroke-width="2"/>
+  <text x="440" y="106" text-anchor="middle" font-size="14" font-weight="800" fill="var(--purple)">LAYER 2 · Engine Modules · 引擎模块</text>
+  <line x1="40" y1="116" x2="840" y2="116" stroke="var(--border)" stroke-width="1"/>
 
-  <!-- L2: Engine -->
-  <rect x="20" y="90" width="840" height="180" rx="10" fill="var(--surface)" stroke="var(--purple)" stroke-width="2"/>
-  <text x="440" y="116" text-anchor="middle" font-size="14" font-weight="800" fill="var(--purple)">LAYER 2 · Engine · 引擎</text>
-  <line x1="40" y1="126" x2="840" y2="126" stroke="var(--border)" stroke-width="1"/>
+  <rect x="45" y="128" width="230" height="52" rx="8" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
+  <text x="160" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">SpatialObject</text>
+  <text x="160" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">move(xy→xy) · qty_at(xy) · radius_at(xy)</text>
 
-  <!-- Three modules -->
-  <rect x="40" y="138" width="240" height="60" rx="8" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
-  <text x="160" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">SpatialObject</text>
-  <text x="160" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">move(from,to,qty,r)</text>
-  <text x="160" y="192" text-anchor="middle" font-size="9.5" fill="var(--muted)">qty_at(pos) · radius_at(pos)</text>
+  <rect x="295" y="128" width="260" height="52" rx="8" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
+  <text x="425" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--purple)">Constraint System</text>
+  <text x="425" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">activation() · timing(pre/exec/post) · validate() · apply()</text>
 
-  <rect x="310" y="138" width="240" height="60" rx="8" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
-  <text x="430" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--purple)">Constraint System</text>
-  <text x="430" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">activation() · timing()</text>
-  <text x="430" y="192" text-anchor="middle" font-size="9.5" fill="var(--muted)">validate() · apply()</text>
+  <rect x="575" y="128" width="260" height="52" rx="8" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
+  <text x="705" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Interface</text>
+  <text x="705" y="168" text-anchor="middle" font-size="9" fill="var(--muted)">consent · direct · exchange — propose→accept→execute</text>
 
-  <rect x="580" y="138" width="250" height="60" rx="8" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="705" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Interface System</text>
-  <text x="705" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">consent / direct / exchange</text>
-  <text x="705" y="192" text-anchor="middle" font-size="9.5" fill="var(--muted)">propose→accept→execute</text>
+  <!-- Integration box -->
+  <rect x="220" y="194" width="440" height="44" rx="8" fill="var(--code-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="440" y="214" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">interaction.interact() · 唯一集成点</text>
+  <text x="440" y="230" text-anchor="middle" font-size="9.5" fill="var(--muted)">找 entity → 找 action → 找约束 → 分组执行 → 记录</text>
 
-  <!-- Integration -->
-  <rect x="240" y="212" width="400" height="50" rx="8" fill="var(--code-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="234" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--green)">interaction.interact() · 唯一集成点</text>
-  <text x="440" y="254" text-anchor="middle" font-size="10" fill="var(--muted)">找 entity → 找 action → 找约束 → 分组执行 → 记录</text>
+  <line x1="440" y1="247" x2="440" y2="265" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#sb)"/>
 
-  <line x1="440" y1="270" x2="440" y2="295" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#sb)"/>
+  <!-- L3 -->
+  <rect x="20" y="272" width="840" height="136" rx="10" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="440" y="296" text-anchor="middle" font-size="14" font-weight="800" fill="var(--green)">LAYER 3 · Perception Loop · 感知闭环</text>
+  <line x1="40" y1="306" x2="840" y2="306" stroke="var(--border)" stroke-width="1"/>
 
-  <!-- L3: Perception Loop -->
-  <rect x="20" y="300" width="840" height="155" rx="10" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="326" text-anchor="middle" font-size="14" font-weight="800" fill="var(--green)">LAYER 3 · Perception Loop · 感知闭环</text>
-  <line x1="40" y1="336" x2="840" y2="336" stroke="var(--border)" stroke-width="1"/>
+  <rect x="50" y="318" width="148" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+  <text x="124" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">sensory (含 objects)</text>
+  <rect x="214" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+  <text x="274" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">drives</text>
+  <rect x="350" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+  <text x="410" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">memory</text>
+  <rect x="486" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+  <text x="546" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">delta</text>
+  <rect x="622" y="318" width="120" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+  <text x="682" y="334" text-anchor="middle" font-size="10" fill="var(--muted)">feedback</text>
 
-  <!-- 5 channels -->
-  <rect x="40" y="350" width="145" height="26" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="112" y="368" text-anchor="middle" font-size="10" fill="var(--muted)">sensory (含资源)</text>
-  <rect x="198" y="350" width="120" height="26" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="258" y="368" text-anchor="middle" font-size="10" fill="var(--muted)">drives</text>
-  <rect x="330" y="350" width="120" height="26" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="390" y="368" text-anchor="middle" font-size="10" fill="var(--muted)">memory</text>
-  <rect x="462" y="350" width="120" height="26" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="522" y="368" text-anchor="middle" font-size="10" fill="var(--muted)">delta</text>
-  <rect x="594" y="350" width="120" height="26" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-  <text x="654" y="368" text-anchor="middle" font-size="10" fill="var(--muted)">feedback</text>
+  <line x1="124" y1="340" x2="124" y2="358" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="274" y1="340" x2="274" y2="358" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="410" y1="340" x2="410" y2="358" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="546" y1="340" x2="546" y2="358" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="682" y1="340" x2="682" y2="358" stroke="var(--muted)" stroke-width="1"/>
 
-  <!-- channels → ctx -->
-  <line x1="112" y1="376" x2="112" y2="395" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="258" y1="376" x2="258" y2="395" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="390" y1="376" x2="390" y2="395" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="522" y1="376" x2="522" y2="395" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="654" y1="376" x2="654" y2="395" stroke="var(--muted)" stroke-width="1"/>
+  <rect x="180" y="362" width="160" height="20" rx="4" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
+  <text x="260" y="376" text-anchor="middle" font-size="10" fill="var(--primary)">ctx dict → LLM</text>
 
-  <!-- ctx + LLM + execute -->
-  <rect x="200" y="398" width="160" height="22" rx="4" fill="var(--code-bg)" stroke="var(--primary)" stroke-width="1"/>
-  <text x="280" y="413" text-anchor="middle" font-size="10" fill="var(--primary)">ctx dict → LLM</text>
+  <line x1="340" y1="372" x2="370" y2="372" stroke="var(--muted)" stroke-width="1.5"/>
 
-  <line x1="360" y1="409" x2="390" y2="409" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#sa)"/>
+  <rect x="374" y="362" width="130" height="20" rx="4" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
+  <text x="439" y="376" text-anchor="middle" font-size="10" fill="var(--purple)">decision → execute</text>
 
-  <rect x="394" y="398" width="130" height="22" rx="4" fill="var(--code-bg)" stroke="var(--purple)" stroke-width="1"/>
-  <text x="459" y="413" text-anchor="middle" font-size="10" fill="var(--purple)">决策 → execute</text>
+  <line x1="504" y1="372" x2="534" y2="372" stroke="var(--muted)" stroke-width="1.5"/>
 
-  <line x1="524" y1="409" x2="554" y2="409" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#sa)"/>
+  <rect x="538" y="362" width="140" height="20" rx="4" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
+  <text x="608" y="376" text-anchor="middle" font-size="10" fill="var(--accent)">interact() → move(xy)</text>
 
-  <rect x="558" y="398" width="160" height="22" rx="4" fill="var(--code-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="638" y="413" text-anchor="middle" font-size="10" fill="var(--accent)">interact() → move()</text>
+  <line x1="608" y1="382" x2="608" y2="398" stroke="var(--muted)" stroke-width="1"/>
+  <line x1="608" y1="398" x2="300" y2="398" stroke="var(--green)" stroke-width="1.5" marker-end="url(#sc)"/>
+  <text x="450" y="394" text-anchor="middle" font-size="9" fill="var(--green)">closed loop — next tick channels reflect new reality ↑</text>
 
-  <!-- feedback arrow -->
-  <line x1="638" y1="420" x2="638" y2="440" stroke="var(--muted)" stroke-width="1"/>
-  <line x1="638" y1="440" x2="300" y2="440" stroke="var(--green)" stroke-width="1.5" marker-end="url(#sc)"/>
-
-  <rect x="300" y="432" width="338" height="18" rx="3" fill="var(--green-bg)"/>
-  <text x="469" y="445" text-anchor="middle" font-size="9.5" fill="var(--green)">↑ closed loop — next tick channels reflect reality ↑</text>
-
-  <!-- Bottom label -->
-  <text x="440" y="468" text-anchor="middle" font-size="12" fill="var(--muted)">引擎不感知任何领域语义 · 只执行物理移动 + 约束校验</text>
-  <text x="440" y="488" text-anchor="middle" font-size="12" fill="var(--muted)">Sensory → LLM decides → move() → constraint validates → world updates → next tick</text>
+  <text x="440" y="428" text-anchor="middle" font-size="11" fill="var(--muted)">引擎不知任何领域语义 · 只执行物理 move() + 约束校验</text>
+  <text x="440" y="446" text-anchor="middle" font-size="11" fill="var(--muted)">Sensory → LLM decides → move(xy) → constraints validate → world updates → next tick</text>
 
   <!-- Side: logger -->
-  <rect x="730" y="350" width="110" height="26" rx="4" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1"/>
-  <text x="785" y="368" text-anchor="middle" font-size="10" fill="var(--accent)">logger → SQLite</text>
-  <line x1="785" y1="376" x2="785" y2="395" stroke="var(--muted)" stroke-width="1"/>
+  <rect x="730" y="318" width="110" height="22" rx="4" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1"/>
+  <text x="785" y="334" text-anchor="middle" font-size="10" fill="var(--accent)">logger → SQLite</text>
 </svg>
 </div>
 
-<!-- ═══════ 3. SPATIAL OBJECT ═══════ -->
-<h2>3. The Spatial Object Interface <span class="en">空间物体接口</span></h2>
+<!-- ═══════ 3. SPATIAL OBJECT INTERFACE ═══════ -->
+<h2>3. Spatial Object Interface <span class="en">空间物体接口</span></h2>
 
-<p>一切物体——金币、苹果、剑、门——实现同一接口。唯一的区别是 Class Singleton（可互换物）用一个共享注册表，Entity（唯一物）用自身位置属性。</p>
+<p>一切物体实现同一接口。参数全是纯坐标——物品不知道谁调用自己。</p>
 
 <div class="card-grid">
-  <div class="card c-pri"><h4 style="color:var(--primary)">move(from, to, qty, radius)</h4><p>从位置 A 移动数量到位置 B，设置新半径。商品不知道谁在移动它。</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">qty_at(pos) → int</h4><p>该位置有多少。面向 Object 查询——不区分 gold 还是 sword。</p></div>
-  <div class="card c-pur"><h4 style="color:var(--purple)">radius_at(pos) → int</h4><p>该位置堆叠的当前可见半径。0 = pocket (不可见), 1 = hand (近处), 5 = ground (远处)。</p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">all_near(center, radius) → list</h4><p>中心点半径内的所有堆叠——供感官系统查询。引擎通过此接口渲染感官文本。</p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">move(from, to, qty, radius)</h4><p>从坐标 A 移到坐标 B。参数全是 (x,y)。<br/>物品不知道 from 是谁的口袋、to 是谁的手。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">qty_at(x, y) → int</h4><p>该坐标有多少。对于 entity — 如果自身在此位置则返回 1，否则 0。对于 class singleton — 查注册表返回数量。</p></div>
+  <div class="card c-pur"><h4 style="color:var(--purple)">radius_at(x, y) → int</h4><p>该坐标堆叠的可见半径。<code>0</code>=隐形, <code>1</code>=近处, <code>≥5</code>=远处可见。</p></div>
+  <div class="card c-acc"><h4 style="color:var(--accent)">all_near(x, y, r) → list</h4><p>中心坐标半径内的所有堆叠。供感官系统渲染。<br/>跳过 radius=0 的条目——口袋里的东西不可见。</p></div>
 </div>
 
-<div class="callout co-pri">
-  <strong>关键洞察:</strong> <code>move()</code> 不是 <code>transfer()</code>。没有 sender 和 receiver。只有 from 和 to 两个位置坐标。NPC 调用 <code>move(hand, hand, 5, 1)</code> — 引擎不知道 former 是谁的 hand、latter 是谁的 hand。物理即转移。归属即位置。
+<h3>3.1 Access Control — No Extra Constraint <span class="en">访问控制——零额外约束</span></h3>
+
+<table>
+<tr><th>Radius · 半径</th><th>语义 · Meaning</th><th>Sensory 可见?</th><th>谁能 move?</th><th>保护机制</th></tr>
+<tr><td><code>0</code></td><td>口袋 / 贴身</td><td style="color:var(--red)">❌ 不可见</td><td>LLM 不知道它的存在</td><td><strong>感官过滤</strong> — <code>all_near()</code> 跳过 r=0</td></tr>
+<tr><td><code>1</code></td><td>手中</td><td style="color:var(--green)">✅ 近处可见</td><td>interact_radius 内可尝试</td><td><strong>感官 + 距离</strong> — 看得到 + 够得着</td></tr>
+<tr><td><code>≥5</code></td><td>地面</td><td style="color:var(--green)">✅ 远处可见</td><td>view_radius 内可尝试</td><td><strong>感官</strong> — 看得到的都能尝试</td></tr>
+</table>
+
+<div class="callout co-acc">
+  <strong>不需要 <code>SpatialAccessConstraint</code>:</strong> radius=0 天然隔离——LLM 根本不知道口袋里有东西。radius=1 的物品在手中——LLM 看到它在那里，LLM 自己决定要不要尝试拿取。现有的 <code>interact_radius</code> 控制能否够到。没有一行额外的约束代码。全是物理。
 </div>
 
 <!-- ═══════ 4. CONSTRAINT SYSTEM ═══════ -->
 <h2>4. Constraint System <span class="en">约束系统</span></h2>
 
-<p>每个约束是一个自包含的物理定律。引擎分组循环——不知道自己执行的是什么约束。</p>
+<p>每个约束是一个自包含的物理定律。引擎只知 <code>timing</code> 和 <code>activate()</code>/<code>validate()</code>/<code>apply()</code>。</p>
 
-<div class="card-grid">
-  <div class="card c-pur"><h4 style="color:var(--purple)">activation() — 我该上班吗？</h4><p>约束检查双方都在 action 里声明了自己。单方声明 → 不激活。双方都声明 → 激活。</p></div>
-  <div class="card c-acc"><h4 style="color:var(--accent)">timing — 我在哪个阶段工作？</h4><p><code>pre</code>: 执行前校验。数量够吗？<br/><code>exec</code>: 执行中操作。扣减耐久。<br/><code>post</code>: 执行后记录。记日志。</p></div>
-  <div class="card c-grn"><h4 style="color:var(--green)">validate() — 物理可行吗？</h4><p>返回 (bool, reason)。不通过 → 引擎停止，不执行 apply。LLM 下轮感知失败原因。</p></div>
-  <div class="card c-pri"><h4 style="color:var(--primary)">apply() — 执行操作</h4><p>只在 validate 通过后调用。无状态残留——一次完成。</p></div>
-</div>
+<pre><code><span class="cmt"># 引擎一行调用。Zero domain knowledge.</span>
+constraints.process(entities, action_def, world)
 
-<h3>4.1 Engine Dispatch Loop <span class="en">引擎派发循环</span></h3>
-<pre><code><span class="kw">def</span> <span class="fn">process</span>(entities, action_def, world):
+<span class="cmt"># 模块内部 — 按 timing 分组，逐个 validate + apply</span>
+<span class="kw">def</span> <span class="fn">process</span>(entities, action_def, world):
     active = [c <span class="kw">for</span> c <span class="kw">in</span> ALL <span class="kw">if</span> c.activation(entities, action_def)]
-
     <span class="kw">for</span> group <span class="kw">in</span> [<span class="str">"pre"</span>, <span class="str">"exec"</span>, <span class="str">"post"</span>]:
         <span class="kw">for</span> c <span class="kw">in</span> group_by(active, group):
             ok, reason = c.validate(entities, action_def, world)
-            <span class="kw">if not</span> ok:
-                <span class="kw">return</span> Result(failed=c, reason=reason)
+            <span class="kw">if not</span> ok: <span class="kw">return</span> Result(failed=c, reason=reason)
             c.apply(entities, action_def, world)
     <span class="kw">return</span> Result(ok=True)
 
-<span class="cmt"># 引擎不知道任何约束名、不知道 gold 是什么、不知道什么是 "consent"</span>
-<span class="cmt"># 只知道: 拿一组 constraint 实例，按 timing 分组，循环调 validate + apply</span>
+<span class="cmt"># 引擎不知道任何约束名 · 不知道 gold 是什么 · 不知道 "consent" 是什么</span></code></pre>
+
+<div class="card-grid">
+  <div class="card c-pur"><h4 style="color:var(--purple)">activation() — 我该上班吗？</h4><p>双方都在 action 里声明了这个约束 → 激活。只有一方 → 不触发。引擎不参与判断。</p></div>
+  <div class="card c-acc"><h4 style="color:var(--accent)">timing — 我在哪个阶段？</h4><p><code>pre</code> = 执行前 · <code>exec</code> = 执行中 · <code>post</code> = 执行后。约束自己声明——引擎只分组。</p></div>
+  <div class="card c-grn"><h4 style="color:var(--green)">validate() — 现在能行吗？</h4><p>返回 (bool, reason)。不通过 → 引擎停止。LLM 下轮感知失败原因。</p></div>
+  <div class="card c-pri"><h4 style="color:var(--primary)">apply() — 执行</h4><p>只在 validate 通过后调用。原子操作——一次完成。无状态残留。</p></div>
+</div>
 
 <div class="callout co-pur">
-  <strong>新增约束:</strong> 三步——写一个 25 行的 class + <code>@register("name")</code> 装饰器 + YAML 里声明 <code>constraints: ["name"]</code>。引擎零改动。约束自己决定 timing、activation、如何 validate。
+  <strong>新增约束: </strong> 三步——写一个 25 行的 class + <code>@register("name")</code> 装饰器 + 在 YAML 某个 action 的 <code>constraints:</code> 列表里声明。引擎零改动。约束自己决定一切。
 </div>
 
 <!-- ═══════ 5. CONCRETE SCENARIO ═══════ -->
 <h2>5. Concrete Scenario: Gold Changes Hands <span class="en">具体场景：金币易手</span></h2>
 
-<p>Geralt 有 50 金币在口袋。Rachel 有 3 金币在口袋。Geralt 决定给 Rachel 5 金币。</p>
-
 <div class="diagram">
-<svg width="880" height="500" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg">
+<svg width="880" height="450" viewBox="0 0 880 450" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="ta" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.420 0.135 220)"/></marker>
     <marker id="tb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="oklch(0.480 0.145 155)"/></marker>
@@ -253,104 +232,78 @@
   </defs>
 
   <!-- TICK N -->
-  <rect x="15" y="8" width="850" height="28" rx="5" fill="var(--primary-bg)"/>
-  <text x="440" y="27" text-anchor="middle" font-size="13" font-weight="700" fill="var(--primary)">Tick N — Geralt 拿出金币 · 物理 move · 无约束触发</text>
+  <rect x="15" y="8" width="850" height="24" rx="5" fill="var(--primary-bg)"/>
+  <text x="440" y="25" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Tick N — Geralt 拿出金币 · 纯坐标 move · 无约束触发</text>
 
-  <rect x="25" y="46" width="400" height="95" rx="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>
-  <text x="225" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Geralt's LLM 决策</text>
-  <text x="225" y="86" text-anchor="middle" font-size="10" fill="var(--ink)">① 看到 Rachel, 口袋有 gold (r=0)</text>
-  <text x="225" y="102" text-anchor="middle" font-size="10" fill="var(--ink)">② 决定: 拿出 5 金币到手上</text>
-  <text x="225" y="118" text-anchor="middle" font-size="10" fill="var(--ink)">③ <tspan font-family="monospace">GoldCoin.move(pocket,hand,5,r=1)</tspan></text>
-  <text x="225" y="134" text-anchor="middle" font-size="9.5" fill="var(--muted)">无约束触发 — 只移动自己的东西</text>
+  <rect x="25" y="40" width="395" height="80" rx="8" fill="var(--surface)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="222" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">Geralt 操作 · LLM 决策</text>
+  <text x="222" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">① LLM: 拿出 5 金币到手中</text>
+  <text x="222" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">② <tspan font-family="monospace">GoldCoin.move((12,7),(12,8),5,r=1)</tspan></text>
+  <text x="222" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">物品不知道 "pocket" 和 "hand" — 只知道坐标</text>
 
-  <line x1="425" y1="93" x2="450" y2="93" stroke="var(--primary)" stroke-width="2" marker-end="url(#ta)"/>
+  <line x1="420" y1="80" x2="445" y2="80" stroke="var(--primary)" stroke-width="2" marker-end="url(#ta)"/>
 
-  <rect x="455" y="46" width="405" height="95" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="2"/>
-  <text x="657" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="var(--red)">Rachel's LLM 感知</text>
-  <text x="657" y="86" text-anchor="middle" font-size="10" fill="var(--ink)">⑤ sensory: Gold (0格, r=1) — 在 Geralt 手中</text>
-  <text x="657" y="102" text-anchor="middle" font-size="10" fill="var(--ink)">⑥ conversation: "收下这 5 个金币"</text>
-  <text x="657" y="118" text-anchor="middle" font-size="10" fill="var(--ink)">⑦ LLM 推理: "他在给钱。收下吧。"</text>
-  <text x="657" y="134" text-anchor="middle" font-size="9.5" fill="var(--muted)">归属推断: "金币在 Geralt 手里 = 是他的"</text>
+  <rect x="450" y="40" width="415" height="80" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="2"/>
+  <text x="657" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="var(--red)">Rachel 感知</text>
+  <text x="657" y="78" text-anchor="middle" font-size="9.5" fill="var(--ink)">③ sensory: Gold (0格, r=1) — 金色物体</text>
+  <text x="657" y="94" text-anchor="middle" font-size="9.5" fill="var(--ink)">④ conversation: "收下这 5 个金币"</text>
+  <text x="657" y="110" text-anchor="middle" font-size="9" fill="var(--muted)">LLM 推理: "他在给钱。收下吧。"</text>
 
   <!-- TICK N+1 -->
-  <line x1="440" y1="141" x2="440" y2="162" stroke="var(--green)" stroke-width="1.5" marker-end="url(#tb)"/>
+  <line x1="440" y1="120" x2="440" y2="138" stroke="var(--green)" stroke-width="1.5" marker-end="url(#tb)"/>
 
-  <rect x="15" y="168" width="850" height="24" rx="5" fill="var(--green-bg)"/>
-  <text x="440" y="185" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Tick N+1 — Rachel 接受 · 约束触发 · 引擎执行</text>
+  <rect x="15" y="144" width="850" height="24" rx="5" fill="var(--green-bg)"/>
+  <text x="440" y="161" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">Tick N+1 — Rachel 接受 · 约束触发 · 引擎执行</text>
 
-  <rect x="40" y="200" width="800" height="130" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
-  <text x="440" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">interaction.interact(rachel, gold, accept_consent, world)</text>
+  <rect x="40" y="176" width="800" height="112" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="440" y="196" text-anchor="middle" font-size="11" font-weight="700" fill="var(--green)">interaction.interact(rachel, gold, accept_consent, world)</text>
 
-  <text x="140" y="245" text-anchor="middle" font-size="10" fill="var(--ink)">⑧ 解析 action: accept_consent</text>
-  <text x="140" y="262" text-anchor="middle" font-size="10" fill="var(--ink)">⑨ 约束: qty_non_negative (pre)</text>
-  <text x="140" y="279" text-anchor="middle" font-size="10" fill="var(--ink)">⑩ validate: qty_at(hand)≥5 → ✓</text>
-  <text x="140" y="296" text-anchor="middle" font-size="10" fill="var(--ink)">⑪ EXEC: (none). POST: log.result()</text>
+  <text x="130" y="220" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑤ 解析 action: accept_consent</text>
+  <text x="130" y="238" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑥ 约束: qty_non_negative (pre)</text>
+  <text x="130" y="256" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑦ validate: qty_at(12,8)≥5 → ✓</text>
+  <text x="130" y="274" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑧ PRE 通过 · EXEC: 无 · POST: log</text>
 
-  <text x="440" y="245" text-anchor="middle" font-size="10" fill="var(--ink)">⑫ <tspan font-family="monospace">GoldCoin.move(h→h,5,r=1)</tspan></text>
-  <text x="440" y="262" text-anchor="middle" font-size="10" fill="var(--ink)">⑬ Rachel: <tspan font-family="monospace">move(h→p,5,r=0)</tspan></text>
-  <text x="440" y="279" text-anchor="middle" font-size="10" fill="var(--ink)">⑭ GoldCoin registry 更新</text>
+  <text x="440" y="220" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑨ <tspan font-family="monospace">GoldCoin.move((12,8),(14,9),5,1)</tspan></text>
+  <text x="440" y="238" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑩ Rachel: <tspan font-family="monospace">GoldCoin.move((14,9),(14,8),5,0)</tspan></text>
+  <text x="440" y="256" text-anchor="middle" font-size="9.5" fill="var(--ink)">⑪ GoldCoin registry 更新</text>
 
   <!-- TICK N+2 -->
-  <line x1="440" y1="330" x2="440" y2="350" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#tc)"/>
+  <line x1="440" y1="288" x2="440" y2="306" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#tc)"/>
 
-  <rect x="15" y="355" width="850" height="24" rx="5" fill="var(--accent-bg)"/>
-  <text x="440" y="372" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Tick N+2 — Closed Loop · 闭环感知</text>
+  <rect x="15" y="312" width="850" height="24" rx="5" fill="var(--accent-bg)"/>
+  <text x="440" y="329" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Tick N+2 — Closed Loop · 闭环感知</text>
 
-  <rect x="120" y="388" width="640" height="48" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
-  <text x="440" y="408" text-anchor="middle" font-size="11" fill="var(--ink)">Geralt: hand 空了, pocket 剩 45 · Rachel: pocket 从 3 变 8</text>
-  <text x="440" y="426" text-anchor="middle" font-size="10.5" fill="var(--green)">zero pending · zero protocol · pure physics + LLM inference</text>
+  <rect x="120" y="344" width="640" height="40" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="440" y="362" text-anchor="middle" font-size="10.5" fill="var(--ink)">Geralt: (12,8) qty=0 · pocket (12,7) 45 left · Rachel: (14,8) qty=8 (was 3)</text>
+  <text x="440" y="378" text-anchor="middle" font-size="10" fill="var(--green)">zero pending · zero protocol · zero ownership tracking · pure physics + LLM inference</text>
 
-  <text x="440" y="465" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">物品一次都不知道"属于谁"。</text>
-  <text x="440" y="485" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">NPC 各自 move。归属是 LLM 从感官中推断的。物理是唯一的会计。</text>
+  <text x="440" y="418" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">物品一次都不知道"属于谁"。输入全是纯坐标。</text>
+  <text x="440" y="438" text-anchor="middle" font-size="13" fill="var(--primary)" font-weight="600">NPC 各自 move。约束校验物理可行性。归属是 LLM 从感官中推断的。</text>
 </svg>
-</div>
-
-<div class="callout co-acc">
-  <strong>核心洞察:</strong> 整个流程不存在 <code>transfer(from_entity, to_entity)</code>。只存在 <code>move(from_pos, to_pos)</code>。物品不知道"谁在给谁"——只知道位置和半径变了。归属是 LLM 从 $sensory$ 推断的心智模型——不是引擎维护的数据结构。
 </div>
 
 <!-- ═══════ 6. EVOLUTION ═══════ -->
 <h2>6. Mechanism Evolution <span class="en">机制演进</span></h2>
 
 <table>
-<tr><th style="width:12%">Stage · 阶段</th><th style="width:18%">What · 做什么</th><th style="width:35%">How · 数据流</th><th style="width:35%">Constraint Role · 约束的角色</th></tr>
-<tr>
-  <td style="color:var(--primary);font-weight:700">v1<br/>Accounting</td>
-  <td>数字账本<br/><span style="color:var(--muted)">ledger balance</span></td>
-  <td><code>ledger[geralt]["gold"] = 50</code><br/><br/><code>transfer(A, B, gold, 5)</code></td>
-  <td>约束校验 <code>balance(id) ≥ n</code><br/><span style="color:var(--muted)">数字比较</span></td>
-</tr>
-<tr>
-  <td style="color:var(--green);font-weight:700">v2<br/>Spatial Resource</td>
-  <td>空间注册表<br/><span style="color:var(--muted)">class singleton</span></td>
-  <td><code>GoldCoin._registry[pos] = {qty, r}</code><br/><br/><code>move(from, to, qty, r)</code></td>
-  <td>约束校验 <code>qty_at(pos) ≥ n</code><br/><span style="color:var(--muted)">空间查询</span></td>
-</tr>
-<tr>
-  <td style="color:var(--purple);font-weight:700">v3<br/>Spatial Object</td>
-  <td>统一物体接口<br/><span style="color:var(--muted)">gold + sword 同接口</span></td>
-  <td>class singleton (gold) + entity (sword)<br/><br/>同一接口: position · radius · qty · move</td>
-  <td>约束不分物体类型<br/><span style="color:var(--muted)"><code>obj.qty_at(pos)</code> 统一</span></td>
-</tr>
-<tr>
-  <td style="color:var(--accent);font-weight:700">v4<br/>Passive Object</td>
-  <td><strong>物品不知道自己属于谁</strong><br/><span style="color:var(--muted);font-weight:700">归属 = LLM 推断</span></td>
-  <td>同 v3 接口<br/><br/><strong>核心区别:</strong> 无 <code>owner</code> · 无 <code>transfer</code><br/>"交易" = 两个 NPC 各自 move<br/>"归属" = LLM 从 sensory 推断</td>
-  <td>约束不变<br/><span style="color:var(--muted)">仍然校验 <code>qty_at(pos) ≥ n</code></span><br/><strong>新增:</strong> 约束绑定到 action，双方都声明才触发</td>
-</tr>
+<tr><th>Stage</th><th>What · 做什么</th><th>Data Model · 数据模型</th><th>Access Control · 访问控制</th></tr>
+<tr><td style="color:var(--primary);font-weight:700">v1<br/>Accounting</td><td>数字账本<span style="color:var(--muted)"><br/>ledger balance</span></td><td><code>ledger[geralt]["gold"] = 50</code><br/><code>transfer(A, B, gold, 5)</code></td><td><code>balance(id) ≥ n</code><br/><span style="color:var(--muted)">数字校验</span></td></tr>
+<tr><td style="color:var(--green);font-weight:700">v2<br/>Spatial Resource</td><td>空间注册表<span style="color:var(--muted)"><br/>class singleton</span></td><td><code>GoldCoin._registry[pos] = {qty, r}</code><br/><code>move(from, to, qty, r)</code></td><td><code>qty_at(pos) ≥ n</code><br/><span style="color:var(--muted)">空间查询</span></td></tr>
+<tr><td style="color:var(--purple);font-weight:700">v3<br/>Spatial Object</td><td>统一物体接口<span style="color:var(--muted)"><br/>gold + sword 同接口</span></td><td>class singleton + entity 同接口<br/><code>position·radius·qty·move</code></td><td><code>obj.qty_at(pos) ≥ n</code><br/><span style="color:var(--muted)">约束不区分物体类型</span></td></tr>
+<tr><td style="color:var(--accent);font-weight:700">v4<br/>Passive Object</td><td><strong>物品不知归属</strong><span style="color:var(--muted)"><br/>归属 = LLM 推断</span></td><td>同 v3 接口<br/><strong>核心区别:</strong> 无 owner · 无 transfer<br/>move() 输入纯坐标</td><td><strong>radius + interact_radius</strong><br/><span style="color:var(--muted)">零额外约束代码<br/>r=0 不可见·r=1 可达·r≥5 可见</span></td></tr>
 </table>
 
 <div class="callout co-pur">
-  <strong>演进的核心轨迹:</strong> 从"引擎知道归属"到"引擎不知道归属"。从"账本记录所有权"到"空间位置即所有权"。从"约束校验数字余额"到"约束校验空间数量"。每一层抽象都比前一层<strong>更接近物理、更远离会计</strong>。最终态: 物品是被动的——不知道自己属于谁。NPC 是主动的——决定移动什么。归属不存在于数据结构中——只存在于 LLM 的心智模型里。
+  <strong>演进核心轨迹:</strong> 从引擎知道归属 → 引擎不知道归属。从账本记录所有权 → 空间位置即所有权。从约束校验数字余额 → 约束校验空间数量。从需要专门的 access control 约束 → 半径天然隔离。每一层都比前一层<strong>更接近物理、更远离会计、更少代码</strong>。
 </div>
 
-<!-- ═══════ 7. IMPLEMENTATION ═══════ -->
+<!-- ═══════ 7. FILE IMPACT ═══════ -->
 <h2>7. Implementation <span class="en">实现概要</span></h2>
 
 <table>
 <tr><th>File · 文件</th><th>Lines · 行数</th><th>Purpose · 用途</th></tr>
 <tr><td><code>src/core/spatial/__init__.py</code></td><td>~60</td><td>SpatialObject ABC — 统一接口基类</td></tr>
-<tr><td><code>src/core/spatial/class_singleton.py</code></td><td>~50</td><td>ClassSingleton impl — 共享注册表，可堆叠</td></tr>
+<tr><td><code>src/core/spatial/class_singleton.py</code></td><td>~50</td><td>ClassSingleton — 共享注册表，可堆叠拆分</td></tr>
 <tr><td><code>src/core/spatial/entity_impl.py</code></td><td>~30</td><td>EntityImpl — 唯一物品，自身位置属性</td></tr>
 <tr><td><code>src/core/constraints/__init__.py</code></td><td>~40</td><td>Constraint ABC + Registry + process()</td></tr>
 <tr><td><code>src/core/constraints/qty_non_negative.py</code></td><td>~25</td><td>数量非负约束</td></tr>
@@ -362,12 +315,12 @@
 </table>
 
 <div class="callout co-grn">
-  <strong>总计:</strong> ~320 行新 Python，~30 行 YAML 配置。不需要 ledger 类。不需要 transfer 方法。不需要 owner 属性。不需要独立的 resources 通道。万物统一为 SpatialObject。物品是被动的——NPC 是主动的——归属是 LLM 推断的。
+  <strong>总计:</strong> ~320 行新 Python，~30 行 YAML 配置。不需要 ledger 类。不需要 transfer 方法。不需要 owner 属性。不需要 access-control 约束。不需要独立的 resources 通道。万物统一为 SpatialObject。半径即权限。
 </div>
 
 <hr>
 <p style="text-align:center;color:var(--muted);font-size:13px">AgentWorld Async · Unified Spatial Object + Constraint System · v4.0 · Asher · 2026</p>
-<p style="text-align:center;color:var(--muted);font-size:12px">Items don't know who owns them. Physics is the only ledger.</p>
+<p style="text-align:center;color:var(--muted);font-size:12px">Items know only coordinates. Radius is permission. No extra access-control code.</p>
 
 </div>
 </body>
