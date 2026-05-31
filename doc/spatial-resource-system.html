@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Spatial Resource + Constraint System — AgentWorld Async</title>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:oklch(0.080 0.001 260);--surface:oklch(0.120 0.001 260);--surface2:oklch(0.155 0.001 260);--border:oklch(0.220 0.001 260);
+    --ink:oklch(0.950 0.000 0);--muted:oklch(0.550 0.002 260);
+    --primary:oklch(0.680 0.145 175);--primary-bg:oklch(0.155 0.030 175);
+    --accent:oklch(0.600 0.155 45);--accent-bg:oklch(0.145 0.035 45);
+    --green:oklch(0.680 0.150 142);--green-bg:oklch(0.140 0.030 142);
+    --purple:oklch(0.620 0.145 290);--purple-bg:oklch(0.140 0.035 290);
+    --teal:oklch(0.650 0.095 190);--teal-bg:oklch(0.130 0.022 190);
+    --red:oklch(0.600 0.170 25);--red-bg:oklch(0.145 0.035 25);
+    --code-bg:oklch(0.100 0.001 260);--code-inline:oklch(0.150 0.002 260)
+  }
+  body{background:var(--bg);color:var(--ink);font:14.5px/1.8 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrapper{max-width:1080px;margin:0 auto;padding:52px 32px 64px}
+
+  .hero{text-align:center;padding:40px 0 36px;border-bottom:1px solid var(--border);margin-bottom:40px}
+  .hero h1{font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:6px;text-wrap:balance}
+  .hero .sub{font-size:14px;color:var(--muted);margin-bottom:16px}
+  .hero .tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .tag{padding:3px 11px;border-radius:4px;font-size:11.5px;font-weight:600;letter-spacing:0.1px}
+  .tag-prim{background:var(--primary-bg);color:var(--primary)}.tag-grn{background:var(--green-bg);color:var(--green)}.tag-pur{background:var(--purple-bg);color:var(--purple)}.tag-acc{background:var(--accent-bg);color:var(--accent)}.tag-teal{background:var(--teal-bg);color:var(--teal)}.tag-red{background:var(--red-bg);color:var(--red)}
+
+  h2{font-size:20px;font-weight:700;color:#fff;margin:48px 0 12px;padding-bottom:5px;border-bottom:1px solid var(--border);letter-spacing:-0.3px}
+  h3{font-size:16px;font-weight:600;color:var(--primary);margin:28px 0 8px}
+  p,li{font-size:14px;margin:6px 0}
+  ul,ol{margin:6px 0 6px 20px}
+  li{margin:3px 0}
+
+  code{background:var(--code-inline);padding:2px 6px;border-radius:3px;font-size:12.5px;font-family:"Cascadia Code","Fira Code",monospace;color:var(--green)}
+  pre{background:var(--code-bg);padding:14px 18px;border-radius:6px;overflow-x:auto;font-size:12.5px;line-height:1.55;margin:8px 0;border:1px solid var(--border)}
+  pre code{background:none;padding:0;display:block}
+  .kw{color:var(--purple)}.str{color:var(--accent)}.fn{color:var(--primary)}.cmt{color:var(--muted)}.key{color:var(--teal)}
+
+  .diagram{display:flex;justify-content:center;margin:20px 0}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;margin:14px 0}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .card h4{font-size:13.5px;margin-bottom:6px;font-weight:600}
+  .card p,.card li{font-size:13px;color:var(--muted);line-height:1.6}
+  .c-pri{border-left:3px solid var(--primary)}.c-grn{border-left:3px solid var(--green)}.c-pur{border-left:3px solid var(--purple)}.c-acc{border-left:3px solid var(--accent)}.c-teal{border-left:3px solid var(--teal)}.c-red{border-left:3px solid var(--red)}
+
+  .callout{padding:12px 16px;border-radius:6px;margin:12px 0;font-size:13.5px}
+  .co-pri{background:var(--primary-bg);border-left:3px solid var(--primary)}.co-grn{background:var(--green-bg);border-left:3px solid var(--green)}.co-acc{background:var(--accent-bg);border-left:3px solid var(--accent)}.co-red{background:var(--red-bg);border-left:3px solid var(--red)}.co-pur{background:var(--purple-bg);border-left:3px solid var(--purple)}
+  .callout strong{font-weight:700}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;border-radius:6px;overflow:hidden}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{background:var(--surface2);font-weight:700;color:var(--primary);white-space:nowrap;font-size:12px}
+  tr:hover{background:var(--surface)}
+  td:first-child{font-family:"Cascadia Code","Fira Code",monospace;font-size:12px}
+
+  .en{color:var(--muted);font-style:italic;margin-left:6px;font-size:13px}.en::before{content:"— "}
+  hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+
+  @media(max-width:768px){.wrapper{padding:24px 16px}.card-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<div class="hero">
+<h1>Spatial Resource + Constraint System</h1>
+<p class="sub">空间化资源 · 类单例注册表 · 约束原子化 · 物理即守恒</p>
+<p class="sub en">Spatial Resources · Singleton Registry · Atomic Constraints · Physics as Conservation</p>
+<div class="tags">
+  <span class="tag tag-prim">Paradigm Shift 范式转换</span>
+  <span class="tag tag-grn">Physics Engine 物理引擎</span>
+  <span class="tag tag-pur">Constraint System</span>
+  <span class="tag tag-acc">Zero Accounting</span>
+  <span class="tag tag-teal">Bilingual 中英</span>
+  <span class="tag tag-red">v3.0</span>
+</div>
+</div>
+
+<!-- ═══════ 1. THE PARADIGM SHIFT ═══════ -->
+<h2>1. The Paradigm Shift <span class="en">范式转换</span></h2>
+
+<div class="diagram">
+<svg width="900" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="sa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#f87171"/></marker>
+    <marker id="sb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+  </defs>
+
+  <!-- Before -->
+  <rect x="15" y="20" width="420" height="160" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
+  <text x="225" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="var(--red)">Before: Accounting Model · 会计模型</text>
+  <line x1="30" y1="56" x2="420" y2="56" stroke="var(--border)" stroke-width="1"/>
+  <text x="225" y="78" text-anchor="middle" font-size="11" fill="var(--muted)">ledger._holdings = {geralt: {gold: 50}}</text>
+  <text x="225" y="98" text-anchor="middle" font-size="11" fill="var(--muted)">resources channel → ctx → "gold: 50"</text>
+  <text x="225" y="118" text-anchor="middle" font-size="11" fill="var(--muted)">transfer(src, tgt, gold, 5) → 数字变动</text>
+  <text x="225" y="138" text-anchor="middle" font-size="11" fill="var(--muted)">conservation.validate: balance ≥ amount</text>
+  <text x="225" y="158" text-anchor="middle" font-size="10" fill="var(--muted)">需要额外的 resources channel · 需要 ledger 类</text>
+  <text x="225" y="174" text-anchor="middle" font-size="10" fill="var(--muted)">资源和非资源 entity 不是统一路径</text>
+
+  <!-- Arrow -->
+  <line x1="435" y1="100" x2="465" y2="100" stroke="var(--muted)" stroke-width="2" marker-end="url(#sa)"/>
+  <text x="450" y="92" text-anchor="middle" font-size="10" fill="var(--muted)">→</text>
+
+  <!-- After -->
+  <rect x="465" y="20" width="420" height="160" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="675" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="var(--green)">After: Physics Model · 物理模型</text>
+  <line x1="480" y1="56" x2="870" y2="56" stroke="var(--border)" stroke-width="1"/>
+  <text x="675" y="78" text-anchor="middle" font-size="11" fill="var(--muted)">GoldCoin._registry[(geralt_pocket)] = {qty:50, radius:0}</text>
+  <text x="675" y="98" text-anchor="middle" font-size="11" fill="var(--muted)">sensory: Gold (0格, radius=1) — 金色物体</text>
+  <text x="675" y="118" text-anchor="middle" font-size="11" fill="var(--muted)">move(pocket→hand, 5, radius=1) → 物理移动</text>
+  <text x="675" y="138" text-anchor="middle" font-size="11" fill="var(--muted)">conservation.validate: qty_at(pos) ≥ amount</text>
+  <text x="675" y="158" text-anchor="middle" font-size="10" fill="var(--muted)">不需要额外的 resources channel · 不需要 ledger</text>
+  <text x="675" y="174" text-anchor="middle" font-size="10" fill="var(--muted)">金币和剑和 NPC 统一——都是空间实体</text>
+</svg>
+</div>
+
+<div class="card-grid">
+<div class="card c-red"><h4 style="color:var(--red)">Accounting Model · 会计</h4><p>Resources are numbers in a ledger. Ownership is a mapping from entity→integer. Transfer is arithmetic. The engine tracks balances.</p></div>
+<div class="card c-grn"><h4 style="color:var(--green)">Physics Model · 物理</h4><p>Resources are objects in space with position, quantity, and visibility radius. Ownership is implicit in position. Transfer is movement. The engine tracks spatial state.</p></div>
+<div class="card c-pur"><h4 style="color:var(--purple)">Singleton Registry · 类单例</h4><p>One class per interchangeable resource type. <code>GoldCoin</code> maintains ONE spatial registry for ALL gold coins in the world. Fungible items share a registry; unique items are individual entities.</p></div>
+<div class="card c-teal"><h4 style="color:var(--teal)">Radius = Permission · 半径=权限</h4><p>radius=0: in pocket (carried, invisible). radius=1: in hand (visible, transferable). radius=5: on ground (visible to all nearby). Visibility by radius — no separate permission system.</p></div>
+</div>
+
+<!-- ═══════ 2. ARCHITECTURE OVERVIEW ═══════ -->
+<h2>2. Architecture Overview <span class="en">架构总览</span></h2>
+
+<div class="diagram">
+<svg width="920" height="680" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="aa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#60a5fa"/></marker>
+    <marker id="ab" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="ac" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+  </defs>
+
+  <!-- LAYER 1: YAML -->
+  <text x="460" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">LAYER 1 — YAML Definition · 定义层</text>
+
+  <rect x="15" y="30" width="280" height="45" rx="6" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="1.5"/>
+  <text x="155" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">world.yaml — entity declarations</text>
+  <text x="155" y="66" text-anchor="middle" font-size="9" fill="var(--muted)">spatial_resource: GoldCoin</text>
+
+  <rect x="310" y="30" width="280" height="45" rx="6" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="1.5"/>
+  <text x="450" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">action_interfaces.yaml</text>
+  <text x="450" y="66" text-anchor="middle" font-size="9" fill="var(--muted)">send: {constraints:[conservation], type:consent}</text>
+
+  <rect x="605" y="30" width="300" height="45" rx="6" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="1.5"/>
+  <text x="755" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="var(--primary)">constraints.yaml</text>
+  <text x="755" y="66" text-anchor="middle" font-size="9" fill="var(--muted)">conservation: {class: Conservation, phase: pre}</text>
+
+  <line x1="460" y1="75" x2="460" y2="100" stroke="var(--muted)" stroke-width="2" marker-end="url(#aa)"/>
+
+  <!-- LAYER 2: Engine Modules -->
+  <text x="460" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">LAYER 2 — Engine Modules · 引擎模块</text>
+
+  <rect x="15" y="138" width="280" height="65" rx="6" fill="var(--teal-bg)" stroke="var(--teal)" stroke-width="1.5"/>
+  <text x="155" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--teal)">SpatialResource (基类)</text>
+  <text x="155" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">_registry: dict[pos→{qty,radius}]</text>
+  <text x="155" y="194" text-anchor="middle" font-size="9.5" fill="var(--muted)">move(), qty_at(), all_near(pos,radius)</text>
+
+  <rect x="310" y="138" width="280" height="65" rx="6" fill="var(--purple-bg)" stroke="var(--purple)" stroke-width="1.5"/>
+  <text x="450" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--purple)">Constraint System</text>
+  <text x="450" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">Constraint(ABC): validate(), apply()</text>
+  <text x="450" y="194" text-anchor="middle" font-size="9.5" fill="var(--muted)">ConstraintRegistry: match(), process()</text>
+
+  <rect x="605" y="138" width="300" height="65" rx="6" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="755" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Action Interface System</text>
+  <text x="755" y="178" text-anchor="middle" font-size="9.5" fill="var(--muted)">ActionInterface: execute()</text>
+  <text x="755" y="194" text-anchor="middle" font-size="9.5" fill="var(--muted)">consent / direct / exchange types</text>
+
+  <line x1="155" y1="203" x2="155" y2="230" stroke="var(--teal)" stroke-width="1.5" marker-end="url(#aa)"/>
+  <line x1="450" y1="203" x2="450" y2="230" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#ab)"/>
+  <line x1="755" y1="203" x2="755" y2="230" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#aa)"/>
+
+  <!-- LAYER 3: Integration -->
+  <text x="460" y="250" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">LAYER 3 — Integration Points · 集成点</text>
+
+  <rect x="80" y="268" width="760" height="115" rx="8" fill="var(--surface)" stroke="var(--green)" stroke-width="2"/>
+  <text x="460" y="292" text-anchor="middle" font-size="12" font-weight="700" fill="var(--green)">interaction.interact() — Unified Dispatch · 统一派发</text>
+  <line x1="95" y1="300" x2="825" y2="300" stroke="var(--border)" stroke-width="1"/>
+
+  <text x="210" y="322" text-anchor="middle" font-size="10" fill="var(--muted)">1. Resolve action interface</text>
+  <text x="210" y="338" text-anchor="middle" font-size="10" fill="var(--muted)">2. Resolve spatial resources</text>
+  <text x="210" y="354" text-anchor="middle" font-size="10" fill="var(--muted)">3. interface.execute()</text>
+  <text x="210" y="370" text-anchor="middle" font-size="10" fill="var(--muted)"> → constraints.process()</text>
+
+  <text x="520" y="322" text-anchor="middle" font-size="10" fill="var(--muted)">4. validate pre constraints</text>
+  <text x="520" y="338" text-anchor="middle" font-size="10" fill="var(--muted)">5. apply exec constraints</text>
+  <text x="520" y="354" text-anchor="middle" font-size="10" fill="var(--muted)">6. validate post constraints</text>
+  <text x="520" y="370" text-anchor="middle" font-size="10" fill="var(--muted)">7. log.result() + channel refresh</text>
+
+  <text x="780" y="322" text-anchor="middle" font-size="10" fill="var(--muted)">Success → channels updated</text>
+  <text x="780" y="338" text-anchor="middle" font-size="10" fill="var(--muted)">Failure → specific feedback</text>
+  <text x="780" y="354" text-anchor="middle" font-size="10" fill="var(--muted)">LLM perceives next tick</text>
+  <text x="780" y="370" text-anchor="middle" font-size="10" fill="var(--muted)">Re-decides autonomously</text>
+
+  <line x1="460" y1="383" x2="460" y2="410" stroke="var(--muted)" stroke-width="2" marker-end="url(#ac)"/>
+
+  <!-- LAYER 4: Sensory Loop -->
+  <text x="460" y="432" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)">LAYER 4 — Perception + Feedback Loop · 感知+反馈闭环</text>
+
+  <rect x="80" y="450" width="760" height="95" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+
+  <!-- 6 channels -->
+  <rect x="100" y="470" width="105" height="24" rx="3" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1" opacity="0.6"/>
+  <text x="152" y="486" text-anchor="middle" font-size="9" fill="var(--green)">sensory</text>
+  <rect x="215" y="470" width="105" height="24" rx="3" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1" opacity="0.6"/>
+  <text x="267" y="486" text-anchor="middle" font-size="9" fill="var(--green)">drives</text>
+  <rect x="330" y="470" width="105" height="24" rx="3" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1" opacity="0.6"/>
+  <text x="382" y="486" text-anchor="middle" font-size="9" fill="var(--green)">memory</text>
+  <rect x="445" y="470" width="105" height="24" rx="3" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1" opacity="0.6"/>
+  <text x="497" y="486" text-anchor="middle" font-size="9" fill="var(--green)">delta</text>
+  <rect x="560" y="470" width="105" height="24" rx="3" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1" opacity="0.6"/>
+  <text x="612" y="486" text-anchor="middle" font-size="9" fill="var(--green)">feedback</text>
+  <rect x="675" y="470" width="105" height="24" rx="3" fill="var(--teal-bg)" stroke="var(--teal)" stroke-width="2"/>
+  <text x="727" y="486" text-anchor="middle" font-size="9" fill="var(--teal)">spatial res.</text>
+
+  <text x="460" y="522" text-anchor="middle" font-size="10" fill="var(--muted)">sensory now includes spatial resources naturally — no separate resources channel needed</text>
+  <text x="460" y="538" text-anchor="middle" font-size="10" fill="var(--muted)">sensory → 现在天然包含空间资源 — 不需要独立的 resources 通道</text>
+
+  <line x1="460" y1="545" x2="460" y2="580" stroke="var(--accent)" stroke-width="2"/>
+
+  <!-- LAYER 5: Next Tick -->
+  <rect x="150" y="590" width="620" height="55" rx="8" fill="var(--surface2)" stroke="var(--accent)" stroke-width="2"/>
+  <text x="460" y="614" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">Next Tick — LLM Perceives Consequences · 下轮感知</text>
+  <text x="460" y="636" text-anchor="middle" font-size="10" fill="var(--muted)">resources moved? gold visible? constraint feedback? → LLM re-decides → engine processes again</text>
+</svg>
+</div>
+
+<!-- ═══════ 3. SPATIAL RESOURCE ═══════ -->
+<h2>3. Spatial Resource Base Class <span class="en">空间资源基类</span></h2>
+
+<p>One singleton class per interchangeable resource type. Unique items remain individual entities — the singleton pattern only covers fungible resources (gold, mana, apples).</p>
+
+<pre><code><span class="kw">class</span> <span class="fn">SpatialResource</span>:
+    <span class="cmt"># 类单例 — 一个资源类型一个注册表</span>
+    <span class="cmt"># Singleton — one registry per resource type</span>
+    <span class="cmt"># self._registry: {(x,y): {qty: int, radius: int}}</span>
+
+    <span class="kw">def</span> <span class="fn">move</span>(self, from_pos, to_pos, qty, new_radius):
+        <span class="cmt"># 从 from_pos 移 qty 到 to_pos，设置该位置堆叠的 radius</span>
+        <span class="cmt"># Move qty from from_pos to to_pos, set new_radius for destination stack</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">qty_at</span>(self, pos) → <span class="kw">int</span>:
+        <span class="cmt"># 该位置有多少</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">all_at</span>(self, pos) → dict:
+        <span class="cmt"># 返回 {qty, radius} — 供 constraint 校验</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">all_near</span>(self, pos, radius) → list[tuple]:
+        <span class="cmt"># 返回半径内所有堆叠 — 供 sensory 通道</span>
+        <span class="cmt"># 引擎不区分这是 resource 还是 item → channel 自然渲染</span>
+        ...</code></pre>
+
+<div class="callout co-pri">
+<strong>Concrete example / 具体实例:</strong> <code>GoldCoin(move, qty_at, all_near)</code> — 50 gold at geralt's pocket position, radius 0, invisible. geralt calls <code>move(pocket, hand, 5, radius=1)</code> — 5 gold now at hand position, radius 1, visible to nearby NPCs.
+</div>
+
+<!-- ═══════ 4. CONSTRAINT SYSTEM ═══════ -->
+<h2>4. Constraint System <span class="en">约束系统</span></h2>
+
+<p>Constraints are atomic, stateless physical laws. Each constraint declares its <code>activation</code> condition, <code>timing</code> group, and provides <code>validate()</code> + <code>apply()</code> methods.</p>
+
+<h3>4.1 Constraint ABC <span class="en">约束抽象基类</span></h3>
+<pre><code><span class="kw">class</span> <span class="fn">Constraint</span>(ABC):
+    <span class="key">timing</span>: str = <span class="str">"exec"</span>   <span class="cmt"># "pre" | "exec" | "post"</span>
+
+    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def) → <span class="kw">bool</span>:
+        <span class="cmt"># 我应该被触发吗？约束自己判断。</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world) → (bool, str):
+        <span class="cmt"># 校验物理可行性。返回 (pass, reason)</span>
+        ...
+
+    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world):
+        <span class="cmt"># 执行物理操作。validate 通过后调用。</span>
+        ...</code></pre>
+
+<h3>4.2 Example: qty_non_negative <span class="en">示例：数量非负约束</span></h3>
+<pre><code>@<span class="fn">register</span>(<span class="str">"qty_non_negative"</span>)
+<span class="kw">class</span> <span class="fn">QtyNonNegativeConstraint</span>(Constraint):
+    <span class="key">timing</span> = <span class="str">"pre"</span>
+
+    <span class="kw">def</span> <span class="fn">activation</span>(self, entities, action_def):
+        <span class="cmt"># 触发条件: action 里声明了 resource_type</span>
+        <span class="kw">return</span> <span class="str">"resource_type"</span> <span class="kw">in</span> action_def
+
+    <span class="kw">def</span> <span class="fn">validate</span>(self, entities, action_def, world):
+        res = get_resource(action_def[<span class="str">"resource_type"</span>])
+        pos = action_def.get(<span class="str">"from_pos"</span>, entities[0].pos)
+        need = action_def.get(<span class="str">"qty"</span>, 1)
+        have = res.qty_at(pos)
+        ok = have >= need
+        reason = f<span class="str">"{res.name}: need {need}, have {have}"</span> <span class="kw">if not</span> ok <span class="kw">else</span> <span class="str">""</span>
+        <span class="kw">return</span> ok, reason
+
+    <span class="kw">def</span> <span class="fn">apply</span>(self, entities, action_def, world):
+        <span class="kw">pass</span>   <span class="cmt"># qty check is a gate — no execution needed</span></code></pre>
+
+<div class="callout co-acc">
+<strong>引擎循环 / Engine Loop:</strong> <code>constraints.process(entities, action_def, world)</code> — groups active constraints by timing (pre/exec/post), calls validate() then apply() for each group. If any pre constraint fails → stops, returns failure info. LLM perceives failure next tick and re-decides. <strong>No retry, no pending, no two-phase. Single pass, result-driven.</strong>
+</div>
+
+<!-- ═══════ 5. ACTION INTERFACES ═══════ -->
+<h2>5. Action Interfaces <span class="en">动作接口</span></h2>
+
+<p>Action interfaces decouple interaction flow from constraint logic. The engine dispatches by action type name. The interface manages its own lifecycle (consent, direct, exchange) independently.</p>
+
+<pre><code><span class="kw">class</span> <span class="fn">ActionInterface</span>(ABC):
+    <span class="kw">def</span> <span class="fn">execute</span>(self, agent, target, action_def, decision, world) → ProcessResult:
+        <span class="cmt"># 每个接口自己决定: 直接执行? 两阶段? 需要约束? 何时触发?</span>
+        ...</code></pre>
+
+<h3>5.1 Consent Interface <span class="en">同意接口</span></h3>
+<pre><code><span class="kw">class</span> <span class="fn">ConsentInterface</span>(ActionInterface):
+    <span class="kw">def</span> <span class="fn">execute</span>(self, agent, target, action_def, decision, world):
+        <span class="kw">if</span> decision.get(<span class="str">"consent_action"</span>) == <span class="str">"propose"</span>:
+            <span class="cmt"># 提议阶段 — 存入 target._pending_actions, 不执行约束</span>
+            target.get(<span class="str">"agent"</span>)._pending_actions.append(decision)
+            <span class="kw">return</span> ProcessResult(status=<span class="str">"proposed"</span>)
+
+        <span class="kw">elif</span> decision.get(<span class="str">"consent_action"</span>) == <span class="str">"accept"</span>:
+            <span class="cmt"># 确认阶段 — 触发约束, 原子执行</span>
+            <span class="kw">return</span> constraints.process([agent, target], action_def, world)
+
+        <span class="kw">elif</span> decision.get(<span class="str">"consent_action"</span>) == <span class="str">"reject"</span>:
+            clear_pending(target, decision[<span class="str">"consent_id"</span>])
+            <span class="kw">return</span> ProcessResult(status=<span class="str">"rejected"</span>)</code></pre>
+
+<h3>5.2 Direct Interface <span class="en">直接接口</span></h3>
+<pre><code><span class="kw">class</span> <span class="fn">DirectInterface</span>(ActionInterface):
+    <span class="kw">def</span> <span class="fn">execute</span>(self, agent, target, action_def, decision, world):
+        <span class="cmt"># 直接执行 — 立即触发约束</span>
+        <span class="kw">return</span> constraints.process([agent, target], action_def, world)</code></pre>
+
+<!-- ═══════ 6. FULL WORKFLOW ═══════ -->
+<h2>6. Complete Workflow Example: Gold Transfer <span class="en">完整流程范例：金币转移</span></h2>
+
+<div class="diagram">
+<svg width="920" height="520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="wa" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#c084fc"/></marker>
+    <marker id="wb" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#4ade80"/></marker>
+    <marker id="wc" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5Z" fill="#22d3ee"/></marker>
+  </defs>
+
+  <text x="460" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Gold Transfer Lifecycle — Geralt → Rachel · 金币转移生命周期</text>
+
+  <!-- Phase 1: Propose -->
+  <rect x="10" y="30" width="900" height="14" rx="3" fill="var(--surface2)"/>
+  <text x="460" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--purple)">Tick N — Geralt proposes: "这5个金币给你" · 杰洛特提议</text>
+
+  <rect x="20" y="50" width="420" height="100" rx="8" fill="var(--primary-bg)" stroke="var(--primary)" stroke-width="2"/>
+  <text x="230" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">Geralt (proposer) · 杰洛特</text>
+  <line x1="35" y1="80" x2="405" y2="80" stroke="var(--border)" stroke-width="1"/>
+  <text x="230" y="100" text-anchor="middle" font-size="10" fill="var(--muted)">LLM: move 5 gold from pocket to hand (radius: 0→1)</text>
+  <text x="230" y="116" text-anchor="middle" font-size="10" fill="var(--muted)">GoldCoin.move(pocket, hand, 5, radius=1)</text>
+  <text x="230" y="132" text-anchor="middle" font-size="10" fill="var(--muted)">dialogue: "这5个金币你收下"</text>
+  <text x="230" y="148" text-anchor="middle" font-size="10" fill="var(--accent)">constraint: 不触发 — 只是移动到自己手里</text>
+
+  <line x1="440" y1="100" x2="480" y2="100" stroke="var(--purple)" stroke-width="2" marker-end="url(#wa)"/>
+
+  <rect x="485" y="50" width="420" height="100" rx="8" fill="var(--red-bg)" stroke="var(--red)" stroke-width="2"/>
+  <text x="695" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="var(--red)">Rachel (perceiver) · 瑞秋</text>
+  <line x1="500" y1="80" x2="870" y2="80" stroke="var(--border)" stroke-width="1"/>
+  <text x="695" y="100" text-anchor="middle" font-size="10" fill="var(--muted)">sensory: Gold (0格, radius=1) — Geralt 手中有金色物体</text>
+  <text x="695" y="116" text-anchor="middle" font-size="10" fill="var(--muted)">conversation_text: "[1s前] Geralt: 这5个金币你收下"</text>
+  <text x="695" y="132" text-anchor="middle" font-size="10" fill="var(--muted)">LLM 自己推理: "他在给钱。我有 3 金币。收下吧。"</text>
+  <text x="695" y="148" text-anchor="middle" font-size="10" fill="var(--accent)">LLM decides: accept — move gold Geralt.hand→Rachel.hand</text>
+
+  <!-- Phase 2: Execute -->
+  <rect x="10" y="160" width="900" height="14" rx="3" fill="var(--surface2)"/>
+  <text x="460" y="172" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--green)">Tick N — Rachel accepts · engine executes · 瑞秋确认 引擎执行</text>
+
+  <rect x="120" y="185" width="680" height="160" rx="8" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+  <text x="460" y="210" text-anchor="middle" font-size="13" font-weight="700" fill="var(--green)">engine: interaction.interact(rachel, gold, decision, world)</text>
+  <line x1="135" y1="220" x2="785" y2="220" stroke="var(--border)" stroke-width="1"/>
+
+  <text x="250" y="245" text-anchor="middle" font-size="10" fill="var(--muted)">1. Resolve action: accept_consent</text>
+  <text x="250" y="263" text-anchor="middle" font-size="10" fill="var(--muted)">2. ActionObj: proposta found in pending</text>
+  <text x="250" y="281" text-anchor="middle" font-size="10" fill="var(--muted)">3. Interface: ConsentInterface.execute()</text>
+  <text x="250" y="299" text-anchor="middle" font-size="10" fill="var(--muted)">   → triggers constraints.process()</text>
+  <text x="250" y="317" text-anchor="middle" font-size="10" fill="var(--muted)">4. qty_non_negative.validate: geralt.hand qty≥5 → ✓</text>
+  <text x="250" y="335" text-anchor="middle" font-size="10" fill="var(--muted)">5. constraints.apply: pass (gate-only)</text>
+
+  <text x="610" y="245" text-anchor="middle" font-size="10" fill="var(--muted)">6. GoldCoin.move(geralt.hand, rachel.hand, 5, 1)</text>
+  <text x="610" y="263" text-anchor="middle" font-size="10" fill="var(--muted)">7. log.result() — 不触发 constraint</text>
+  <text x="610" y="281" text-anchor="middle" font-size="10" fill="var(--muted)">8. sensory channel refresh</text>
+  <text x="610" y="299" text-anchor="middle" font-size="10" fill="var(--muted)">9. Gold now at Rachel's hand, radius=1</text>
+  <text x="610" y="317" text-anchor="middle" font-size="10" fill="var(--muted)">10. Rachel moves gold hand→pocket (radius=0)</text>
+  <text x="610" y="335" text-anchor="middle" font-size="10" fill="var(--muted)">11. constraint: 不触发 — 自己的口袋</text>
+
+  <!-- Phase 3: Perception -->
+  <rect x="10" y="355" width="900" height="14" rx="3" fill="var(--surface2)"/>
+  <text x="460" y="367" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--teal)">Tick N+1 — Both perceive · 双方感知</text>
+
+  <rect x="20" y="388" width="420" height="70" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="230" y="410" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Geralt 感知</text>
+  <text x="230" y="430" text-anchor="middle" font-size="10" fill="var(--muted)">Gold gone from hand; GoldCoin.qty_at(hand)=0</text>
+  <text x="230" y="448" text-anchor="middle" font-size="10" fill="var(--muted)">LLM 了解: 钱已被接收</text>
+
+  <rect x="485" y="388" width="420" height="70" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="695" y="410" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent)">Rachel 感知</text>
+  <text x="695" y="430" text-anchor="middle" font-size="10" fill="var(--muted)">Gold now in pocket; GoldCoin.qty_at(pocket)=8 (was 3)</text>
+  <text x="695" y="448" text-anchor="middle" font-size="10" fill="var(--muted)">LLM 了解: 收入 +5</text>
+
+  <!-- Arrow to next -->
+  <line x1="460" y1="458" x2="460" y2="490" stroke="var(--teal)" stroke-width="2" marker-end="url(#wc)"/>
+
+  <rect x="200" y="495" width="520" height="18" rx="3" fill="var(--accent-bg)"/>
+  <text x="460" y="508" text-anchor="middle" font-size="10" fill="var(--accent)">Closed Loop · 闭环: 无 pending · 无两阶段 · 无 ledger · 物理即守恒</text>
+</svg>
+</div>
+
+<!-- ═══════ 7. COMPARISON ═══════ -->
+<h2>7. Before vs After <span class="en">对比</span></h2>
+
+<table>
+<tr><th>Dimension · 维度</th><th>Before (Accounting) · 之前</th><th>After (Physics) · 之后</th></tr>
+<tr><td>Resource storage</td><td>ledger._holdings[entity_id] = {gold: 50}</td><td>GoldCoin._registry[(x,y)] = {qty:50, radius:0}</td></tr>
+<tr><td>Resource perception</td><td>resources channel → ctx["resources"]</td><td>sensory channel (Gold 0格, radius=1)</td></tr>
+<tr><td>Transfer</td><td>ledger.transfer(src, tgt, "gold", 5)</td><td>GoldCoin.move(from, to, 5, radius)</td></tr>
+<tr><td>Conservation check</td><td>balance(id, resource) ≥ amount</td><td>qty_at(position) ≥ amount</td></tr>
+<tr><td>Ownership</td><td>Explicit mapping entity→quantity</td><td>Implicit by position (radius=0 = pocket)</td></tr>
+<tr><td>Permission</td><td>Separate access control</td><td>Radius = visibility = permission</td></tr>
+<tr><td>Unique items</td><td>Same ledger for unique items</td><td>Individual entities (not singleton)</td></tr>
+<tr><td>Sensory channel</td><td>6 system channels + resources</td><td>5 system channels (sensory absorbed resources)</td></tr>
+<tr><td>New resource</td><td>Add entry to YAML + ledger handles</td><td>Add singleton class + YAML registration</td></tr>
+<tr><td>Constraint binding</td><td>Bound to action names in YAML</td><td>Bound to action interfaces in YAML</td></tr>
+</table>
+
+<!-- ═══════ 8. FILE IMPACT ═══════ -->
+<h2>8. File Impact <span class="en">文件改动</span></h2>
+
+<table>
+<tr><th>File · 文件</th><th>Action · 操作</th><th>~Lines · 行数</th><th>Notes · 备注</th></tr>
+<tr><td><code>src/core/spatial_resource.py</code></td><td style="color:var(--teal)">NEW</td><td>~50</td><td>SpatialResource base — singleton registry</td></tr>
+<tr><td><code>src/core/constraints/<wbr>__init__.py</code></td><td style="color:var(--teal)">NEW</td><td>~40</td><td>Constraint ABC + Registry + process()</td></tr>
+<tr><td><code>src/core/constraints/<wbr>qty_non_negative.py</code></td><td style="color:var(--teal)">NEW</td><td>~25</td><td>Quantity gate constraint</td></tr>
+<tr><td><code>src/core/action_interface.py</code></td><td style="color:var(--teal)">NEW</td><td>~60</td><td>ActionInterface ABC + Consent + Direct</td></tr>
+<tr><td><code>src/channel.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+20</td><td>ResourceSource → reads spatial registries</td></tr>
+<tr><td><code>src/systems/<wbr>interaction.py</code></td><td style="color:var(--purple)">MODIFY</td><td>+35/-15</td><td>Unified dispatch via action interfaces</td></tr>
+<tr><td><code>src/loop.py</code></td><td style="color:var(--accent)">MODIFY</td><td>+5</td><td>NPC move→implicit spatial resource move</td></tr>
+<tr><td><code>config/</code> (4 files)</td><td style="color:var(--green)">YAML</td><td>+30</td><td>action interfaces, constraint registration</td></tr>
+</table>
+
+<div class="callout co-grn">
+<strong>Total · 总计:</strong> ~240 lines new Python (4 files). ~70 lines YAML config. loop.py +5 lines. Logger zero changes. Existing tests zero impact. <strong>No ledger class. No resources channel. No balance fields. No transfer function. Purely spatial.</strong>
+</div>
+
+<!-- ═══════ 9. PHILOSOPHY ═══════ -->
+<h2>9. Design Philosophy Alignment <span class="en">设计哲学对齐</span></h2>
+
+<div class="card-grid">
+<div class="card c-pri"><h4 style="color:var(--primary)">Physics is the ledger · 物理即账本</h4><p>Gold in space has position, quantity, radius — no account balance needed. Conservation is guaranteed because objects cannot be in two places at once. The engine is a physics simulator, not an accountant.</p></div>
+<div class="card c-grn"><h4 style="color:var(--green)">Action interfaces are the contract · 动作接口即合约</h4><p>Each entity declares its own actions. Each action binds its own constraints. B observes A's actions through sensory channels — no coupling, no protocol, no two-phase pending.</p></div>
+<div class="card c-pur"><h4 style="color:var(--purple)">Constraints are independent atoms · 约束即独立原子</h4><p>Each constraint is a self-contained physical law: activation, timing, validate, apply. The engine groups them by timing and loops. No constraint knows about any other constraint.</p></div>
+<div class="card c-acc"><h4 style="color:var(--accent)">Radius is permission · 半径即权限</h4><p>radius=0: invisible. radius=1: visible, transferable. radius=5: visible, ground-level. No separate access control or permission system — spatial physics defines what's possible.</p></div>
+<div class="card c-teal"><h4 style="color:var(--teal)">Closed loop with natural feedback · 闭环自然反馈</h4><p>Constraint failure → entity perceives unchanged state → LLM re-decides. No retry loop, no pending, no engine-managed state. The feedback loop is closed by spatial reality — not by software protocol.</p></div>
+<div class="card c-red"><h4 style="color:var(--red)">Fungible ≠ unique — both are first-class · 可互换与唯一并存</h4><p>Fungible resources use singleton spatial registries. Unique items are individual entities. Both appear in sensory channels through the same engine interface — zero dispatch branching.</p></div>
+</div>
+
+<hr>
+<p style="text-align:center;color:var(--muted);font-size:12px">AgentWorld Async · Spatial Resource + Constraint System · v3.0 · Asher · 2026</p>
+<p style="text-align:center;color:var(--muted);font-size:11px">Designed with impeccable · product register · OKLCH teal-dark</p>
+
+</div>
+</body>
+</html>
