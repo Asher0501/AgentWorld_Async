@@ -75,37 +75,9 @@ class World:
         except Exception:
             pass
 
-        # Abstract layer — engine built-in primitives
-        from core.mcp_engine import Interface, ParamDef
-        abstract_defs = {
-            "abs_holder_transfer": {
-                "desc": "持有层边转移: abs_holder_transfer(src:alias, tgt:alias, qty:int)",
-                "params": [
-                    {"name": "src", "type": "alias", "desc": "源节点"},
-                    {"name": "tgt", "type": "alias", "desc": "目标节点"},
-                    {"name": "qty", "type": "int", "desc": "数量"},
-                ],
-            },
-            "abs_attr_modify": {
-                "desc": "属性层变更: abs_attr_modify(entity:alias, attr:str, value:int)",
-                "params": [
-                    {"name": "entity", "type": "alias", "desc": "实体名"},
-                    {"name": "attr", "type": "str", "desc": "属性名(thirst/hunger/social/energy/fun/mood)"},
-                    {"name": "value", "type": "int", "desc": "数值"},
-                ],
-            },
-            "spatial_spawn":    {"desc": "空间层诞生: spatial_spawn(pos, zone, type_ref, visual_look)",
-                         "params": [{"name": "pos"}, {"name": "zone"}, {"name": "type_ref"}, {"name": "visual_look"}]},
-            "spatial_despawn":  {"desc": "空间层消灭: spatial_despawn(entity)",
-                         "params": [{"name": "entity"}]},
-            "spatial_relocate": {"desc": "空间层移动: spatial_relocate(entity, pos)",
-                         "params": [{"name": "entity"}, {"name": "pos"}]},
-            "abs_node_add": {"desc": "抽象层节点加入: abs_node_add(node_id)",
-                         "params": [{"name": "node_id"}]},
-            "abs_node_remove": {"desc": "抽象层节点移除: abs_node_remove(node_id)",
-                           "params": [{"name": "node_id"}]},
-        }
-        self.mcp.register_layer("abstract", Layer.from_primitives(self.graph.primitives, abstract_defs))
+        # Abstract layer — engine built-in primitives (definition from YAML)
+        prim_defs = self._load_yaml("abstract_primitives.yaml")
+        self.mcp.register_layer("abstract", Layer.from_primitives(self.graph.primitives, prim_defs))
 
         # Wire physical interfaces to each NPC (respect npcs restrictions)
         phys_layer = self.mcp.layers.get("physical")

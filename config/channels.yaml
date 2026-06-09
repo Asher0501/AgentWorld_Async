@@ -35,4 +35,4 @@ channels:
     fields: [delta_text]
 
   - source: graph
-    fields: [inventory_lines]
+    fields: [inventory_lines, tool_list]

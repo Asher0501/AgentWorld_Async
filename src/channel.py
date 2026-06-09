@@ -225,7 +225,21 @@ class GraphSource:
         result = {}
         if "inventory_lines" in fields:
             result["inventory_lines"] = self._render_inventory(agent, world)
+        if "tool_list" in fields:
+            result["tool_list"] = self._render_tool_list(world)
         return result
+
+    def _render_tool_list(self, world) -> str:
+        mcp = getattr(world, "mcp", None)
+        if not mcp:
+            return ""
+        abstract = mcp.layers.get("abstract")
+        if not abstract:
+            return ""
+        lines = []
+        for name, iface in sorted(abstract.interfaces.items()):
+            lines.append(f"  - {name}: " + iface.to_prompt_line().split("    ", 1)[-1])
+        return "\n".join(lines) if lines else ""
 
     def _render_inventory(self, agent, world) -> str:
         if not self._graph:

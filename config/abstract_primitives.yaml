@@ -1,0 +1,45 @@
+# Abstract Primitives — 引擎原语定义 + LLM tool list + 约束 — 单一来源
+# world.py _init_mcp 从此加载；prompts.yaml 的 tool list 由此自动生成
+
+abs_holder_transfer:
+  desc: "边数值转移。⚠️ src必须是你自己或zone名——不能操作别人的持有。"
+  params:
+    - {name: src, type: alias, desc: "源节点(你自己或zone名)"}
+    - {name: tgt, type: alias, desc: "目标节点"}
+    - {name: qty, type: int, desc: "数量(正=增加,负=减少)"}
+
+abs_attr_modify:
+  desc: "自身属性变更。entity填你的名字。attr填属性名(thirst/hunger/social/energy/fun/mood)。value填数值。"
+  params:
+    - {name: entity, type: alias, desc: "你的名字"}
+    - {name: attr, type: str, desc: "属性名(thirst/hunger/social/energy/fun/mood)"}
+    - {name: value, type: int, desc: "数值(正=增加,负=减少)"}
+
+spatial_spawn:
+  desc: "空间中生成实体: spatial_spawn(pos, zone, type_ref, visual_look)"
+  params:
+    - {name: pos, type: pos}
+    - {name: zone, type: alias}
+    - {name: type_ref, type: alias}
+    - {name: visual_look, type: str}
+
+spatial_despawn:
+  desc: "消灭空间实体: spatial_despawn(entity)"
+  params:
+    - {name: entity, type: alias}
+
+spatial_relocate:
+  desc: "实体改变位置: spatial_relocate(entity, pos)"
+  params:
+    - {name: entity, type: alias}
+    - {name: pos, type: pos}
+
+abs_node_add:
+  desc: "节点加入边系统: abs_node_add(node_id)"
+  params:
+    - {name: node_id, type: alias}
+
+abs_node_remove:
+  desc: "节点从边系统移除: abs_node_remove(node_id)"
+  params:
+    - {name: node_id, type: alias}
