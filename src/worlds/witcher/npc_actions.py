@@ -17,13 +17,13 @@ def take_out(agent, params: dict, world):
         return
     visual_look = f"{agent.name}手中的{type_node.name}"
     graph = world.graph
-    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=-qty):
         return
-    ent = graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=type_id,
+    ent = graph.spatial_spawn(pos=agent.pos, zone=agent.zone, type_ref=type_id,
                       visual_look=visual_look, r=1)
     if not ent:
         return
-    graph.transfer(src=agent.zone, tgt=type_id, qty=+qty)
+    graph.abs_holder_transfer(src=agent.zone, tgt=type_id, qty=+qty)
 
 
 def eat(agent, params: dict, world):
@@ -36,9 +36,9 @@ def eat(agent, params: dict, world):
     if not type_id:
         return
     graph = world.graph
-    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=-qty):
         return
-    graph.modify(entity=agent, attr="hunger", value=-qty * 10)
+    graph.abs_attr_modify(entity=agent, attr="hunger", value=-qty * 10)
 
 
 def hand_over(agent, params: dict, world):
@@ -60,13 +60,13 @@ def hand_over(agent, params: dict, world):
         return
     visual_look = f"{agent.name}放在{to_entity.name}的{type_node.name}"
     graph = world.graph
-    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=-qty):
         return
-    ent = graph.spawn(pos=to_entity.pos, zone=to_entity.zone, type_ref=type_id,
+    ent = graph.spatial_spawn(pos=to_entity.pos, zone=to_entity.zone, type_ref=type_id,
                       visual_look=visual_look, r=1)
     if not ent:
         return
-    graph.transfer(src=to_entity.zone, tgt=type_id, qty=+qty)
+    graph.abs_holder_transfer(src=to_entity.zone, tgt=type_id, qty=+qty)
 
 
 def pick_up(agent, params: dict, world):
@@ -85,13 +85,13 @@ def pick_up(agent, params: dict, world):
     if not type_ref:
         return
     graph = world.graph
-    if not graph.transfer(src=entity.zone, tgt=type_ref, qty=-qty):
+    if not graph.abs_holder_transfer(src=entity.zone, tgt=type_ref, qty=-qty):
         return
-    if not graph.transfer(src=agent.id, tgt=type_ref, qty=+qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_ref, qty=+qty):
         return
     remaining = graph.edges.get((entity.zone, type_ref), 0)
     if remaining <= 0:
-        graph.despawn(entity=entity)
+        graph.spatial_despawn(entity=entity)
 
 
 def forge(agent, params: dict, world):
@@ -109,13 +109,13 @@ def forge(agent, params: dict, world):
         return
     visual_look = f"{agent.name}锻造的钢剑"
     graph = world.graph
-    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=-qty):
         return
-    ent = graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=weapon_id,
+    ent = graph.spatial_spawn(pos=agent.pos, zone=agent.zone, type_ref=weapon_id,
                       visual_look=visual_look, r=3)
     if not ent:
         return
-    graph.transfer(src=agent.zone, tgt=weapon_id, qty=+1)
+    graph.abs_holder_transfer(src=agent.zone, tgt=weapon_id, qty=+1)
 
 
 def gather(agent, params: dict, world):
@@ -126,9 +126,9 @@ def gather(agent, params: dict, world):
     if not type_id:
         return
     graph = world.graph
-    if not graph.transfer(src=agent.zone, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.zone, tgt=type_id, qty=-qty):
         return
-    graph.transfer(src=agent.id, tgt=type_id, qty=+qty)
+    graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=+qty)
 
 
 def brew(agent, params: dict, world):
@@ -139,6 +139,6 @@ def brew(agent, params: dict, world):
     if not type_id:
         return
     graph = world.graph
-    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+    if not graph.abs_holder_transfer(src=agent.id, tgt=type_id, qty=-qty):
         return
-    graph.transfer(src=agent.zone, tgt=type_id, qty=+qty)
+    graph.abs_holder_transfer(src=agent.zone, tgt=type_id, qty=+qty)

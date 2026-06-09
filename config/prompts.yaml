@@ -131,12 +131,12 @@ slots:
         捡起空间中可见的物品收入持有。entity 填空间层的别名(如"杰洛特手中的金币")。qty 填数量。
 
       ### 持有层 (abstract_calls)
-      - transfer: {src: string, tgt: string, qty: int}
+      - abs_holder_transfer: {src: string, tgt: string, qty: int}
         物品在两个节点之间流动。src/tgt填别名(或zone名如"village")。qty填数量(正=增加,负=减少)。
         例: {"src": "杰洛特", "tgt": "金币", "qty": -15}  从杰洛特口袋减15金币
 
       ### 属性层 (abstract_calls)
-      - modify: {entity: string, attr: string, value: int}
+      - abs_attr_modify: {entity: string, attr: string, value: int}
         自身属性变更。entity 填你的名字。attr 填属性名(thirst/hunger/social/energy/fun/mood)。value 填数值。
         例: {"entity": "杰洛特", "attr": "hunger", "value": -20}  饥饿下降20
 
@@ -155,7 +155,7 @@ slots:
         "visual": "神态/表情/动作" 或 null,
         "internal": "内心活动" 或 null,
         "physical_calls": [{"interface": "eat", "params": {"entity": "食物", "qty": 1}}],
-        "abstract_calls": [{"interface":"transfer","params":{"src":"杰洛特","tgt":"金币","qty":-15}},{"interface":"modify","params":{"entity":"杰洛特","attr":"thirst","value":-10}}],
+        "abstract_calls": [{"interface":"abs_holder_transfer","params":{"src":"杰洛特","tgt":"金币","qty":-15}},{"interface":"abs_attr_modify","params":{"entity":"杰洛特","attr":"thirst","value":-10}}],
         "remember": true/false
       }
       - physical_calls: 物理层操作。无操作写 []。

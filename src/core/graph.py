@@ -1,7 +1,7 @@
-"""GraphEngine — 6 primitives. All writes go through these.
+"""GraphEngine — 7 primitives. All writes go through these.
 
 Edge model: (src, tgt, qty), untyped. Semantics from node types.
-primitives: transfer, modify, spawn, despawn, relocate, add_node, remove_node
+Naming: {layer}_{name} — spatial_spawn, abs_holder_transfer, etc.
 """
 
 import uuid
@@ -14,19 +14,19 @@ class GraphEngine:
         self._item_registry = item_registry_cfg
         self.edges: dict[tuple[str, str], float] = {}
         self.primitives = {
-            "transfer":    self.transfer,
-            "modify":      self.modify,
-            "spawn":       self.spawn,
-            "despawn":     self.despawn,
-            "relocate":    self.relocate,
-            "add_node":    self.add_node,
-            "remove_node": self.remove_node,
+            "abs_holder_transfer":  self.abs_holder_transfer,
+            "abs_attr_modify":      self.abs_attr_modify,
+            "spatial_spawn":        self.spatial_spawn,
+            "spatial_despawn":      self.spatial_despawn,
+            "spatial_relocate":     self.spatial_relocate,
+            "abs_node_add":         self.abs_node_add,
+            "abs_node_remove":      self.abs_node_remove,
         }
 
     # ═══════════ primitives ═══════════
 
-    def transfer(self, *, src, tgt, qty):
-        """Edge quantity transfer: transfer(src, tgt, qty)"""
+    def abs_holder_transfer(self, *, src, tgt, qty):
+        """Abstract holder layer: edge quantity transfer."""
         s = src.id if isinstance(src, Entity) else src
         t = tgt.id if isinstance(tgt, Entity) else tgt
         key = (s, t)
@@ -37,8 +37,8 @@ class GraphEngine:
         self.edges[key] = nxt
         return True
 
-    def modify(self, *, entity, attr, value):
-        """Entity attribute modification: modify(entity, attr, value)"""
+    def abs_attr_modify(self, *, entity, attr, value):
+        """Abstract attribute layer: entity attribute modification."""
         ent = self._world.entities.get(entity.id) if isinstance(entity, Entity) else self._world.entities.get(entity)
         if not ent:
             return False
@@ -49,38 +49,36 @@ class GraphEngine:
         inter.private_attrs[attr] = cur + float(value)
         return True
 
-    def spawn(self, *, pos, zone, type_ref, visual_look, r=1):
-        """Entity appears in space. Pure primitive — delegates layer attachment to world."""
+    def spatial_spawn(self, *, pos, zone, type_ref, visual_look, r=1):
+        """Spatial layer: entity appears in space."""
         eid = f"pile_{uuid.uuid4().hex[:6]}"
         ent = Entity(id=eid, name=visual_look, zone=zone, pos=list(pos))
         ent.type_ref = type_ref
-        # Delegate to world: entity reuse, layer attachment, alias registration
         return self._world._on_entity_spawned(ent, visual_look=visual_look, r=r)
 
-    def despawn(self, *, entity):
-        """Entity disappears from space. Cleans alias via world."""
+    def spatial_despawn(self, *, entity):
+        """Spatial layer: entity disappears from space."""
         eid = entity.id if isinstance(entity, Entity) else entity
         self._world._on_entity_despawned(eid)
         return self._world.lifecycle.despawn(eid)
 
-    def relocate(self, *, entity, pos):
-        """Entity changes position."""
+    def spatial_relocate(self, *, entity, pos):
+        """Spatial layer: entity changes position."""
         e = self._world.entities.get(entity.id) if isinstance(entity, Entity) else self._world.entities.get(entity)
         if e:
             e.move_to(list(pos))
             return True
         return False
 
-    def add_node(self, *, node_id):
+    def abs_node_add(self, *, node_id):
         """Abstract layer: node enters edge system. Idempotent."""
         if node_id in self._world.entities:
             return True
-        # Placeholder entity for pure abstract node
         ent = Entity(id=node_id, name=node_id, zone="", pos=[0, 0])
         self._world.lifecycle.spawn(ent)
         return True
 
-    def remove_node(self, *, node_id):
+    def abs_node_remove(self, *, node_id):
         """Abstract layer: node leaves edge system. Cleans incident edges."""
         eid = node_id.id if isinstance(node_id, Entity) else node_id
         to_del = [k for k in self.edges if k[0] == eid or k[1] == eid]

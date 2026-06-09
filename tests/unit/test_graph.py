@@ -76,74 +76,74 @@ def npc(world):
 class TestTransfer:
     def test_transfer_positive(self, graph):
         graph.edges[("geralt", "gold")] = 10
-        assert graph.transfer(src="geralt", tgt="gold", qty=5)
+        assert graph.abs_holder_transfer(src="geralt", tgt="gold", qty=5)
         assert graph.edges[("geralt", "gold")] == 15
 
     def test_transfer_negative(self, graph):
         graph.edges[("geralt", "gold")] = 10
-        assert not graph.transfer(src="geralt", tgt="gold", qty=-15)
+        assert not graph.abs_holder_transfer(src="geralt", tgt="gold", qty=-15)
 
     def test_transfer_entity(self, graph, npc):
         graph.edges[("geralt", "gold")] = 10
-        assert graph.transfer(src=npc, tgt="gold", qty=-5)
+        assert graph.abs_holder_transfer(src=npc, tgt="gold", qty=-5)
         assert graph.edges[("geralt", "gold")] == 5
 
 
 class TestModify:
     def test_modify(self, graph, npc):
-        assert graph.modify(entity=npc, attr="hunger", value=-10)
+        assert graph.abs_attr_modify(entity=npc, attr="hunger", value=-10)
         assert npc.get("interaction").private_attrs["hunger"] == 40.0
 
     def test_modify_nonexistent_entity(self, graph):
-        assert not graph.modify(entity="nonexistent", attr="x", value=1)
+        assert not graph.abs_attr_modify(entity="nonexistent", attr="x", value=1)
 
 
 class TestSpawn:
     def test_spawn_creates_entity(self, graph):
-        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+        e = graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold",
                         visual_look="杰洛特手中的金币", r=1)
         assert e is not None
         assert e.pos == [30, 25]
         assert e.type_ref == "gold"
 
     def test_spawn_reuses_entity(self, graph):
-        e1 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="first")
-        e2 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="second")
+        e1 = graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="first")
+        e2 = graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="second")
         assert e1.id == e2.id
 
     def test_spawn_registers_alias(self, graph, world):
-        graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="杰洛特手中的金币")
+        graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="杰洛特手中的金币")
         assert "杰洛特手中的金币" in world.alias_registry
 
 
 class TestDespawn:
     def test_despawn_removes_entity(self, graph):
-        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin")
+        e = graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin")
         eid = e.id
-        assert graph.despawn(entity=e)
+        assert graph.spatial_despawn(entity=e)
         assert eid not in graph._world.entities
 
     def test_despawn_cleans_alias(self, graph, world):
-        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin_2")
-        graph.despawn(entity=e)
+        e = graph.spatial_spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin_2")
+        graph.spatial_despawn(entity=e)
         assert "test_coin_2" not in world.alias_registry
 
 
 class TestRelocate:
     def test_relocate(self, graph, npc):
-        assert graph.relocate(entity=npc, pos=[40, 30])
+        assert graph.spatial_relocate(entity=npc, pos=[40, 30])
         assert npc.pos == [40, 30]
 
 
 class TestAddRemoveNode:
     def test_add_node(self, graph):
-        assert graph.add_node(node_id="abstract_x")
+        assert graph.abs_node_add(node_id="abstract_x")
         assert "abstract_x" in graph._world.entities
 
     def test_remove_node_cleans_edges(self, graph, world):
-        graph.add_node(node_id="node_x")
+        graph.abs_node_add(node_id="node_x")
         world.entities["node_x"].id = "node_x"
         graph.edges[("node_x", "gold")] = 5
         graph.edges[("village", "node_x")] = 3
-        assert graph.remove_node(node_id="node_x")
+        assert graph.abs_node_remove(node_id="node_x")
         assert ("node_x", "gold") not in graph.edges

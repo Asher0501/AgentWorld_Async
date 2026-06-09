@@ -78,31 +78,31 @@ class World:
         # Abstract layer — engine built-in primitives
         from core.mcp_engine import Interface, ParamDef
         abstract_defs = {
-            "transfer": {
-                "desc": "边数值转移: transfer(src:alias, tgt:alias, qty:int)",
+            "abs_holder_transfer": {
+                "desc": "持有层边转移: abs_holder_transfer(src:alias, tgt:alias, qty:int)",
                 "params": [
                     {"name": "src", "type": "alias", "desc": "源节点"},
                     {"name": "tgt", "type": "alias", "desc": "目标节点"},
-                    {"name": "qty", "type": "int", "desc": "数量(正=增加,负=减少)"},
+                    {"name": "qty", "type": "int", "desc": "数量"},
                 ],
             },
-            "modify": {
-                "desc": "属性变更: modify(entity:alias, attr:str, value:int)",
+            "abs_attr_modify": {
+                "desc": "属性层变更: abs_attr_modify(entity:alias, attr:str, value:int)",
                 "params": [
                     {"name": "entity", "type": "alias", "desc": "实体名"},
                     {"name": "attr", "type": "str", "desc": "属性名(thirst/hunger/social/energy/fun/mood)"},
-                    {"name": "value", "type": "int", "desc": "数值(正=增加,负=减少)"},
+                    {"name": "value", "type": "int", "desc": "数值"},
                 ],
             },
-            "spawn":    {"desc": "空间中生成实体: spawn(pos, zone, type_ref, visual_look)",
+            "spatial_spawn":    {"desc": "空间层诞生: spatial_spawn(pos, zone, type_ref, visual_look)",
                          "params": [{"name": "pos"}, {"name": "zone"}, {"name": "type_ref"}, {"name": "visual_look"}]},
-            "despawn":  {"desc": "消灭空间实体: despawn(entity)",
+            "spatial_despawn":  {"desc": "空间层消灭: spatial_despawn(entity)",
                          "params": [{"name": "entity"}]},
-            "relocate": {"desc": "实体改变位置: relocate(entity, pos)",
+            "spatial_relocate": {"desc": "空间层移动: spatial_relocate(entity, pos)",
                          "params": [{"name": "entity"}, {"name": "pos"}]},
-            "add_node": {"desc": "节点加入边系统: add_node(node_id)",
+            "abs_node_add": {"desc": "抽象层节点加入: abs_node_add(node_id)",
                          "params": [{"name": "node_id"}]},
-            "remove_node": {"desc": "节点从边系统移除: remove_node(node_id)",
+            "abs_node_remove": {"desc": "抽象层节点移除: abs_node_remove(node_id)",
                            "params": [{"name": "node_id"}]},
         }
         self.mcp.register_layer("abstract", Layer.from_primitives(self.graph.primitives, abstract_defs))
