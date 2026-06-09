@@ -1,0 +1,28 @@
+# Item Registry — 合法物品类型的 alias、视觉描述
+# 每种物品类型一个 entry。世界加载时自动构建 type_node。
+# 引擎不关心"金币是什么"——只渲染 visual_look/describe 给 LLM。
+
+金币:
+  visual_look: 一枚亮闪闪的泰莫利亚金币
+  describe: 通用货币，整个北境都认这个
+草药:
+  visual_look: 晒干的草药，散发清香
+  describe: 炼金术基础原料，采自白果园
+食物:
+  visual_look: 烤面包和干酪
+  describe: 填饱肚子的干粮
+矿石:
+  visual_look: 一块沉甸甸的铁矿石
+  describe: 冶炼武器的原料，矮人矿坑出品
+魔药:
+  visual_look: 一瓶暗红色的炼金药水
+  describe: 猎魔人常用的战斗药水
+法术书:
+  visual_look: 一本皮面法术书
+  describe: 记载古老咒语的知识典籍
+古籍残页:
+  visual_look: 几页泛黄的古籍残片
+  describe: 记载已失传的上古知识
+魔法饰品:
+  visual_look: 一件发着微光的魔法饰品
+  describe: 附有微弱魔力的装饰品，贵族喜欢收藏

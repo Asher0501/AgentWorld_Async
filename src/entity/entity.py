@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass, field
 
 
@@ -11,6 +12,7 @@ class Entity:
 
     layers: dict = field(default_factory=dict)
     describe: str = ""
+    type_ref: str = ""    # 空间 entity → 抽象 type_node
 
     _world: object = None
 

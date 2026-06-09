@@ -23,6 +23,7 @@ templates:
       - drive_context
       - spatial_context
       - sensory_section
+      - inventory_section
       - gate_highlight
       - recent_memory
       - main_thread
@@ -83,6 +84,12 @@ slots:
     condition: sensory_text
     template: "{sensory_text}"
 
+  inventory_section:
+    condition: inventory_lines
+    template: |
+      ## 持有
+      {inventory_lines}
+
   gate_highlight:
     condition: gate_text
     template: |
@@ -111,35 +118,52 @@ slots:
 
   output_contract:
     template: |
+      ## 可用接口 (MCP)
+
+      ### 物理层 (physical_calls)
+      - take_out: {entity: string, qty: int}
+        从持有中拿出物品到空间。entity 填持有层别名(如"金币")。qty 填数量。
+      - eat: {entity: string, qty: int}
+        消耗食物减少饥饿。entity 填持有层食物别名(如"食物")。qty 填数量。
+      - hand_over: {entity: string, to: string, qty: int}
+        把物品放到目标空间位置。entity 填持有层别名。to 填目标位置别名(从视觉抄——可以是NPC名、摊位名、吧台名等任意空间实体)。qty 填数量。
+      - pick_up: {entity: string, qty: int}
+        捡起空间中可见的物品收入持有。entity 填空间层的别名(如"杰洛特手中的金币")。qty 填数量。
+
+      ### 持有层 (abstract_calls)
+      - delta: {src: string, tgt: string, qty: int}
+        物品在两个节点之间流动。src/tgt填别名(或zone名如"village")。qty填数量(正=增加,负=减少)。
+        例: {"src": "杰洛特", "tgt": "金币", "qty": -15}  从杰洛特口袋减15金币
+
+      ### 属性层 (abstract_calls)
+      - delta: {entity: string, attr: string, value: int}
+        自身属性变更。entity 填你的名字。attr 填属性名(thirst/hunger/social/energy/fun/mood)。value 填数值。
+        例: {"entity": "杰洛特", "attr": "hunger", "value": -20}  饥饿下降20
+
+      ### 注意事项
+      - 所有 alias 必须从上下文中照抄——不要编造。
+      - 持有层/属性层共用 abstract_calls 数组，可混用——按参数区分。
+      - physical_calls 和 abstract_calls 都必须输出，至少写 []。
+
       ## 输出格式 (JSON)
       {
         "thinking": "简短推理",
-        "intent": "你的意图",
         "action": "做什么 (自由文本)" 或 null,
         "duration": 3.0,
         "target_name": "对象名 (从周围抄写)" 或 null,
-        "story": "叙事" 或 null,
         "dialogue": "原话" 或 null,
         "visual": "神态/表情/动作" 或 null,
         "internal": "内心活动" 或 null,
-        "self_deltas": {"属性": 值},
-        "expects_reply": true/false,
-        "patience": 5,
-        "main_thread": "长期目标" 或 null,
-        "thread_completed": true/false,
+        "physical_calls": [{"interface": "eat", "params": {"entity": "食物", "qty": 1}}],
+        "abstract_calls": [
+          {"interface": "delta", "params": {"src": "杰洛特", "tgt": "金币", "qty": -15}},
+          {"interface": "delta", "params": {"entity": "杰洛特", "attr": "thirst", "value": -10}}
+        ],
         "remember": true/false
       }
-      - intent: 你的意图
-      - action: 去哪+做什么。null=本轮不行动
-      - duration: 动作耗时(秒)。说话≈2-4，移动≈3-8，发呆≈5-20
-      - target_name: 从周围抄写名字。无对象 null
-      - story: 可标记"✓完成"。无事留空
-      - dialogue: 原话。null=沉默
-      - visual: 神态/表情/动作
-      - internal: 内心活动
-      - self_deltas: 自身属性影响。无影响 {}。引擎限制范围
-      - expects_reply: 是否需要回应
-      - patience: 等回应的秒数。不等=0
+      - physical_calls: 物理层操作。无操作写 []。
+      - abstract_calls: 抽象层操作。无操作写 []。
+      - 两层都必须输出，至少写 []。
       - main_thread: 更新长期目标。完成标"✓完成"。null=维持
       - thread_completed: 目标刚完成则 true
       - remember: 重要事件记入记忆(true)
@@ -233,19 +257,14 @@ output_schemas:
       type: object
       properties:
         thinking: {type: string}
-        intent: {type: string}
         action: {type: string}
         duration: {type: number}
         target_name: {type: string}
-        story: {type: string}
         dialogue: {type: string}
         visual: {type: string}
         internal: {type: string}
-        self_deltas: {type: object}
-        expects_reply: {type: boolean}
-        patience: {type: number}
-        main_thread: {type: string}
-        thread_completed: {type: boolean}
+        physical_calls: {type: array}
+        abstract_calls: {type: array}
         remember: {type: boolean}
 
   interact_output:

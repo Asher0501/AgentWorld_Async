@@ -2,26 +2,45 @@
 
 Each channel is a data source that formats its own fields into ctx dict.
 loop.py calls channel.collect() once — no formatting, no judgment, no naming.
-Channel definitions come from YAML; source classes handle the data extraction.
+
+Principle 8: sources are auto-registered. To add a new source:
+  1. Add a class with a `source_name` attribute to this module
+  2. Add its class to _SOURCE_REGISTRY
+  3. Add a channel entry in config/channels.yaml
+The ChannelCollector._sources dict is built from _SOURCE_REGISTRY — zero code change in the collector.
 """
 
 import time
 
 
 class ChannelCollector:
-    """Collect ctx from YAML-defined channels, dispatching to source classes."""
+    """Collect ctx from YAML-defined channels, dispatching to registered source classes."""
 
-    def __init__(self, channels_def: list[dict], labels: dict = None):
+    def __init__(self, channels_def: list[dict], labels: dict = None,
+                 graph: object = None):
         self._channels = channels_def or []
-        self._sources = {
-            "agent_layer": AgentLayerSource(labels),
-            "world":       WorldSource(),
-            "drives":      DriveSource(),
-            "sensory":     SensorySource(labels),
-            "memory":      MemorySource(labels),
-            "traits":      TraitsSource(),
-            "delta_gate":  DeltaGateSource(),
-        }
+        self._sources = {}
+        self._graph = graph
+        for cls in _SOURCE_REGISTRY:
+            src_name = getattr(cls, "source_name", "")
+            if src_name:
+                self._sources[src_name] = cls(labels=labels, graph=graph)
+
+    def set_graph(self, graph):
+        self._graph = graph
+        for src_name, src in self._sources.items():
+            if hasattr(src, '_graph'):
+                src._graph = graph
+        self._graph = graph
+        for src_name, src in self._sources.items():
+            if hasattr(src, '_graph'):
+                src._graph = graph
+
+    def _rebuild_sources(self, labels=None):
+        for cls in _SOURCE_REGISTRY:
+            src_name = getattr(cls, "source_name", "")
+            if src_name:
+                self._sources[src_name] = cls(labels=labels, graph=self._graph)
 
     def collect(self, ctx: dict, *, agent, al, world, sensory,
                 cfg, delta_text, loader, **opts):
@@ -43,9 +62,9 @@ class ChannelCollector:
 # ── Source implementations ──
 
 class AgentLayerSource:
-    """Collect agent identity, intent, and interaction tracking data."""
+    source_name = "agent_layer"
 
-    def __init__(self, labels=None):
+    def __init__(self, labels=None, graph=None):
         self._labels = labels or {}
 
     def collect(self, fields: list[str], *, agent, al, **opts):
@@ -80,7 +99,10 @@ class AgentLayerSource:
 
 
 class WorldSource:
-    """Collect spatial context and gate information."""
+    source_name = "world"
+
+    def __init__(self, labels=None, graph=None):
+        pass
 
     def collect(self, fields: list[str], *, agent, world, **opts):
         result = {}
@@ -113,7 +135,10 @@ class WorldSource:
 
 
 class DriveSource:
-    """Collect drive values and boundary references."""
+    source_name = "drives"
+
+    def __init__(self, labels=None, graph=None):
+        pass
 
     def collect(self, fields: list[str], *, al, **opts):
         result = {}
@@ -128,9 +153,9 @@ class DriveSource:
 
 
 class SensorySource:
-    """Collect sensory channel renderings."""
+    source_name = "sensory"
 
-    def __init__(self, labels=None):
+    def __init__(self, labels=None, graph=None):
         self._labels = labels or {}
 
     def collect(self, fields: list[str], *, sensory, **opts):
@@ -143,9 +168,9 @@ class SensorySource:
 
 
 class MemorySource:
-    """Collect memory text."""
+    source_name = "memory"
 
-    def __init__(self, labels=None):
+    def __init__(self, labels=None, graph=None):
         self._labels = labels or {}
 
     def collect(self, fields: list[str], *, al, cfg, **opts):
@@ -157,7 +182,10 @@ class MemorySource:
 
 
 class TraitsSource:
-    """Collect behavioral traits text."""
+    source_name = "traits"
+
+    def __init__(self, labels=None, graph=None):
+        pass
 
     def collect(self, fields: list[str], *, al, loader, **opts):
         result = {}
@@ -172,10 +200,56 @@ class TraitsSource:
 
 
 class DeltaGateSource:
-    """Collect delta gate change signal."""
+    source_name = "delta_gate"
+
+    def __init__(self, labels=None, graph=None):
+        pass
 
     def collect(self, fields: list[str], *, delta_text, **opts):
         result = {}
         if "delta_text" in fields:
             result["delta_text"] = delta_text or ""
         return result
+
+
+class GraphSource:
+    """Collect graph-layer data: inventory (npc→type_node edges)."""
+
+    source_name = "graph"
+
+    def __init__(self, labels=None, graph=None):
+        self._graph = graph
+        self._labels = labels or {}
+
+    def collect(self, fields: list[str], *, agent, world, **opts):
+        result = {}
+        if "inventory_lines" in fields:
+            result["inventory_lines"] = self._render_inventory(agent, world)
+        return result
+
+    def _render_inventory(self, agent, world) -> str:
+        if not self._graph:
+            return ""
+        lines = []
+        for (src, tgt), qty in self._graph.edges.items():
+            if src == agent.id and qty > 0:
+                tgt_node = world.entities.get(tgt)
+                if tgt_node:
+                    lines.append(f"{tgt_node.name} ×{int(qty)}")
+        return "\n".join(lines) if lines else "空手"
+
+
+# ── Source registry — add new source classes here ──
+# Order matters: sources are instantiated in list order.
+# Each source must accept (labels=None, graph=None) in __init__.
+
+_SOURCE_REGISTRY = [
+    AgentLayerSource,
+    WorldSource,
+    DriveSource,
+    SensorySource,
+    MemorySource,
+    TraitsSource,
+    DeltaGateSource,
+    GraphSource,
+]

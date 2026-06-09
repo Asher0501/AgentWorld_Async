@@ -358,6 +358,23 @@ entities:
     interaction_radius: 3
     personality: 利维亚的杰洛特，狼学派猎魔人。寡言少语，行事果断。刚刚完成一个水鬼委托，回到酒馆休整。习惯喝一杯麦酒，顺便看看公告板有没有新委托。
   description: 白发猎魔人，猫眼，脸上有疤。背着银剑和钢剑。
+- id: gold_geralt
+  name: 金币
+  zone: bar_zone
+  pos:
+  - 24
+  - 17
+  visual:
+    visible_radius: 0
+    properties:
+      look: 一个沉甸甸的钱袋，里面装着克朗金币
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 150
+    radius: -1
+    qty: 150
+  description: 猎魔人的钱袋，装着150枚克朗金币。
 - id: dandelion
   name: 丹德里恩
   zone: bar_zone
@@ -451,6 +468,23 @@ entities:
     interaction_radius: 3
     personality: 卓尔坦·齐瓦，玛哈坎矮人商人。精明，消息灵通，嗓门大。喜欢请朋友喝酒，顺便打听商机。
   description: 粗壮的矮人商人，胡子编成辫子。手里永远有一杯麦酒。
+- id: gold_zoltan
+  name: 金币
+  zone: bar_zone
+  pos:
+  - 33
+  - 17
+  visual:
+    visible_radius: 0
+    properties:
+      look: 卓尔坦的商旅钱袋，装满了来自各路的金币
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 500
+    radius: -1
+    qty: 500
+  description: 卓尔坦的商旅钱袋，500枚克朗。
 - id: dijkstra
   name: 迪杰斯特拉
   zone: bar_zone
@@ -482,6 +516,23 @@ entities:
     interaction_radius: 3
     personality: 西吉斯蒙德·迪杰斯特拉，前瑞达尼亚间谍头子。跛足但头脑是北方最精密的机器。掌控诺维格勒地下情报网。来酒馆是为了等一个线人，但会在吧台角落观察所有人。
   description: 光头大汉，跛足。坐在角落，手里转着一枚金币。
+- id: gold_dijkstra
+  name: 金币
+  zone: bar_zone
+  pos:
+  - 36
+  - 17
+  visual:
+    visible_radius: 0
+    properties:
+      look: 迪杰斯特拉的金库钥匙链，腰间的钱袋鼓鼓囊囊
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 2000
+    radius: -1
+    qty: 2000
+  description: 间谍头子的钱袋，2000枚克朗。足以买下一座小城镇的情报网。
 - id: innkeeper
   name: 酒馆老板
   zone: bar_zone
@@ -513,6 +564,23 @@ entities:
     interaction_radius: 3
     personality: 老矮人酒馆老板。经营这间酒馆二十年了。认识每一个常客，知道他们欠了多少账。雇丹德里恩来表演吸引顾客。粗鲁但热心——对赊账三天以上的就翻脸。
   description: 矮人老店主，站在吧台后擦拭杯子。
+- id: gold_innkeeper
+  name: 金币
+  zone: bar_zone
+  pos:
+  - 24
+  - 20
+  visual:
+    visible_radius: 0
+    properties:
+      look: 吧台下的铁皮钱箱，装满了酒客付的克朗
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 300
+    radius: -1
+    qty: 300
+  description: 酒馆老板的钱箱，300枚克朗。今晚生意不错。
 - id: bard_apprentice
   name: 吟游学徒
   zone: bar_zone
@@ -618,6 +686,23 @@ entities:
     hidden:
       detail: 上面有泰莫利亚的纹章。看起来刚掉不久。
   description: 地上躺着一枚亮闪闪的硬币。
+- id: coin_stack_bar
+  name: 金币堆
+  zone: bar_zone
+  pos:
+  - 38
+  - 16
+  visual:
+    visible_radius: 8
+    properties:
+      look: 吧台边地上有一小堆亮闪闪的金币，不知道是谁掉的
+  interaction:
+    interaction_radius: 2
+    private_attrs:
+      qty: 25
+    radius: 5
+    qty: 25
+  description: 吧台边地上的一小堆金币，约25枚。可能是哪个喝醉的客人掉的。
 - id: forge_stall
   name: 铁匠摊
   zone: bar_zone
@@ -921,6 +1006,23 @@ entities:
     interaction_radius: 3
     personality: 凯拉·梅兹，年轻女术士。正在修习炼金术和魔药学。热情、好奇、容易被有经验的前辈吸引。
   description: 年轻的金发女术士，穿着学徒袍。在草药架和坩埚之间忙碌。
+- id: herbs_keira
+  name: 草药
+  zone: garrison
+  pos:
+  - 17
+  - 12
+  visual:
+    visible_radius: 0
+    properties:
+      look: 凯拉的草药包，里面装着各种炼金材料
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 30
+    radius: -1
+    qty: 30
+  description: 凯拉的草药包，30份炼金材料。鼠尾草、曼德拉草根、白屈花。
 - id: shrine
   name: 神殿
   zone: village
@@ -1505,6 +1607,23 @@ entities:
     interaction_radius: 3
     personality: 独居森林的女猎手。不跟人废话但不等于没话说——你得先证明你不是来浪费她时间的。对猎魔人有职业尊重：你们都杀怪物，她拿尸体卖材料。共生关系。
   description: 穿皮甲的沉默女人。背长弓，腰间挂兔子和剥皮刀。
+- id: arrows_huntress
+  name: 箭矢
+  zone: village
+  pos:
+  - 27
+  - 20
+  visual:
+    visible_radius: 0
+    properties:
+      look: 女猎手的箭袋，插满了手工削制的猎箭
+  interaction:
+    interaction_radius: 1
+    private_attrs:
+      qty: 40
+    radius: -1
+    qty: 40
+  description: 女猎手的箭袋，40支手工猎箭。箭头是黑曜石磨的。
 - id: ancient_ruins
   name: 古城废墟
   zone: village

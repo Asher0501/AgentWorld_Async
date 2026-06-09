@@ -1,5 +1,6 @@
-"""InteractionSystem — 统一交互模型
-interact() 是唯一入口。NPC→NPC: 纯同步写层。NPC→Item: +1 LLM。
+"""InteractionSystem — engine single entry point.
+interact(): routes LLM calls to physical (agent.interfaces) or abstract (graph.primitives).
+Zero op-name branching. Zero domain vocabulary.
 """
 import json
 import time
@@ -32,9 +33,6 @@ class InteractionSystem:
 
     def find_entity_by_name(self, zone: str, name: str,
                              all_entities: dict, exclude_id: str = "") -> object | None:
-        """Exact name match — no fuzzy, no guessing. Returns entity or None.
-        If multiple entities share the same name in the zone, returns None (ambiguous).
-        """
         match = None
         for e in all_entities.values():
             if e.zone != zone or not e.has("interaction"):
@@ -43,7 +41,7 @@ class InteractionSystem:
                 continue
             if e.name == name:
                 if match is not None:
-                    return None  # duplicate name — ambiguous, let LLM resolve
+                    return None
                 match = e
         return match
 
@@ -51,71 +49,86 @@ class InteractionSystem:
 
     async def interact(self, agent, target,
                        decision: dict, world) -> ActionResult | None:
-        """统一交互入口。同步写层，NPC→Item 加一次 LLM。"""
+        """Engine single entry point. Two-slot dispatch:
+        physical_calls → agent.interfaces[name](params)
+        abstract_calls → graph.primitives[name](params)
+        """
         target_inter = target.get("interaction")
-
         agent_layer = agent.get("agent")
         dialogue = decision.get("dialogue", "")
-        visual = decision.get("visual", "")
-        self_deltas = decision.get("self_deltas", {})
         story = decision.get("story", "")
 
-        # ① Write agent's layers (observers poll)
-        self._write_agent_layers(agent, agent_layer, decision, dialogue, visual)
+        # ── Physical layer dispatch ──
+        for call in decision.get("physical_calls") or []:
+            name = call.get("interface", "")
+            params = call.get("params", {})
+            handler = getattr(agent_layer, "interfaces", {}).get(name)
+            if handler:
+                handler(agent, params, world)
 
-        # ② Apply self_deltas
-        if self_deltas:
-            self._apply_deltas(agent, self_deltas)
+        # ── Abstract layer dispatch ──
+        for call in decision.get("abstract_calls") or []:
+            name = call.get("interface", "")
+            params = call.get("params", {})
+            prim = world.graph.primitives.get(name)
+            if prim:
+                prim(**params)
+
+        # ── Layer write (config-driven via layer_registry writable) ──
+        self._write_agent_layers(agent, agent_layer, decision,
+                                 dialogue, story, world)
 
         if agent_layer:
             agent_layer._write_pending = True
 
-        # ③ NPC→NPC: done
+        # NPC→NPC: done
         if target.has("agent"):
             return ActionResult(
                 target_id=target.id,
-                caller_deltas=self_deltas,
                 narrative=story or dialogue or "",
             )
 
-        # ④ NPC→Item: interact_narrative LLM
+        # NPC→Item: interact_narrative LLM
         narrative = story or ""
         action_text = decision.get("action", "")
-        narrative, llm2_prompt, llm2_output = await self._resolve_npc_item(agent, target, action_text, story, narrative, world)
+        narrative, llm2_prompt, llm2_output = await self._resolve_npc_item(
+            agent, target, action_text, story, narrative, world)
 
-        # ⑤ Gate transfer
         self._handle_gate_transfer(agent, target_inter, world)
 
         return ActionResult(
             target_id=target.id,
-            caller_deltas=self_deltas,
             narrative=narrative,
             llm2_prompt=llm2_prompt,
             llm2_output=llm2_output,
         )
 
-    def _write_agent_layers(self, agent, agent_layer, decision, dialogue, visual):
-        """Write dialogue/visual/internal to agent's layers for observers to poll."""
-        if dialogue and agent.has("auditory"):
-            aud = agent.get("auditory")
-            aud.properties["current_speech"] = dialogue
-            aud.properties["speech_ts"] = time.time()
-            if agent_layer:
-                agent_layer._conversation_buffer.append({"speaker": agent.name, "text": dialogue, "ts": time.time()})
-                if len(agent_layer._conversation_buffer) > 8:
-                    agent_layer._conversation_buffer.pop(0)
-        if visual and agent.has("visual"):
-            agent.get("visual").properties["expression"] = visual
-            agent.get("visual").properties["expression_ts"] = time.time()
+    def _write_agent_layers(self, agent, agent_layer, decision, dialogue, visual, world=None):
+        """Generic layer write: iterate layer_registry.writable, mapping LLM fields -> layer properties."""
+        layer_registry = getattr(world, "_layer_registry", {}) if world else {}
+        for layer_name, reg in layer_registry.items():
+            if not agent.has(layer_name):
+                continue
+            writable = reg.get("writable", {})
+            layer = agent.get(layer_name)
+            for field, prop in writable.items():
+                value = decision.get(field)
+                if value:
+                    layer.properties[prop] = value
+                    if field == "dialogue":
+                        layer.properties.setdefault("speech_ts", time.time())
+
+        if dialogue and agent_layer:
+            agent_layer._conversation_buffer.append(
+                {"speaker": agent.name, "text": dialogue, "ts": time.time()})
+            if len(agent_layer._conversation_buffer) > 8:
+                agent_layer._conversation_buffer.pop(0)
         if agent_layer and decision.get("remember"):
             mem = decision.get("story", "") or decision.get("action", "")
             if mem:
                 agent_layer.memory.record(mem)
 
     async def _resolve_npc_item(self, agent, target, action_text, story, fallback_narrative, world=None):
-        """NPC→Item: call LLM for narrative + deltas.
-        Returns (narrative, llm2_prompt, llm2_output).
-        """
         narrative = fallback_narrative
         llm2_prompt, llm2_output = "", ""
         target_inter = target.get("interaction")
@@ -139,7 +152,7 @@ class InteractionSystem:
             system = self.assembler.get_system_prompt("interact_narrative")
             schema = self.assembler.get_output_schema("interact_narrative")
             temp = self.assembler.get_temperature("interact_narrative")
-            raw = await self.llm.chat(system=system, messages=[{"role":"user","content":llm2_prompt}],
+            raw = await self.llm.chat(system=system, messages=[{"role": "user", "content": llm2_prompt}],
                                        temperature=temp, response_format=schema)
             llm2_output = raw
             from agent.brain import _parse_llm_json
@@ -162,7 +175,6 @@ class InteractionSystem:
         return narrative, llm2_prompt, llm2_output
 
     def _handle_gate_transfer(self, agent, target_inter, world):
-        """If target interaction defines a gate, transfer the agent to the target zone."""
         gate = target_inter.gate if target_inter else None
         if gate and hasattr(world, 'lifecycle'):
             world.lifecycle.transfer_zone(agent, gate["to_zone"],
@@ -171,9 +183,7 @@ class InteractionSystem:
     def _apply_deltas(self, entity, deltas: dict) -> None:
         if not entity.has("interaction"):
             return
-        # Apply with built-in clamping (InteractionLayer handles bounds)
         entity.get("interaction").apply_deltas(deltas)
-        # Post-apply verification (diagnostic only)
         from core.verification import verify
         inter = entity.get("interaction")
         issues = verify(entity, deltas, inter.currency_key,

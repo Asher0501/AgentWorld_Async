@@ -1,0 +1,60 @@
+# Witcher World — 物理层 NPC 接口注册
+# 引擎不感知这些接口的存在 — 只做路由 (agent.interfaces[name])
+# 换世界 = 换此 YAML，引擎 0 行改动。
+
+通用:
+  - id: take_out
+    desc: "从持有中拿出物品到空间（对方能看到）"
+    impl: npc_actions.take_out
+    params:
+      - {name: entity, type: alias, desc: "物品别名"}
+      - {name: qty, type: int, desc: "数量"}
+
+  - id: eat
+    desc: "消耗食物，减少饥饿"
+    impl: npc_actions.eat
+    params:
+      - {name: entity, type: alias, desc: "食物别名"}
+      - {name: qty, type: int, desc: "消耗数量"}
+
+  - id: hand_over
+    desc: "把物品放到目标位置（递给NPC或放柜台上）"
+    impl: npc_actions.hand_over
+    params:
+      - {name: entity, type: alias, desc: "物品别名"}
+      - {name: to, type: alias, desc: "目标位置别名（从视觉抄，可以是NPC、摊位、吧台等任意空间实体）"}
+      - {name: qty, type: int, desc: "数量"}
+
+  - id: pick_up
+    desc: "捡起空间中的物品收入持有"
+    impl: npc_actions.pick_up
+    params:
+      - {name: entity, type: alias, desc: "空间中的物品别名"}
+      - {name: qty, type: int, desc: "数量"}
+
+铁匠专有:
+  - id: forge
+    desc: "消耗矿石锻造武器"
+    impl: npc_actions.forge
+    npcs: [哈托里]
+    params:
+      - {name: entity, type: alias, desc: "矿石别名"}
+      - {name: qty, type: int, desc: "消耗数量"}
+
+草药师专有:
+  - id: gather
+    desc: "采集草药"
+    impl: npc_actions.gather
+    npcs: [托蜜拉, 维瑟米尔]
+    params:
+      - {name: entity, type: alias, desc: "草药别名"}
+      - {name: qty, type: int, desc: "采集数量"}
+
+酒馆专有:
+  - id: brew
+    desc: "用食物酿造麦酒"
+    impl: npc_actions.brew
+    npcs: [莎拉]
+    params:
+      - {name: entity, type: alias, desc: "食物别名"}
+      - {name: qty, type: int, desc: "消耗数量"}

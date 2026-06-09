@@ -1,0 +1,685 @@
+world:
+  name: 猎魔人世界 - 交易经济
+  time_scale: 60
+  start_time: 08:00
+  world-group: full
+  simulation:
+    currency: coins
+    poll_interval: 0.3
+    stale_timeout: 30
+    memory_prompt_count: 5
+    default_patience: 5
+    kl:
+      state_thresholds:
+      - 30
+      - 60
+      - 80
+      coin_epsilon: 5
+    drive:
+      attributes:
+        thirst:
+          min: 0
+          max: 100
+          decay: 0.022
+          description: 口渴
+        hunger:
+          min: 0
+          max: 100
+          decay: 0.018
+          description: 饥饿
+        social:
+          min: 0
+          max: 100
+          decay: 0.015
+          description: 社交
+        energy:
+          min: 0
+          max: 100
+          decay: -0.01
+          description: 体力
+        fun:
+          min: 0
+          max: 100
+          decay: 0.015
+          description: 娱乐
+        mood:
+          min: 0
+          max: 100
+          decay: 0.0
+          description: 心情
+    validation:
+      delta_max: 30
+    text:
+      kl_entered: '{channel}: {name} 进入'
+      kl_left: '{channel}: {name} 离开'
+      kl_changed: '{channel}: {name} 变化'
+      kl_stale: 距上次行动已超过 {stale_timeout}s
+      kl_coin: coins {sign}{delta}
+      kl_state_cross: '{attr} {arrow}突破{t}'
+traits:
+  default:
+  - persistent
+  - novelty_seeking
+  - socially_reciprocal
+  - satisficing
+  - goal_directed
+zones:
+- id: village
+  name: 白果园村
+  width: 60
+  height: 40
+- id: market
+  name: 诺维格瑞集市
+  width: 80
+  height: 50
+- id: academy
+  name: 奥森弗特学城
+  width: 50
+  height: 40
+- id: stronghold
+  name: 凯尔莫罕要塞
+  width: 50
+  height: 40
+entities:
+- id: village_market_gate
+  name: 商路路牌
+  zone: village
+  pos:
+  - 55
+  - 20
+  visual:
+    visible_radius: 20
+    properties:
+      look: 通往诺维格瑞集市的商路，车辙很深。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 土路通向诺维格瑞集市。远方能听到市场的嘈杂声。【可穿越】
+    gate:
+      to_zone: market
+      to_pos:
+      - 5
+      - 25
+  description: 路牌指向诺维格瑞集市方向。
+- id: market_village_gate
+  name: 村路路牌
+  zone: market
+  pos:
+  - 8
+  - 25
+  visual:
+    visible_radius: 20
+    properties:
+      look: 指向白果园村方向的旧路牌。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 土路通回白果园村。远处果树丛生。【可穿越】
+    gate:
+      to_zone: village
+      to_pos:
+      - 52
+      - 20
+  description: 路牌指向白果园村。
+- id: market_academy_gate
+  name: 学城大门
+  zone: market
+  pos:
+  - 75
+  - 25
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一扇精美的铁门，上面刻着狮鹫图案——奥森弗特大学校徽。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 穿过铁门就是奥森弗特学城。塔顶飘着魔法烟雾。【可穿越】
+    gate:
+      to_zone: academy
+      to_pos:
+      - 5
+      - 20
+  description: 奥森弗特学城的铁门。
+- id: academy_market_gate
+  name: 集市大门
+  zone: academy
+  pos:
+  - 8
+  - 20
+  visual:
+    visible_radius: 20
+    properties:
+      look: 学院外墙的一扇侧门，通向繁华的集市。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 推门出去就是诺维格瑞集市。商人吆喝声隐约可闻。【可穿越】
+    gate:
+      to_zone: market
+      to_pos:
+      - 72
+      - 25
+  description: 通向集市的侧门。
+- id: stronghold_village_gate
+  name: 下山小径
+  zone: stronghold
+  pos:
+  - 45
+  - 20
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一条蜿蜒的石头小径通向山下村庄。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 走下山就是白果园村。山坡上能看到村庄的炊烟。【可穿越】
+    gate:
+      to_zone: village
+      to_pos:
+      - 5
+      - 20
+  description: 山路通向白果园。
+- id: village_stronghold_gate
+  name: 上山古道
+  zone: village
+  pos:
+  - 8
+  - 20
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一条石头台阶通向山上的要塞。
+  interaction:
+    interaction_radius: 3
+    properties:
+      description: 石阶通向山上的凯尔莫罕要塞。山风吹来松木的香味。【可穿越】
+    gate:
+      to_zone: stronghold
+      to_pos:
+      - 42
+      - 20
+  description: 石阶通山上。
+- id: herbs_patch
+  name: 草药堆
+  zone: village
+  pos:
+  - 28
+  - 15
+  visual:
+    visible_radius: 12
+    properties:
+      look: 草药园里堆放着一捆捆晒干的草药，散发清香。
+  interaction:
+    interaction_radius: 2
+    private_attrs:
+      qty: 20
+    radius: 5
+    qty: 20
+  description: 晾晒架上的草药堆。
+- id: food_stall
+  name: 食物摊
+  zone: market
+  pos:
+  - 35
+  - 28
+  visual:
+    visible_radius: 15
+    properties:
+      look: 一个摆满面包、干酪和腊肠的食品摊位，摊主正在吆喝。
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      qty: 25
+    radius: 5
+    qty: 25
+  description: 市集上的食品摊位。
+- id: ore_pile
+  name: 矿石堆
+  zone: market
+  pos:
+  - 55
+  - 30
+  visual:
+    visible_radius: 12
+    properties:
+      look: 一堆从矿坑运来的铁矿石，码得整整齐齐。
+  interaction:
+    interaction_radius: 2
+    private_attrs:
+      qty: 15
+    radius: 5
+    qty: 15
+  description: 矮人矿坑的铁矿石。
+- id: book_stall
+  name: 书摊
+  zone: academy
+  pos:
+  - 28
+  - 22
+  visual:
+    visible_radius: 10
+    properties:
+      look: 一个堆满古籍和卷轴的书摊，书页泛黄飘散着墨香。
+  interaction:
+    interaction_radius: 2
+    private_attrs:
+      qty: 10
+    radius: 5
+    qty: 10
+  description: 学者的书摊。古籍残页和法术书。
+- id: food_cellar
+  name: 食物
+  zone: stronghold
+  pos:
+  - 25
+  - 25
+  visual:
+    visible_radius: 10
+    properties:
+      look: 要塞地窖里存储的干粮和腌肉，够一个猎魔人吃很久。
+  interaction:
+    interaction_radius: 2
+    private_attrs:
+      qty: 12
+    radius: 5
+    qty: 12
+  description: 凯尔莫罕地窖的储备粮。
+- id: geralt
+  name: 杰洛特
+  zone: village
+  pos:
+  - 30
+  - 25
+  visual:
+    visible_radius: 25
+    sprite: char_witcher
+    properties:
+      look: 白发猎魔人，两把剑——银剑斩妖，钢剑杀人
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 80
+      hunger: 45
+      thirst: 55
+      social: 20
+      energy: 85
+      fun: 15
+      mood: 50
+    properties:
+      description: 可以压低声音聊两句。谈到怪物和报酬时话会多些。
+  agent:
+    autonomous: true
+    speed: 1.2
+    view_radius: 25
+    hearing_radius: 20
+    interaction_radius: 3
+    personality: 利维亚的杰洛特，狼学派猎魔人。刚完成一个水鬼委托回到白果园。钱包里有80克朗——但很快就要花出去了。需要补充魔药、磨剑、打听叶奈法的下落。草药快用完了，得找托蜜拉买点。
+  description: 白发猎魔人，猫眼，脸上有疤。
+  holds:
+    金币: 80
+- id: tomera
+  name: 托蜜拉
+  zone: village
+  pos:
+  - 22
+  - 18
+  visual:
+    visible_radius: 20
+    properties:
+      look: 穿着围裙的草药师，手上沾满绿色的草汁，笑容和煦
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 30
+      hunger: 35
+      thirst: 30
+      social: 50
+      energy: 75
+      fun: 40
+      mood: 70
+    properties:
+      description: 可以和她聊聊草药、医术，或者买些药草。
+  agent:
+    autonomous: true
+    speed: 0.9
+    view_radius: 18
+    hearing_radius: 15
+    interaction_radius: 3
+    personality: 托蜜拉，白果园的草药师和助产士。院子里种满了药草，草药堆多得卖不完。常有人来买药，但愿意付克朗的不多——大多数是赊账。今天想找个愿意付钱的买家，特别是术士们——她们识货、付得起。
+  description: 白果园的草药师，手上沾满绿色草汁。
+  holds:
+    金币: 30
+    草药: 15
+- id: zoltan
+  name: 卓尔坦
+  zone: market
+  pos:
+  - 40
+  - 30
+  visual:
+    visible_radius: 20
+    properties:
+      look: 粗壮的矮人商人，胡子编成两根粗辫子，嗓门大得能震裂酒桶
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 150
+      hunger: 40
+      thirst: 55
+      social: 65
+      energy: 85
+      fun: 55
+      mood: 65
+    properties:
+      description: 矮人商人。精明，消息灵通。可以和他谈矿产生意。
+  agent:
+    autonomous: true
+    speed: 0.8
+    view_radius: 18
+    hearing_radius: 15
+    interaction_radius: 3
+    personality: 卓尔坦·齐瓦，玛哈坎矮人商人。手头有矿石，堆在集市角落。需要找个铁匠来买——哈托里那老精灵欠我一单。也喜欢喝一杯，莎拉那边有酒。谁拿金币过来我跟谁做生意。
+  description: 粗壮矮人商人，胡子编成辫子。
+  holds:
+    金币: 150
+    矿石: 8
+- id: hattori
+  name: 哈托里
+  zone: market
+  pos:
+  - 58
+  - 32
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一个沉默的精灵铁匠，站在铁砧边，手上满是烫伤和老茧
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 50
+      hunger: 55
+      thirst: 60
+      social: 15
+      energy: 80
+      fun: 25
+      mood: 50
+    properties:
+      description: 诺维格瑞最好的铁匠。可以请他修武器或者买把新剑。
+  agent:
+    autonomous: true
+    speed: 0.9
+    view_radius: 18
+    hearing_radius: 15
+    interaction_radius: 3
+    personality: 哈托里，诺维格瑞的精灵铁匠。矿石快用完了——只有几吨库存了。卓尔坦那里有矿石但价格不低。想打一把传世精灵钢剑，需要最好的矿石。
+  description: 沉默的精灵铁匠，站在铁砧边。
+  holds:
+    金币: 50
+    矿石: 5
+- id: beggar_king
+  name: 乞丐王
+  zone: market
+  pos:
+  - 20
+  - 35
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一个独眼男人，裹着破旧的斗篷，但眼神像算盘一样精准
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 250
+      hunger: 30
+      thirst: 40
+      social: 10
+      energy: 75
+      fun: 10
+      mood: 55
+    properties:
+      description: 诺维格瑞地下情报网的头目。可以买情报——如果你付得起。
+  agent:
+    autonomous: true
+    speed: 0.7
+    view_radius: 20
+    hearing_radius: 18
+    interaction_radius: 3
+    personality: 乞丐王，诺维格瑞地下世界的影子皇帝。手里有几页古籍残页，不知道是什么内容但有人愿意出价。听说凯拉在研究上古咒语，或许能卖个好价钱。钱不嫌多，情报不嫌少。
+  description: 独眼男人，裹破旧斗篷，眼神精算。
+  holds:
+    金币: 250
+    古籍残页: 3
+- id: dandelion
+  name: 丹德里恩
+  zone: market
+  pos:
+  - 45
+  - 35
+  visual:
+    visible_radius: 20
+    sprite: char_bard
+    properties:
+      look: 衣着花哨的吟游诗人，抱着鲁特琴，一脸轻松
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 200
+      hunger: 45
+      thirst: 70
+      social: 90
+      energy: 65
+      fun: 85
+      mood: 80
+    properties:
+      description: 北境最有名的吟游诗人。一开口就停不下来。
+  agent:
+    autonomous: true
+    speed: 0.9
+    view_radius: 18
+    hearing_radius: 15
+    interaction_radius: 3
+    personality: 丹德里恩，北境最有名的吟游诗人。今天在集市闲逛，想收集新歌素材。带了很多金币——刚拿到新歌的版税。饿了就找莎拉，渴了就去买酒。见到谁都想聊两句——万一是歌词的下一段呢？
+  description: 衣着花哨的吟游诗人，抱着鲁特琴。
+  holds:
+    金币: 200
+- id: sarah
+  name: 莎拉
+  zone: market
+  pos:
+  - 32
+  - 38
+  visual:
+    visible_radius: 20
+    properties:
+      look: 一个皮肤被炉火烤得红润的女老板，手里端着一壶冒热气的麦酒
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 50
+      hunger: 25
+      thirst: 15
+      social: 70
+      energy: 60
+      fun: 45
+      mood: 75
+    properties:
+      description: 集市旁小酒馆的老板娘。可以喝酒、吃东西、或者听八卦。
+  agent:
+    autonomous: true
+    speed: 0.7
+    view_radius: 16
+    hearing_radius: 14
+    interaction_radius: 3
+    personality: 莎拉，诺维格瑞集市旁小酒馆的老板娘。炉子上永远炖着肉汤——食物多得卖不完。只是缺好草药调味。托蜜拉那边有草药，如果能买到就能做出更好的炖菜。
+  description: 小酒馆老板娘，手里端着热麦酒。
+  holds:
+    金币: 50
+    食物: 15
+- id: triss
+  name: 特莉丝
+  zone: academy
+  pos:
+  - 30
+  - 25
+  visual:
+    visible_radius: 20
+    sprite: char_sorceress
+    properties:
+      look: 栗色卷发的女术士，灰蓝色的眼睛带着精灵血统的狡黠
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 80
+      hunger: 40
+      thirst: 35
+      social: 30
+      energy: 70
+      fun: 50
+      mood: 60
+    properties:
+      description: 女术士，聪明狡黠，关心杰洛特。可以和她谈魔法或买魔药。
+  agent:
+    autonomous: true
+    speed: 1.0
+    view_radius: 22
+    hearing_radius: 18
+    interaction_radius: 3
+    personality: 特莉丝·梅里葛德，女术士。在奥森弗特有个小小炼金实验室，用草药做魔药。但草药快用完了——需要从托蜜拉那儿买一批。手上有炼好的魔药，猎魔人很愿意买。也想要一本新的法术书。
+  description: 栗色卷发女术士，穿着旅行长袍。
+  holds:
+    金币: 80
+    魔药: 3
+- id: keira
+  name: 凯拉
+  zone: academy
+  pos:
+  - 22
+  - 22
+  visual:
+    visible_radius: 20
+    properties:
+      look: 年轻的金发女术士，穿着学徒袍，正在翻阅古籍
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 120
+      hunger: 35
+      thirst: 30
+      social: 20
+      energy: 75
+      fun: 55
+      mood: 65
+    properties:
+      description: 年轻女术士，热情好学，正在研究上古咒语的变体。
+  agent:
+    autonomous: true
+    speed: 1.0
+    view_radius: 20
+    hearing_radius: 16
+    interaction_radius: 3
+    personality: 凯拉·梅兹，年轻女术士。正在研究一种上古咒语——缺古籍残页。听说乞丐王手里有残页，愿意出价。手上有几本多余的法术书，如果有人需要可以卖。金币带了不少，该花的就花。
+  description: 金发女术士，穿着学徒袍，翻阅古籍。
+  holds:
+    金币: 120
+    法术书: 4
+- id: yennefer
+  name: 叶奈法
+  zone: academy
+  pos:
+  - 38
+  - 22
+  visual:
+    visible_radius: 20
+    sprite: char_sorceress
+    properties:
+      look: 黑发紫眼的女术士，长袍上散发着紫丁香与醋栗的香气
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 300
+      hunger: 30
+      thirst: 25
+      social: 5
+      energy: 70
+      fun: 30
+      mood: 60
+    properties:
+      description: 强大的女术士。高傲但有求必应——只要原因合理。可以请教魔法、买魔法饰品。
+  agent:
+    autonomous: true
+    speed: 1.0
+    view_radius: 22
+    hearing_radius: 18
+    interaction_radius: 3
+    personality: 温格堡的叶奈法，强大的女术士。手上有几件精致的魔法饰品——贵族喜欢，术士更喜欢。想找识货的买家，不是随便谁都能戴得起的。在找一种稀有的星辉石——如果哪位商人有货，她会出高价。
+  description: 黑发紫眼女术士，散发紫丁香与醋栗的香气。
+  holds:
+    金币: 300
+    魔法饰品: 5
+- id: ciri
+  name: 希里
+  zone: stronghold
+  pos:
+  - 25
+  - 25
+  visual:
+    visible_radius: 20
+    properties:
+      look: 灰白头发的年轻女人，腰间挂一把钢剑，脸颊有道浅疤
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 100
+      hunger: 60
+      thirst: 50
+      social: 15
+      energy: 80
+      fun: 40
+      mood: 55
+    properties:
+      description: 杰洛特的养女。长者之血的继承者。可以聊猎魔训练或她的旅途。
+  agent:
+    autonomous: true
+    speed: 1.4
+    view_radius: 26
+    hearing_radius: 22
+    interaction_radius: 3
+    personality: 希里，辛特拉幼狮。长者之血、时空之女。在凯尔莫罕训练了一早上——肚子饿得咕咕叫。维瑟米尔说练完剑才能吃东西。要塞地窖有储备粮但不多。想买一把更好的剑——哈托里打的比现在这把强。需要去市集但知道狂猎在追她。
+  description: 灰白头发的年轻女人，脸颊有疤。
+  holds:
+    金币: 100
+- id: vesemir
+  name: 维瑟米尔
+  zone: stronghold
+  pos:
+  - 28
+  - 28
+  visual:
+    visible_radius: 20
+    properties:
+      look: 灰白胡子的老猎魔人，眼神锐利，腰间挂着剑油瓶
+  interaction:
+    interaction_radius: 3
+    private_attrs:
+      coins: 60
+      hunger: 40
+      thirst: 45
+      social: 35
+      energy: 70
+      fun: 35
+      mood: 65
+    properties:
+      description: 狼学派最年长的猎魔人。稳重但偶尔露出老顽童的一面。
+  agent:
+    autonomous: true
+    speed: 1.0
+    view_radius: 22
+    hearing_radius: 18
+    interaction_radius: 3
+    personality: 维瑟米尔，凯尔莫罕的导师。山上采的草药用不完——可以卖给特莉丝或托蜜拉换几个金币。希里的训练进度让人欣慰，但食物储备快见底了，需要下山去村里买点。年纪大了，体力不如从前，该休息时就得休息。
+  description: 灰白胡子的老猎魔人，腰间挂剑油瓶。
+  holds:
+    金币: 60
+    草药: 10

@@ -1,8 +1,13 @@
 # ═══════════════════════════════════════════
-# Slot Group Matrix
-# 读法: 行=group-id, 列=slot, 0/1=激活
-# 三层: contract(输出契约) world(环境) npc(角色)
+# Slot Group Matrix + Dimensions
+# dimensions: which config keys drive each slot group
+# groups:     row=group-id, col=slot, 0/1=激活
 # ═══════════════════════════════════════════
+
+dimensions:
+  - { name: contract, source: static, default: default }
+  - { name: world, source: world-group, default: full }
+  - { name: npc, source: npc-group, default: default }
 
 contract:
   columns: [action_scope, output_contract]

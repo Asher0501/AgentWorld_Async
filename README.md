@@ -1,137 +1,159 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square">
-  <img src="https://img.shields.io/badge/async-asyncio-purple?style=flat-square">
-  <img src="https://img.shields.io/badge/LLM-DeepSeek%20%7C%20MiniMax-green?style=flat-square">
-  <img src="https://img.shields.io/badge/tests-159-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/tests-177-brightgreen?style=flat-square">
+  <img src="https://img.shields.io/badge/engine%20primitives-6-orange?style=flat-square">
   <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square">
 </p>
 
 <h1 align="center">AgentWorld Async</h1>
 
 <p align="center">
-  <b>Engine provides facts. LLM provides cognition.<br/>World unchanged, Agent unmoved.</b>
+  <b>Spatial Layer + Abstract Layer · 6 Primitives · MCP Interfaces<br/>
+  Engine reports facts. LLM provides cognition.<br/>
+  <sub>空间层 + 抽象层 · 6 原语 · MCP 接口 · 引擎报事实，LLM 做认知</sub></b>
 </p>
 
 ---
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                             main.py  (CLI Entry)                            │
-└──────────────────────────────────┬──────────────────────────────────────────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    ▼              ▼              ▼
-           ┌──────────────┐ ┌─────────────┐ ┌──────────────┐
-           │  Core/World  │ │ Agent Loop  │ │ LLM+Prompts  │
-           │              │ │ (loop.py)   │ │              │
-           │ World/Entity │ │ Sense       │ │ LLMClient    │
-           │ SpatialGrid  │ │   |         │ │ Concur.Gate  │
-           │ Clock        │▶│ Delta Gate  │▶│ Assembler    │
-           │ Lifecycle    │ │   |         │ │ 14-Slot      │
-           │ Director     │ │ Decide(LLM) │ │ safe_format  │
-           │ Session      │ │   |         │ └──────────────┘
-           └──────────────┘ │ Act         │
-                            │   |         │ ┌──────────────┐
-           ┌──────────────┐ │ Flush       │ │ Agent State  │
-           │   Systems    │ │             │ │ (layers/)    │
-           │ Sensory      │▶│ P/Q State   │▶│ AgentLayer   │
-           │ Interaction  │ │ Write Lock  │ │ Drives       │
-           │ Decay        │ │ err_backoff │ │ Memory(10)   │
-           └──────────────┘ └─────────────┘ │ SensoryMem   │
-                                            └──────────────┘
-     ┌────────────┬──────────────┐
-     ▼            ▼              ▼
-┌──────────┐ ┌──────────┐ ┌──────────────┐    ┌─────────────────┐
-│Event Bus │ │ Director │ │ Error+Logger │    │  Channel System │
-│register  │ │freeze    │ │ logger/      │    │  (config YAML)  │
-│emit WS   │ │take      │ │ 6 hooks      │    │                 │
-│history   │ │order     │ │ SQLite       │    │ agent_layer     │
-│unregister│ │snap      │ │ dedup/dump   │    │ world  drives   │
-└──────────┘ └──────────┘ └──────────────┘    │ sensory memory  │
-     │                                        │ traits delta    │
-  ┌──┴───────┐                                 │ collect(ctx) →  │
-  ▼          ▼                                 └─────────────────┘
-┌──────┐ ┌──────┐ ┌──────────────┐
-│Dash. │ │Visual│ │ Gateway API  │ ┌──────────────┐ ┌───────────┐
-│:8766 │ │:8767 │ │ join/perceive│ │   AutoGenSim │ │   Eval    │
-│ WS   │ │PixiJS│ │ act/leave    │ │   team<>NPC  │ │ 18 metrics│
-│监控  │ │像素  │ │ REST+WS      │ │   Director   │ │ 5 cats    │
-└──────┘ └──────┘ └──────────────┘ └──────────────┘ └───────────┘
+│                           LLM Layer (Cognition · 认知)                       │
+│                                                                             │
+│   Sensory sections per channel:                                             │
+│   ┌─ Visual ──────────┐ ┌─ Inventory ───────┐ ┌─ Interactable ───────────┐ │
+│   │ 杰洛特手中的金币     │ │ 金币 ×150         │ │ 杰洛特 — 聊两句           │ │
+│   └───────────────────┘ └──────────────────┘ └───────────────────────────┘ │
+│                                                                             │
+│   MCP Tool List → LLM Decision:                                             │
+│   { physical_calls: [{interface:"take_out", params:{entity:"金币",qty:5}}], │
+│     abstract_calls: [{interface:"delta", params:{entity:"杰洛特",           │
+│                        attr:"thirst", value:-10}}] }                        │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │ two-slot dispatch
+┌───────────────────────────────▼─────────────────────────────────────────────┐
+│                         Engine Layer (Execution · 执行)                      │
+│                                                                             │
+│   interact(entity, interface, params) — single write entry                  │
+│     physical_calls  → agent.interfaces[name]   (world-bound)                │
+│     abstract_calls  → graph.primitives[name]   (engine built-in)            │
+│                                                                             │
+│   Channel Collector → auto-registered source classes                        │
+│   Alias Registry    → O(1) dict: LLM string → entity_id                     │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+┌─────────▼──────────┐ ┌────────▼──────────┐ ┌────────▼──────────────────────┐
+│  Spatial Layer     │ │  Abstract Layer   │ │  Interface Layer              │
+│  (memory)          │ │  (edges dict/SQL) │ │  (world-bound YAML)           │
+│                    │ │                   │ │                               │
+│  entities + pos    │ │  type_node × N    │ │  npc_interfaces.yaml:          │
+│  visual/auditory   │ │  edges:           │ │    take_out: delta+spawn       │
+│  SpatialGrid       │ │    npc→type  qty  │ │    hand_over: delta+spawn      │
+│                    │ │    zone→type  qty  │ │    eat: delta(edge)+delta(attr)│
+│  spawn/despawn     │ │    npc→zone   qty  │ │    pick_up: delta+despawn      │
+│  relocate          │ │                   │ │                               │
+│                    │ │  delta/add_node    │ │  npc_actions.py: impl          │
+│                    │ │  remove_node       │ │                               │
+└────────────────────┘ └───────────────────┘ └───────────────────────────────┘
 ```
 
 ---
 
 # 中文版
 
-## 五个核心思想
+## 核心思想
 
-### 1. 引擎报告，LLM 判断
+### 1. 双层模型
 
-引擎不教 agent 怎么做。引擎只报告事实：`mood=5`、gate 存在、`target_name` 匹配成功。不说"心情很差"、不说"应该穿越"。全部认知判断权在 LLM，通过 YAML slot 组合引导。
+| | 空间层 | 抽象层 |
+|---|---|---|
+| 职责 | "在哪里""长什么样" | "谁持有多少" |
+| 存储 | 内存 (entities + SpatialGrid) | 内存 edges + SQLite |
+| 边 | 无 — 物理相邻 | (src, tgt, qty) — 无类型 |
+| 感官 | 视觉 / 听觉 / 可交互 | 持有（npc 的一阶邻居子图） |
 
-### 2. 声明式认知架构 — 14 Slot，3 层
+NPC 和物品是同一个 `Entity` class。`type_ref` 字段把空间 entity 指向抽象层的 `type_node`。
 
-Generative Agents 的 730 行认知代码 → 14 个 YAML slot + 45 行字符串格式化引擎。三层：
-- **Contract** — 输出契约 (`action_scope` / `output_contract`)
-- **World** — 环境事实 (`delta_gate` / `spatial` / `sensory` / `gate_highlight`)
-- **NPC** — 角色驱动 (`persona` / `main_thread` / `drive_values` / `drive_context` / `memory` / `conversation` / `traits` / `intent_context`)
+**为什么分两层**：位置是物理事实，持有是逻辑事实。两者正交 — 各自管理独立维度。
 
-`slot_groups.yaml` 二维矩阵控制 per-agent slot 激活。新认知 = 加一行 YAML。零 Python 改动。
+### 2. MCP 接口模型
 
-### 3. P/Q Delta Gate — 世界不变，Agent 不动
-
-Agent 维护内部世界模型 P，每帧对比感官 Q。P=Q → 零 LLM 调用。P≠Q → 触发决策。四通道并行 diff。发呆不花钱。Token 节省 2/3。
-
-### 4. Channel-Driven Architecture
-
-**loop.py 不做格式化。** ctx dict 的每个 key 由 YAML 定义的 channel 驱动。8 个 channel 对应 7 个数据源——loop.py 只管 `channel.collect(ctx)`，不格式化、不命名、不解释。
+每个 NPC 在 YAML 中注册自己支持的接口。LLM 在 prompt 里看到 tool list，直接输出 tool call。
 
 ```
-config/channels.yaml         src/channel.py              ctx dict
-───────────────────          ─────────────               ───────
-- source: agent_layer  →  AgentLayerSource.collect()  → personality, main_thread
-- source: world        →  WorldSource.collect()       → zone_name, pos_x, gate_text
-- source: drives       →  DriveSource.collect()       → drives_table, drive_min/max
-- source: sensory      →  SensorySource.collect()     → sensory_text
-- source: memory       →  MemorySource.collect()      → memory_text
-- source: traits       →  TraitsSource.collect()      → traits_text
-- source: delta_gate   →  DeltaGateSource.collect()   → delta_text
+物理层 (physical_calls):
+  take_out({entity, qty})      从持有中拿出物品到空间
+  hand_over({entity, to, qty}) 把物品放到目标位置
+  eat({entity, qty})           消耗食物
+  pick_up({entity, qty})       捡起空间中的物品
+
+抽象层 (abstract_calls):
+  delta({src, tgt, qty})       边数值转移
+  delta({entity, attr, value}) 属性变更
+  spawn/despawn/relocate/add_node/remove_node
 ```
 
-**新增 channel = YAML 加 3 行。零 Python change。**
+**引擎只有 `interact()` 一个入口** — 路由按字典查：`agent.interfaces[name]` 或 `graph.primitives[name]`。
 
-### 5. 世界观即配置
+### 3. 6 个引擎原语
 
-换世界 = 换 YAML 文件。同一引擎驱动猎魔人酒馆、老友记咖啡厅。属性名相同 → prompts.yaml 一字不改。Gateway REST/WebSocket 接口——外部 agent 通过 `join/perceive/act` 与自主 agent 共享同一决策通道。
+| 原语 | 层 | 做什么 |
+|---|---|---|
+| `delta` | 通用 | 边 qty ± / 属性 ± |
+| `spawn` | 空间 | entity 诞生 + visual + alias 注册 + 复用检查 |
+| `despawn` | 空间 | entity 消失 + alias 注销 |
+| `relocate` | 空间 | entity 改变位置 |
+| `add_node` | 抽象 | 节点加入边系统 |
+| `remove_node` | 抽象 | 节点脱离 + 清理关联边 |
+
+引擎代码只有这 6 个词。`take_out`、`eat`、`forge` 在 YAML 和 LLM 的 vocab 里，不在引擎代码里。
+
+### 4. 通道驱动感官
+
+```
+channel.py:
+  _SOURCE_REGISTRY = [AgentLayerSource, WorldSource, DriveSource,
+                       SensorySource, MemorySource, TraitsSource,
+                       DeltaGateSource, GraphSource]
+
+channels.yaml:
+  - source: graph
+    fields: [inventory_lines]     ← 持有层, 遍历 npc→type_node 边
+```
+
+**新增通道 = YAML + class。ChannelCollector 自动发现。loop.py 不改一行。**
+
+### 5. 世界即配置
+
+```
+config/worlds/witcher/
+  npc_interfaces.yaml    — 物理接口：take_out, hand_over, eat, forge...
+  npc_actions.py         — 接口实现：delta + spawn 组合
+
+src/worlds/magic/
+  npc_interfaces.yaml    — 换世界：cast_spell, teleport, enchant...
+```
+
+**换世界 = 换 YAML。引擎 0 行改动。**
 
 ---
 
-## vs. Generative Agents
+## 完整场景：杰洛特买草药
 
 ```
-                         SVA (AgentWorld)              Generative Agents
-                         ────────────────              ──────────────────
-  Cognitive Code         45 lines Python               730 lines Python
-  LLM Triggers           Change-detected (P/Q gate)    Every tick
-  Token Usage            -67%                          Baseline (1x)
-  New Behavior           Add 1 YAML channel            Rewrite Python functions
-  World Swap             1 YAML file                   Rewrite code
-  Tests                  159 automated                 Manual only
-  External Control       Director freeze/take/order    None
-  Observability          Logger (6 hooks, SQLite)      None
+Tick N — 杰洛特:
+  感官: 持有 金币×150 | 可用接口: take_out, hand_over, eat
+  LLM: {physical_calls: [{interface:"hand_over", params:{entity:"金币",to:"托蜜拉",qty:15}}]}
+  引擎: agent.interfaces["hand_over"] → delta(geralt,金币,-15) + spawn(pos=托蜜拉.pos,"杰洛特放下的金币")
+
+Tick N+1 — 托蜜拉:
+  感官: 视觉"杰洛特放下的金币(4格)" | 持有 金币×30
+  LLM: {physical_calls: [{interface:"pick_up", params:{entity:"杰洛特放下的金币",qty:15}}]}
+  引擎: delta(zone,金币,-15) + delta(托蜜拉,金币,+15) + despawn(金币实体)
+
+引擎从不知"这是一笔交易" — 只执行了两次 MCP 调用。
 ```
-
----
-
-## 实证 (v12, 7 Agents, 180s, Friends)
-
-| 指标 | 数值 |
-|------|------|
-| 总行动 | **142** |
-| 对话率 | **100%** (142/142) |
-| NPC↔NPC 率 | **100%** |
-| 行动多样性 | **92%+** |
-| Token 优化 | **-67%** |
 
 ---
 
@@ -140,48 +162,81 @@ config/channels.yaml         src/channel.py              ctx dict
 ```bash
 pip install -r requirements.txt
 python main.py --validate-config
-python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate --output data/traces/trace.json
-python main.py --eval-report data/traces/trace.json
-python -m pytest tests/ -q     # 159 tests, ~10s
+python main.py --runtime 60 --world config/world_trade.yaml   # 12 NPC 交易世界
+python main.py --runtime 180 --world config/world.yaml        # 25 NPC Witcher
+python -m pytest tests/ -q   # 177 tests, ~10s
 ```
 
 ---
 
-## 版本
+## 设计原则
 
-| Ver | 里程碑 |
-|-----|--------|
-| **v13** | Channel-driven architecture · Logger 6-hook · 删除 error_collector |
-| **v12** | 三层 slot 组 · slot_groups 矩阵 · per-agent traits · intent_context |
-| **v11** | target_name 精确匹配 · Director · Gateway API · 159 测试 |
-| **v10-v4** | 多世界热切换 · drive · gate crossing · sensory · P/Q gate |
+| 原则 | 体现 |
+|---|---|
+| 引擎报事实，LLM 做认知 | alias 事实映射。6 原语纯操作。LLM 从 tool list 决策 |
+| 删除不添加 | 7→6 primitives。删 ops_registry、constraints、pocket entity |
+| 零领域词 | 引擎代码只有 delta/spawn/despawn — 0 个世界名词 |
+| YAML 驱动变体 | layer_registry、npc_interfaces、channels — 全 YAML 定义 |
+| 引擎单入口 | `interact(entity, interface, params)` — 唯一 write 入口 |
+| 世界绑定接口 | 物理接口在 YAML 里 — 换世界 = 换 tool list |
+| 零 adapter | LLM 直接输出 MCP tool call — MCP 就是 adapter |
 
 ---
 
 # English
 
-## Five Principles
+## Core Concepts
 
-### 1. Engine Reports Facts, LLM Decides
+### 1. Two-Layer Model
 
-The engine prescribes nothing. It reports `mood=5`, gate exists, `target_name` matched. Not "you are depressed," not "you should cross zones." All cognition emerges from LLM judgment, guided by YAML slot composition.
+| | Spatial Layer | Abstract Layer |
+|---|---|---|
+| Responsibility | "Where / What it looks like" | "Who holds how many" |
+| Storage | Memory (entities + SpatialGrid) | Memory edges + SQLite |
+| Edges | None — physical adjacency | (src, tgt, qty) — untyped |
+| Sensory | Visual / Auditory / Interactable | Inventory (NPC's 1-hop subgraph) |
 
-### 2. Declarative Cognitive Architecture — 14 Slots, 3 Layers
+NPCs and items share the same `Entity` class. `type_ref` links spatial entities to abstract `type_nodes`.
 
-Generative Agents' 730 lines of cognitive Python → 14 YAML slots + 45-line string formatter.
+### 2. MCP Interface Model
 
-### 3. P/Q Delta Gate — No Change, No Thought
+Each NPC registers its supported interfaces in YAML. The LLM sees a tool list in its prompt and outputs tool calls directly.
 
-Agent maintains internal world model P, compares to sensory input Q each tick. P=Q → zero LLM calls.
+```
+Physical Layer:
+  take_out({entity, qty})      Take from inventory into space
+  hand_over({entity, to, qty}) Place item at target position
+  eat({entity, qty})           Consume food
+  pick_up({entity, qty})       Pick up from space into inventory
 
-### 4. Channel-Driven Architecture
+Abstract Layer:
+  delta({src, tgt, qty})       Edge quantity change
+  delta({entity, attr, value}) Attribute change
+  spawn/despawn/relocate/add_node/remove_node
+```
 
-**loop.py does zero formatting.** Each ctx key is driven by a YAML-defined channel. 8 channels map to 7 data sources. loop.py only calls `channel.collect(ctx)` — no formatting, no naming, no interpretation. New channel = 3 lines of YAML.
+**The engine has a single entry point:** `interact()` routes to `agent.interfaces[name]` or `graph.primitives[name]`.
+
+### 3. 6 Engine Primitives
+
+| Primitive | Layer | Action |
+|---|---|---|
+| `delta` | Universal | Edge ± / Attribute ± |
+| `spawn` | Spatial | Entity birth + visual + alias registration |
+| `despawn` | Spatial | Entity death + alias cleanup |
+| `relocate` | Spatial | Entity reposition |
+| `add_node` | Abstract | Node enters edge system |
+| `remove_node` | Abstract | Node leaves + edge cleanup |
+
+Zero domain vocabulary in engine code. `take_out`, `eat`, `forge` live only in YAML and LLM prompts.
+
+### 4. Channel-Driven Sensory
+
+Sensor output is assembled by auto-registered channel source classes defined in YAML. Adding a channel = 1 YAML entry + 1 Python class — zero changes to `loop.py`.
 
 ### 5. Worlds Are Config Files
 
-Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Friends coffee shop.
+Swap worlds by swapping YAML. The same 6 primitives drive Witcher taverns or magic academies.
 
 ---
 
@@ -190,10 +245,24 @@ Swap worlds by swapping YAML files. Same engine drives The Witcher tavern, Frien
 ```bash
 pip install -r requirements.txt
 python main.py --validate-config
-python main.py --demo --world config/world_friends.yaml
-python main.py --runtime 180 --validate --output data/traces/trace.json
-python -m pytest tests/ -q     # 159 tests, ~10s
+python main.py --runtime 60 --world config/world_trade.yaml   # 12-NPC trade world
+python main.py --runtime 180 --world config/world.yaml         # 25-NPC Witcher
+python -m pytest tests/ -q   # 177 tests, ~10s
 ```
+
+---
+
+## Design Principles
+
+| Principle | How |
+|---|---|
+| Engine reports facts, LLM decides | Alias registry is fact mapping. 6 primitives are pure ops. |
+| Delete, don't add | 7→6 primitives. Removed ops_registry, constraints, pocket entities. |
+| Zero domain vocab in engine | Only delta/spawn/despawn — zero world nouns. |
+| YAML-driven variants | layer_registry, npc_interfaces, channels — all YAML config. |
+| Single engine entry | `interact(entity, interface, params)` — sole write path. |
+| World-bound interfaces | Physical interfaces in YAML — swap worlds, swap tool lists. |
+| Zero adapter layer | LLM outputs MCP tool calls directly — MCP IS the adapter. |
 
 ---
 

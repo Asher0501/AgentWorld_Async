@@ -33,3 +33,6 @@ channels:
 
   - source: delta_gate
     fields: [delta_text]
+
+  - source: graph
+    fields: [inventory_lines]

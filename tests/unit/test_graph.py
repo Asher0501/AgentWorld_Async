@@ -1,0 +1,134 @@
+"""Unit tests for GraphEngine 6 primitives."""
+import pytest, yaml, os
+
+_CFG = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "config")
+
+
+class FakeWorld:
+    entities = {}
+    grids = {}
+    lifecycle = None
+    alias_registry = {}
+
+    def __init__(self):
+        from core.lifecycle import EntityLifecycle
+        from core.spatial_grid import SpatialGrid
+        self.lifecycle = EntityLifecycle(self)
+        self.grids["test"] = SpatialGrid(60, 40)
+
+    def spawn_entity(self, defn):
+        from entity.entity import Entity
+        e = Entity(id=defn.get("id", "tmp"), name=defn.get("name", ""),
+                   zone=defn.get("zone", "test"), pos=list(defn.get("pos", [0, 0])))
+        self.lifecycle.spawn(e)
+        return e
+
+    def notify_moved(self, *a, **kw):
+        pass
+
+
+@pytest.fixture
+def world():
+    return FakeWorld()
+
+
+@pytest.fixture
+def graph(world):
+    from core.graph import GraphEngine
+    return GraphEngine(world, {})
+
+
+@pytest.fixture
+def npc(world):
+    from entity.entity import Entity
+    from layers.agent import AgentLayer
+    from layers.interaction import InteractionLayer
+    e = Entity(id="geralt", name="杰洛特", zone="test", pos=[30, 25])
+    if "geralt" not in world.entities:
+        e.layers["agent"] = AgentLayer(autonomous=True)
+        e.layers["interaction"] = InteractionLayer(private_attrs={"hunger": 50, "thirst": 60})
+        world.lifecycle.spawn(e)
+    return world.entities["geralt"]
+
+
+class TestDelta:
+    def test_edge_delta_positive(self, graph, npc):
+        graph.edges[("geralt", "gold")] = 10
+        assert graph.delta(src="geralt", tgt="gold", qty=5)
+        assert graph.edges[("geralt", "gold")] == 15
+
+    def test_edge_delta_negative(self, graph, npc):
+        graph.edges[("geralt", "gold")] = 10
+        assert not graph.delta(src="geralt", tgt="gold", qty=-15)
+
+    def test_edge_delta_entity(self, graph, npc):
+        graph.edges[("geralt", "gold")] = 10
+        assert graph.delta(src=npc, tgt="gold", qty=-5)
+        assert graph.edges[("geralt", "gold")] == 5
+
+    def test_attr_delta(self, graph, npc):
+        assert graph.delta(entity=npc, attr="hunger", value=-10)
+        assert npc.get("interaction").private_attrs["hunger"] == 40.0
+
+    def test_delta_no_params(self, graph):
+        assert not graph.delta()
+
+    def test_delta_invalid_entity(self, graph):
+        assert not graph.delta(entity="nonexistent", attr="x", value=1)
+
+
+class TestSpawn:
+    def test_spawn_creates_entity(self, graph):
+        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                        visual_look="杰洛特手中的金币", r=1)
+        assert e is not None
+        assert e.pos == [30, 25]
+        assert e.type_ref == "gold"
+
+    def test_spawn_reuses_entity(self, graph):
+        e1 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                         visual_look="杰洛特手中的金币")
+        e2 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                         visual_look="杰洛特手中的金币")
+        assert e1.id == e2.id  # Reused
+
+    def test_spawn_registers_alias(self, graph, world):
+        graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                    visual_look="杰洛特手中的金币")
+        assert "杰洛特手中的金币" in world.alias_registry
+
+
+class TestDespawn:
+    def test_despawn_removes_entity(self, graph):
+        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                        visual_look="test_coin")
+        eid = e.id
+        assert graph.despawn(entity=e)
+        assert eid not in graph._world.entities
+
+    def test_despawn_cleans_alias(self, graph, world):
+        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
+                        visual_look="test_coin_2")
+        graph.despawn(entity=e)
+        assert "test_coin_2" not in world.alias_registry
+
+
+class TestRelocate:
+    def test_relocate(self, graph, npc):
+        assert graph.relocate(entity=npc, pos=[40, 30])
+        assert npc.pos == [40, 30]
+
+
+class TestAddRemoveNode:
+    def test_add_node(self, graph):
+        assert graph.add_node(node_id="abstract_x")
+        assert "abstract_x" in graph._world.entities
+
+    def test_remove_node_cleans_edges(self, graph, world):
+        # Add node + edges
+        graph.add_node(node_id="node_x")
+        world.entities["node_x"].id = "node_x"
+        graph.edges[("node_x", "gold")] = 5
+        graph.edges[("village", "node_x")] = 3
+        assert graph.remove_node(node_id="node_x")
+        assert ("node_x", "gold") not in graph.edges

@@ -1,0 +1,43 @@
+# Layer Registry — 每个 layer type 的 class、默认值、可写入字段
+# world.py 通用迭代此注册表构造 entity layers
+# interaction.py 通用迭代此注册表写入 LLM 输出
+
+visual:
+  class: layers.visual.VisualLayer
+  defaults:
+    visible_radius: 5
+    sprite: null
+    properties: {}
+  writable:
+    visual: expression          # LLM 的 visual 字段 → properties.expression
+
+auditory:
+  class: layers.auditory.AuditoryLayer
+  defaults:
+    audible_radius: 10
+    properties:
+      sound: ""
+  writable:
+    dialogue: current_speech     # LLM 的 dialogue 字段 → properties.current_speech
+
+interaction:
+  class: layers.interaction.InteractionLayer
+  defaults:
+    interaction_radius: 2
+    properties: {}
+    private_attrs: {}
+    hidden: {}
+    readonly: false
+
+agent:
+  class: layers.agent.AgentLayer
+  defaults:
+    autonomous: false
+    speed: 1.0
+    view_radius: 20
+    hearing_radius: 15
+    interaction_radius: 3
+    personality: ""
+    template: ""
+    llm_provider: ""
+    traits: []

@@ -15,6 +15,7 @@ async def cmd_test(args):
     cfg = load_config(args.world or None)
     sim = cfg["world"]["world"].get("simulation", {})
     world, brain, systems = spawn_world(cfg)
+    cfg["assembler"].channel.set_graph(world.graph)
     agents = get_autonomous_agents(world)
     if not agents:
         log.info(agent="cli", module="cli",
