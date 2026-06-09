@@ -2,6 +2,12 @@
 # world.py 通用迭代此注册表构造 entity layers
 # interaction.py 通用迭代此注册表写入 LLM 输出
 
+# Per-entity-type on_spawn 配置
+# pile entity (split/hand_over spawns) — 需要 visual + interaction layer
+item:
+  layers: [visual, interaction]
+  reuse_key: [zone, pos, type_ref]   # 同 zone+pos+type_ref → 复用已有 entity
+
 visual:
   class: layers.visual.VisualLayer
   defaults:
@@ -9,7 +15,7 @@ visual:
     sprite: null
     properties: {}
   writable:
-    visual: expression          # LLM 的 visual 字段 → properties.expression
+    visual: expression
 
 auditory:
   class: layers.auditory.AuditoryLayer
@@ -18,7 +24,7 @@ auditory:
     properties:
       sound: ""
   writable:
-    dialogue: current_speech     # LLM 的 dialogue 字段 → properties.current_speech
+    dialogue: current_speech
 
 interaction:
   class: layers.interaction.InteractionLayer

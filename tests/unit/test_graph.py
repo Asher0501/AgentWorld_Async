@@ -9,12 +9,37 @@ class FakeWorld:
     grids = {}
     lifecycle = None
     alias_registry = {}
+    _layer_registry = {"item": {"layers": ["visual", "interaction"], "reuse_key": ["zone", "pos", "type_ref"]}}
 
     def __init__(self):
         from core.lifecycle import EntityLifecycle
         from core.spatial_grid import SpatialGrid
         self.lifecycle = EntityLifecycle(self)
         self.grids["test"] = SpatialGrid(60, 40)
+
+    def _on_entity_spawned(self, entity, *, visual_look="", r=1):
+        # Reuse check
+        for e in self.entities.values():
+            if e.zone == entity.zone and e.pos == entity.pos and getattr(e, "type_ref", "") == entity.type_ref:
+                return e
+        # Visual layer
+        if visual_look:
+            from layers.visual import VisualLayer
+            entity.layers["visual"] = VisualLayer(visible_radius=r, properties={"look": visual_look})
+            if visual_look not in self.alias_registry:
+                self.alias_registry[visual_look] = entity.id
+        # Interaction layer
+        from layers.interaction import InteractionLayer
+        entity.layers["interaction"] = InteractionLayer(interaction_radius=1, properties={"description": visual_look})
+        self.lifecycle.spawn(entity)
+        return entity
+
+    def _on_entity_despawned(self, eid):
+        ent = self.entities.get(eid)
+        if ent and ent.has("visual"):
+            look = ent.get("visual").properties.get("look", "")
+            if look and self.alias_registry.get(look) == eid:
+                del self.alias_registry[look]
 
     def spawn_entity(self, defn):
         from entity.entity import Entity

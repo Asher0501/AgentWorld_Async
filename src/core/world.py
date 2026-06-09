@@ -59,40 +59,77 @@ class World:
 
         from core.graph import GraphEngine
         self.graph = GraphEngine(self, self._item_registry)
-        self._load_npc_interfaces()
+        self._init_mcp()
         self._init_abstract_layer()
 
-    def _load_npc_interfaces(self):
-        """Load world-bound physical interfaces and wire to agent layers."""
+    def _init_mcp(self):
+        """Register world-bound physical interfaces and engine-built abstract primitives."""
+        from core.mcp_engine import MCPEngine, Layer
+        self.mcp = MCPEngine()
+
+        # Physical layer — world-bound interfaces
         path = os.path.join(_CFG_ROOT, "worlds", "witcher", "npc_interfaces.yaml")
         try:
-            with open(path) as f:
-                iface_cfg = yaml.safe_load(f)
-        except FileNotFoundError:
-            return
-        # Build impl map: interface_name → callable
-        impl_map = {}
-        import worlds.witcher.npc_actions as actions
-        for group in iface_cfg.values():
-            if isinstance(group, list):
-                for iface in group:
-                    impl_map[iface["id"]] = getattr(actions, iface["impl"].split(".")[-1], None)
-        # Wire to agent layers — each NPC gets all "通用" + role-specific interfaces
-        for e in self.entities.values():
-            if not e.has("agent"):
-                continue
-            al = e.get("agent")
-            al.interfaces = {}
-            for group_name, group in iface_cfg.items():
-                if not isinstance(group, list):
+            import worlds.witcher.npc_actions as actions
+            self.mcp.register_layer("physical", Layer.from_yaml(path, actions))
+        except Exception:
+            pass
+
+        # Abstract layer — engine built-in primitives
+        from core.mcp_engine import Interface, ParamDef
+        abstract_defs = {
+            "delta": {
+                "desc": "数值转移: delta(src, tgt, qty) 边操作 / delta(entity, attr, value) 属性操作",
+                "params": [
+                    {"name": "src", "type": "alias", "desc": "源节点", "required": False},
+                    {"name": "tgt", "type": "alias", "desc": "目标节点", "required": False},
+                    {"name": "qty", "type": "int", "desc": "数量", "required": False},
+                    {"name": "entity", "type": "alias", "desc": "实体名", "required": False},
+                    {"name": "attr", "type": "str", "desc": "属性名(thirst/hunger/...)", "required": False},
+                    {"name": "value", "type": "int", "desc": "数值", "required": False},
+                ],
+            },
+            "spawn":    {"desc": "空间中生成实体: spawn(pos, zone, type_ref, visual_look)",
+                         "params": [{"name": "pos"}, {"name": "zone"}, {"name": "type_ref"}, {"name": "visual_look"}]},
+            "despawn":  {"desc": "消灭空间实体: despawn(entity)",
+                         "params": [{"name": "entity"}]},
+            "relocate": {"desc": "实体改变位置: relocate(entity, pos)",
+                         "params": [{"name": "entity"}, {"name": "pos"}]},
+            "add_node": {"desc": "节点加入边系统: add_node(node_id)",
+                         "params": [{"name": "node_id"}]},
+            "remove_node": {"desc": "节点从边系统移除: remove_node(node_id)",
+                           "params": [{"name": "node_id"}]},
+        }
+        self.mcp.register_layer("abstract", Layer.from_primitives(self.graph.primitives, abstract_defs))
+
+        # Wire physical interfaces to each NPC (respect npcs restrictions)
+        phys_layer = self.mcp.layers.get("physical")
+        if phys_layer:
+            # Re-read raw config to get npcs filtering info
+            try:
+                with open(path) as f:
+                    iface_cfg = yaml.safe_load(f)
+            except Exception:
+                iface_cfg = {}
+            for e in self.entities.values():
+                if not e.has("agent"):
                     continue
-                for iface in group:
-                    npcs = iface.get("npcs")
-                    if npcs and e.name not in npcs:
-                        continue
-                    fn = impl_map.get(iface["id"])
-                    if fn:
-                        al.interfaces[iface["id"]] = fn
+                al = e.get("agent")
+                al.interfaces = {}
+                for name, iface in phys_layer.interfaces.items():
+                    # Check NPC restriction from raw config
+                    allowed = True
+                    for group in iface_cfg.values():
+                        if not isinstance(group, list):
+                            continue
+                        for ifdef in group:
+                            if ifdef.get("id") == name:
+                                npcs = ifdef.get("npcs")
+                                if npcs and e.name not in npcs:
+                                    allowed = False
+                                break
+                    if allowed:
+                        al.interfaces[name] = iface.handler
 
     def _init_abstract_layer(self):
         """Build type_nodes from item_registry, initial edges from holds, alias_registry."""
@@ -117,6 +154,55 @@ class World:
         # Build alias_registry
         from core.alias_registry import build_alias_registry
         self.alias_registry = build_alias_registry(self, self.graph, self._item_registry)
+
+    def _on_entity_spawned(self, entity, *, visual_look="", r=1):
+        """Handler for graph.spawn(). Entity reuse, layer attachment, alias registration.
+        All controlled by layer_registry.yaml — zero hardcoded layer knowledge."""
+        # Reuse check — from layer_registry.item.reuse_key (zone, pos, type_ref)
+        item_cfg = self._layer_registry.get("item", {})
+        reuse_keys = item_cfg.get("reuse_key", [])
+        for e in self.entities.values():
+            match = True
+            for key in reuse_keys:
+                if getattr(e, key, "") != getattr(entity, key, ""):
+                    match = False
+                    break
+            if match:
+                return e  # Already exists — reuse
+
+        # Layer attachment — from layer_registry.item.layers list
+        layer_names = item_cfg.get("layers", ["visual", "interaction"])
+        for layer_name in layer_names:
+            reg = self._layer_registry.get(layer_name, {})
+            if not reg:
+                continue
+            klass = _import_class(reg["class"])
+            entity.layers[layer_name] = klass(
+                **self._spawn_layer_kwargs(layer_name, entity, visual_look, r)
+            )
+
+        # Alias registration
+        if visual_look and visual_look not in self.alias_registry:
+            self.alias_registry[visual_look] = entity.id
+
+        self.lifecycle.spawn(entity)
+        return entity
+
+    def _spawn_layer_kwargs(self, layer_name, entity, visual_look, r):
+        """Build kwargs for a layer on a spawned entity. Zero hardcoded layer names — reads from layer_registry."""
+        if layer_name == "visual":
+            return {"visible_radius": r, "properties": {"look": visual_look}}
+        if layer_name == "interaction":
+            return {"interaction_radius": 1, "properties": {"description": visual_look}}
+        return {}
+
+    def _on_entity_despawned(self, entity_id):
+        """Cleanup alias before entity removal."""
+        ent = self.entities.get(entity_id)
+        if ent and ent.has("visual"):
+            look = ent.get("visual").properties.get("look", "")
+            if look and self.alias_registry.get(look) == entity_id:
+                del self.alias_registry[look]
 
     def _load_layer_registry(self) -> dict:
         return self._load_yaml("layer_registry.yaml")

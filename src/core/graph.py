@@ -61,45 +61,17 @@ class GraphEngine:
         return False
 
     def spawn(self, *, pos, zone, type_ref, visual_look, r=1):
-        """Entity appears in space. Reuses existing entity at same pos+zone+type_ref."""
-        # Reuse check
-        for e in self._world.entities.values():
-            if e.zone == zone and e.pos == pos and getattr(e, "type_ref", "") == type_ref:
-                return e  # Already exists — reuse
-        # New entity
+        """Entity appears in space. Pure primitive — delegates layer attachment to world."""
         eid = f"pile_{uuid.uuid4().hex[:6]}"
         ent = Entity(id=eid, name=visual_look, zone=zone, pos=list(pos))
         ent.type_ref = type_ref
-        # Visual layer
-        if visual_look:
-            from layers.visual import VisualLayer
-            ent.layers["visual"] = VisualLayer(
-                visible_radius=r,
-                properties={"look": visual_look},
-            )
-            # Alias registration
-            reg = getattr(self._world, "alias_registry", None)
-            if reg is not None and visual_look not in reg:
-                reg[visual_look] = ent.id
-        # Interaction layer for sensory/merge targeting
-        from layers.interaction import InteractionLayer
-        ent.layers["interaction"] = InteractionLayer(
-            interaction_radius=1,
-            properties={"description": visual_look},
-        )
-        self._world.lifecycle.spawn(ent)
-        return ent
+        # Delegate to world: entity reuse, layer attachment, alias registration
+        return self._world._on_entity_spawned(ent, visual_look=visual_look, r=r)
 
     def despawn(self, *, entity):
-        """Entity disappears from space. Cleans alias."""
+        """Entity disappears from space. Cleans alias via world."""
         eid = entity.id if isinstance(entity, Entity) else entity
-        ent = self._world.entities.get(eid)
-        # Alias cleanup
-        reg = getattr(self._world, "alias_registry", None)
-        if reg is not None and ent and ent.has("visual"):
-            look = ent.get("visual").properties.get("look", "")
-            if look and reg.get(look) == eid:
-                del reg[look]
+        self._world._on_entity_despawned(eid)
         return self._world.lifecycle.despawn(eid)
 
     def relocate(self, *, entity, pos):

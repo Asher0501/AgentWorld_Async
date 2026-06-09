@@ -58,21 +58,12 @@ class InteractionSystem:
         dialogue = decision.get("dialogue", "")
         story = decision.get("story", "")
 
-        # ── Physical layer dispatch ──
-        for call in decision.get("physical_calls") or []:
-            name = call.get("interface", "")
-            params = call.get("params", {})
-            handler = getattr(agent_layer, "interfaces", {}).get(name)
-            if handler:
-                handler(agent, params, world)
-
-        # ── Abstract layer dispatch ──
-        for call in decision.get("abstract_calls") or []:
-            name = call.get("interface", "")
-            params = call.get("params", {})
-            prim = world.graph.primitives.get(name)
-            if prim:
-                prim(**params)
+        # ── MCP Engine dispatch ──
+        if hasattr(world, "mcp"):
+            world.mcp.route_all({
+                "physical": decision.get("physical_calls") or [],
+                "abstract": decision.get("abstract_calls") or [],
+            }, agent=agent, world=world)
 
         # ── Layer write (config-driven via layer_registry writable) ──
         self._write_agent_layers(agent, agent_layer, decision,
