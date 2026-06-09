@@ -25,9 +25,13 @@ class GraphEngine:
 
     # ═══════════ primitives ═══════════
 
-    def abs_holder_transfer(self, *, src, tgt, qty):
-        """Abstract holder layer: edge quantity transfer."""
+    def abs_holder_transfer(self, *, src, tgt, qty, agent=None):
+        """Abstract holder layer: edge quantity transfer.
+        Authorization: agent must be the src, or src is a zone."""
         s = src.id if isinstance(src, Entity) else src
+        if agent is not None and s != getattr(agent, "id", None):
+            if not self._is_zone(s):
+                return False
         t = tgt.id if isinstance(tgt, Entity) else tgt
         key = (s, t)
         cur = self.edges.get(key, 0)
@@ -37,7 +41,11 @@ class GraphEngine:
         self.edges[key] = nxt
         return True
 
-    def abs_attr_modify(self, *, entity, attr, value):
+    def _is_zone(self, entity_id: str) -> bool:
+        zones = getattr(self._world, "zones", {})
+        return entity_id in zones
+
+    def abs_attr_modify(self, *, entity, attr, value, agent=None):
         """Abstract attribute layer: entity attribute modification."""
         ent = self._world.entities.get(entity.id) if isinstance(entity, Entity) else self._world.entities.get(entity)
         if not ent:
@@ -49,20 +57,20 @@ class GraphEngine:
         inter.private_attrs[attr] = cur + float(value)
         return True
 
-    def spatial_spawn(self, *, pos, zone, type_ref, visual_look, r=1):
+    def spatial_spawn(self, *, pos, zone, type_ref, visual_look, r=1, agent=None):
         """Spatial layer: entity appears in space."""
         eid = f"pile_{uuid.uuid4().hex[:6]}"
         ent = Entity(id=eid, name=visual_look, zone=zone, pos=list(pos))
         ent.type_ref = type_ref
         return self._world._on_entity_spawned(ent, visual_look=visual_look, r=r)
 
-    def spatial_despawn(self, *, entity):
+    def spatial_despawn(self, *, entity, agent=None):
         """Spatial layer: entity disappears from space."""
         eid = entity.id if isinstance(entity, Entity) else entity
         self._world._on_entity_despawned(eid)
         return self._world.lifecycle.despawn(eid)
 
-    def spatial_relocate(self, *, entity, pos):
+    def spatial_relocate(self, *, entity, pos, agent=None):
         """Spatial layer: entity changes position."""
         e = self._world.entities.get(entity.id) if isinstance(entity, Entity) else self._world.entities.get(entity)
         if e:
@@ -70,7 +78,7 @@ class GraphEngine:
             return True
         return False
 
-    def abs_node_add(self, *, node_id):
+    def abs_node_add(self, *, node_id, agent=None):
         """Abstract layer: node enters edge system. Idempotent."""
         if node_id in self._world.entities:
             return True
@@ -78,7 +86,7 @@ class GraphEngine:
         self._world.lifecycle.spawn(ent)
         return True
 
-    def abs_node_remove(self, *, node_id):
+    def abs_node_remove(self, *, node_id, agent=None):
         """Abstract layer: node leaves edge system. Cleans incident edges."""
         eid = node_id.id if isinstance(node_id, Entity) else node_id
         to_del = [k for k in self.edges if k[0] == eid or k[1] == eid]

@@ -118,10 +118,15 @@ class MCPEngine:
         if errors:
             return Result(ok=False, interface=iface_name, error="; ".join(errors))
         try:
-            if ctx and "agent" in ctx and "world" in ctx:
+            agent = (ctx or {}).get("agent")
+            world = (ctx or {}).get("world")
+            if agent is not None and world is not None:
                 iface.handler(ctx["agent"], params, ctx["world"])
             else:
-                iface.handler(**params)
+                merged_params = dict(params)
+                if agent is not None:
+                    merged_params.setdefault("agent", agent)
+                iface.handler(**merged_params)
             return Result(ok=True, interface=iface_name)
         except Exception as e:
             return Result(ok=False, interface=iface_name, error=str(e))
