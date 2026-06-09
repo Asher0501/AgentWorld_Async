@@ -78,15 +78,20 @@ class World:
         # Abstract layer — engine built-in primitives
         from core.mcp_engine import Interface, ParamDef
         abstract_defs = {
-            "delta": {
-                "desc": "数值转移: delta(src, tgt, qty) 边操作 / delta(entity, attr, value) 属性操作",
+            "transfer": {
+                "desc": "边数值转移: transfer(src:alias, tgt:alias, qty:int)",
                 "params": [
-                    {"name": "src", "type": "alias", "desc": "源节点", "required": False},
-                    {"name": "tgt", "type": "alias", "desc": "目标节点", "required": False},
-                    {"name": "qty", "type": "int", "desc": "数量", "required": False},
-                    {"name": "entity", "type": "alias", "desc": "实体名", "required": False},
-                    {"name": "attr", "type": "str", "desc": "属性名(thirst/hunger/...)", "required": False},
-                    {"name": "value", "type": "int", "desc": "数值", "required": False},
+                    {"name": "src", "type": "alias", "desc": "源节点"},
+                    {"name": "tgt", "type": "alias", "desc": "目标节点"},
+                    {"name": "qty", "type": "int", "desc": "数量(正=增加,负=减少)"},
+                ],
+            },
+            "modify": {
+                "desc": "属性变更: modify(entity:alias, attr:str, value:int)",
+                "params": [
+                    {"name": "entity", "type": "alias", "desc": "实体名"},
+                    {"name": "attr", "type": "str", "desc": "属性名(thirst/hunger/social/energy/fun/mood)"},
+                    {"name": "value", "type": "int", "desc": "数值(正=增加,负=减少)"},
                 ],
             },
             "spawn":    {"desc": "空间中生成实体: spawn(pos, zone, type_ref, visual_look)",

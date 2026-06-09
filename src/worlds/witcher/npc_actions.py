@@ -4,30 +4,30 @@
 
 
 def take_out(agent, params: dict, world):
-    """拿出物品到空间 — delta(npc,-) + spawn + delta(zone,+)"""
+    """拿出物品到空间 — transfer(npc,-) + spawn + transfer(zone,+)"""
     entity_alias = params.get("entity", "")
     qty = int(params.get("qty", 1))
     if not entity_alias:
         return
-    # Resolve
     type_id = world.alias_registry.get(entity_alias)
     if not type_id:
         return
     type_node = world.entities.get(type_id)
     if not type_node:
         return
-    # Construct visual
     visual_look = f"{agent.name}手中的{type_node.name}"
     graph = world.graph
-    # Execute
-    graph.delta(src=agent.id, tgt=type_id, qty=-qty)
-    graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=type_id,
-                visual_look=visual_look, r=1)
-    graph.delta(src=agent.zone, tgt=type_id, qty=+qty)
+    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+        return
+    ent = graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=type_id,
+                      visual_look=visual_look, r=1)
+    if not ent:
+        return
+    graph.transfer(src=agent.zone, tgt=type_id, qty=+qty)
 
 
 def eat(agent, params: dict, world):
-    """消耗食物减少饥饿 — delta(food,-) + delta(hunger,-)"""
+    """消耗食物减少饥饿 — transfer(food,-) + modify(hunger,-)"""
     entity_alias = params.get("entity", "")
     qty = int(params.get("qty", 1))
     if not entity_alias:
@@ -36,12 +36,13 @@ def eat(agent, params: dict, world):
     if not type_id:
         return
     graph = world.graph
-    graph.delta(src=agent.id, tgt=type_id, qty=-qty)
-    graph.delta(entity=agent, attr="hunger", value=-qty * 10)
+    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+        return
+    graph.modify(entity=agent, attr="hunger", value=-qty * 10)
 
 
 def hand_over(agent, params: dict, world):
-    """把物品放到目标位置 — delta(from,-) + spawn(at_target) + delta(zone,+)"""
+    """把物品放到目标位置 — transfer(from,-) + spawn(at_target) + transfer(zone,+)"""
     entity_alias = params.get("entity", "")
     to_alias = params.get("to", "")
     qty = int(params.get("qty", 1))
@@ -59,14 +60,17 @@ def hand_over(agent, params: dict, world):
         return
     visual_look = f"{agent.name}放在{to_entity.name}的{type_node.name}"
     graph = world.graph
-    graph.delta(src=agent.id, tgt=type_id, qty=-qty)
-    graph.spawn(pos=to_entity.pos, zone=to_entity.zone, type_ref=type_id,
-                visual_look=visual_look, r=1)
-    graph.delta(src=to_entity.zone, tgt=type_id, qty=+qty)
+    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+        return
+    ent = graph.spawn(pos=to_entity.pos, zone=to_entity.zone, type_ref=type_id,
+                      visual_look=visual_look, r=1)
+    if not ent:
+        return
+    graph.transfer(src=to_entity.zone, tgt=type_id, qty=+qty)
 
 
 def pick_up(agent, params: dict, world):
-    """捡起空间中的物品 — delta(zone,-) + delta(npc,+) + despawn"""
+    """捡起空间中的物品 — transfer(zone,-) + transfer(npc,+) + despawn"""
     entity_alias = params.get("entity", "")
     qty = int(params.get("qty", 1))
     if not entity_alias:
@@ -81,16 +85,17 @@ def pick_up(agent, params: dict, world):
     if not type_ref:
         return
     graph = world.graph
-    graph.delta(src=entity.zone, tgt=type_ref, qty=-qty)
-    graph.delta(src=agent.id, tgt=type_ref, qty=+qty)
-    # Check if pile entity still has remaining qty
+    if not graph.transfer(src=entity.zone, tgt=type_ref, qty=-qty):
+        return
+    if not graph.transfer(src=agent.id, tgt=type_ref, qty=+qty):
+        return
     remaining = graph.edges.get((entity.zone, type_ref), 0)
     if remaining <= 0:
         graph.despawn(entity=entity)
 
 
 def forge(agent, params: dict, world):
-    """锻造武器 — delta(ore,-) + spawn(weapon) + delta(zone,+)"""
+    """锻造武器 — transfer(ore,-) + spawn(weapon) + transfer(zone,+)"""
     entity_alias = params.get("entity", "矿石")
     qty = int(params.get("qty", 3))
     type_id = world.alias_registry.get(entity_alias)
@@ -104,31 +109,36 @@ def forge(agent, params: dict, world):
         return
     visual_look = f"{agent.name}锻造的钢剑"
     graph = world.graph
-    graph.delta(src=agent.id, tgt=type_id, qty=-qty)
-    graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=weapon_id,
-                visual_look=visual_look, r=3)
-    graph.delta(src=agent.zone, tgt=weapon_id, qty=+1)
+    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+        return
+    ent = graph.spawn(pos=agent.pos, zone=agent.zone, type_ref=weapon_id,
+                      visual_look=visual_look, r=3)
+    if not ent:
+        return
+    graph.transfer(src=agent.zone, tgt=weapon_id, qty=+1)
 
 
 def gather(agent, params: dict, world):
-    """采集草药 — delta(zone,-) + delta(npc,+)"""
+    """采集草药 — transfer(zone,-) + transfer(npc,+)"""
     entity_alias = params.get("entity", "草药")
     qty = int(params.get("qty", 3))
     type_id = world.alias_registry.get(entity_alias)
     if not type_id:
         return
     graph = world.graph
-    graph.delta(src=agent.zone, tgt=type_id, qty=-qty)
-    graph.delta(src=agent.id, tgt=type_id, qty=+qty)
+    if not graph.transfer(src=agent.zone, tgt=type_id, qty=-qty):
+        return
+    graph.transfer(src=agent.id, tgt=type_id, qty=+qty)
 
 
 def brew(agent, params: dict, world):
-    """酿造麦酒 — delta(food,-) + delta(zone,+)"""
+    """酿造麦酒 — transfer(food,-) + transfer(zone,+)"""
     entity_alias = params.get("entity", "食物")
     qty = int(params.get("qty", 2))
     type_id = world.alias_registry.get(entity_alias)
     if not type_id:
         return
     graph = world.graph
-    graph.delta(src=agent.id, tgt=type_id, qty=-qty)
-    graph.delta(src=agent.zone, tgt=type_id, qty=+qty)
+    if not graph.transfer(src=agent.id, tgt=type_id, qty=-qty):
+        return
+    graph.transfer(src=agent.zone, tgt=type_id, qty=+qty)

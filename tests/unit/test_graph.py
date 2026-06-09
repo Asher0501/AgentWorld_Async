@@ -1,7 +1,7 @@
-"""Unit tests for GraphEngine 6 primitives."""
-import pytest, yaml, os
+"""Unit tests for GraphEngine 7 primitives."""
+import pytest
 
-_CFG = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "config")
+_CFG = None
 
 
 class FakeWorld:
@@ -18,17 +18,14 @@ class FakeWorld:
         self.grids["test"] = SpatialGrid(60, 40)
 
     def _on_entity_spawned(self, entity, *, visual_look="", r=1):
-        # Reuse check
         for e in self.entities.values():
             if e.zone == entity.zone and e.pos == entity.pos and getattr(e, "type_ref", "") == entity.type_ref:
                 return e
-        # Visual layer
         if visual_look:
             from layers.visual import VisualLayer
             entity.layers["visual"] = VisualLayer(visible_radius=r, properties={"look": visual_look})
             if visual_look not in self.alias_registry:
                 self.alias_registry[visual_look] = entity.id
-        # Interaction layer
         from layers.interaction import InteractionLayer
         entity.layers["interaction"] = InteractionLayer(interaction_radius=1, properties={"description": visual_look})
         self.lifecycle.spawn(entity)
@@ -76,30 +73,29 @@ def npc(world):
     return world.entities["geralt"]
 
 
-class TestDelta:
-    def test_edge_delta_positive(self, graph, npc):
+class TestTransfer:
+    def test_transfer_positive(self, graph):
         graph.edges[("geralt", "gold")] = 10
-        assert graph.delta(src="geralt", tgt="gold", qty=5)
+        assert graph.transfer(src="geralt", tgt="gold", qty=5)
         assert graph.edges[("geralt", "gold")] == 15
 
-    def test_edge_delta_negative(self, graph, npc):
+    def test_transfer_negative(self, graph):
         graph.edges[("geralt", "gold")] = 10
-        assert not graph.delta(src="geralt", tgt="gold", qty=-15)
+        assert not graph.transfer(src="geralt", tgt="gold", qty=-15)
 
-    def test_edge_delta_entity(self, graph, npc):
+    def test_transfer_entity(self, graph, npc):
         graph.edges[("geralt", "gold")] = 10
-        assert graph.delta(src=npc, tgt="gold", qty=-5)
+        assert graph.transfer(src=npc, tgt="gold", qty=-5)
         assert graph.edges[("geralt", "gold")] == 5
 
-    def test_attr_delta(self, graph, npc):
-        assert graph.delta(entity=npc, attr="hunger", value=-10)
+
+class TestModify:
+    def test_modify(self, graph, npc):
+        assert graph.modify(entity=npc, attr="hunger", value=-10)
         assert npc.get("interaction").private_attrs["hunger"] == 40.0
 
-    def test_delta_no_params(self, graph):
-        assert not graph.delta()
-
-    def test_delta_invalid_entity(self, graph):
-        assert not graph.delta(entity="nonexistent", attr="x", value=1)
+    def test_modify_nonexistent_entity(self, graph):
+        assert not graph.modify(entity="nonexistent", attr="x", value=1)
 
 
 class TestSpawn:
@@ -111,29 +107,24 @@ class TestSpawn:
         assert e.type_ref == "gold"
 
     def test_spawn_reuses_entity(self, graph):
-        e1 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
-                         visual_look="杰洛特手中的金币")
-        e2 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
-                         visual_look="杰洛特手中的金币")
-        assert e1.id == e2.id  # Reused
+        e1 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="first")
+        e2 = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="second")
+        assert e1.id == e2.id
 
     def test_spawn_registers_alias(self, graph, world):
-        graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
-                    visual_look="杰洛特手中的金币")
+        graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="杰洛特手中的金币")
         assert "杰洛特手中的金币" in world.alias_registry
 
 
 class TestDespawn:
     def test_despawn_removes_entity(self, graph):
-        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
-                        visual_look="test_coin")
+        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin")
         eid = e.id
         assert graph.despawn(entity=e)
         assert eid not in graph._world.entities
 
     def test_despawn_cleans_alias(self, graph, world):
-        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold",
-                        visual_look="test_coin_2")
+        e = graph.spawn(pos=[30, 25], zone="test", type_ref="gold", visual_look="test_coin_2")
         graph.despawn(entity=e)
         assert "test_coin_2" not in world.alias_registry
 
@@ -150,7 +141,6 @@ class TestAddRemoveNode:
         assert "abstract_x" in graph._world.entities
 
     def test_remove_node_cleans_edges(self, graph, world):
-        # Add node + edges
         graph.add_node(node_id="node_x")
         world.entities["node_x"].id = "node_x"
         graph.edges[("node_x", "gold")] = 5
