@@ -46,9 +46,14 @@ class GraphEngine:
         zones = getattr(self._world, "zones", {})
         return entity_id in zones
 
-    def abs_attr_modify(self, *, entity, attr, value):
+    def abs_attr_modify(self, *, entity, attr, value, caller=None):
         """Abstract attribute layer: entity attribute modification."""
         ent = self._world.entities.get(entity.id) if isinstance(entity, Entity) else self._world.entities.get(entity)
+        if not ent and isinstance(entity, str):
+            reg = getattr(self._world, "alias_registry", {})
+            eid = reg.get(entity)
+            if eid:
+                ent = self._world.entities.get(eid)
         if not ent:
             return False
         inter = ent.get("interaction") if ent.has("interaction") else None

@@ -124,7 +124,10 @@ class MCPEngine:
             params.setdefault("caller", ctx["agent"])
         try:
             if ctx and "agent" in ctx and "world" in ctx:
-                iface.handler(ctx["agent"], params, ctx["world"])
+                try:
+                    iface.handler(**params)
+                except TypeError:
+                    iface.handler(ctx["agent"], params, ctx["world"])
             else:
                 iface.handler(**params)
             return Result(ok=True, interface=iface_name)
