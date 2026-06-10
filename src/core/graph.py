@@ -25,9 +25,14 @@ class GraphEngine:
 
     # ═══════════ primitives ═══════════
 
-    def abs_holder_transfer(self, *, src, tgt, qty):
-        """Abstract holder layer: edge quantity transfer."""
+    def abs_holder_transfer(self, *, src, tgt, qty, caller=None):
+        """Abstract holder layer: edge quantity transfer.
+        If caller is provided, verifies caller owns the source edge."""
         s = src.id if isinstance(src, Entity) else src
+        if caller is not None and s and not self._is_zone(s):
+            caller_id = caller.id if isinstance(caller, Entity) else caller
+            if caller_id != s:
+                return False
         t = tgt.id if isinstance(tgt, Entity) else tgt
         key = (s, t)
         cur = self.edges.get(key, 0)
@@ -36,6 +41,10 @@ class GraphEngine:
             return False
         self.edges[key] = nxt
         return True
+
+    def _is_zone(self, entity_id: str) -> bool:
+        zones = getattr(self._world, "zones", {})
+        return entity_id in zones
 
     def abs_attr_modify(self, *, entity, attr, value):
         """Abstract attribute layer: entity attribute modification."""

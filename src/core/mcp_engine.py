@@ -76,6 +76,8 @@ class Layer:
         interfaces = {}
         for name, handler in primitives.items():
             iface_def = definitions.get(name, {})
+            if iface_def.get("expose_to_llm") is False:
+                continue
             interfaces[name] = Interface(
                 name=name,
                 desc=iface_def.get("desc", ""),
@@ -107,7 +109,7 @@ class MCPEngine:
     def route(self, layer: str, call: dict, *, ctx: dict = None) -> Result:
         """Route one MCP call. Returns Result."""
         iface_name = call.get("interface", "")
-        params = call.get("params", {})
+        params = dict(call.get("params", {}))
         lyr = self._layers.get(layer)
         if not lyr:
             return Result(ok=False, interface=iface_name, error=f"layer '{layer}' 未注册")
@@ -117,6 +119,9 @@ class MCPEngine:
         errors = iface.validate(params)
         if errors:
             return Result(ok=False, interface=iface_name, error="; ".join(errors))
+        # Inject caller from engine context — primitives use it for auth
+        if ctx and "agent" in ctx:
+            params.setdefault("caller", ctx["agent"])
         try:
             if ctx and "agent" in ctx and "world" in ctx:
                 iface.handler(ctx["agent"], params, ctx["world"])

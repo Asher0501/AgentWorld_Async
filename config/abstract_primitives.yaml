@@ -2,7 +2,8 @@
 # world.py _init_mcp 从此加载；prompts.yaml 的 tool list 由此自动生成
 
 abs_holder_transfer:
-  desc: "边数值转移。⚠️ src必须是你自己或zone名——不能操作别人的持有。"
+  expose_to_llm: false
+  desc: "边数值转移 — 引擎原语，不对LLM暴露。仅支持 npc↔item_type 操作。"
   params:
     - {name: src, type: alias, desc: "源节点(你自己或zone名)"}
     - {name: tgt, type: alias, desc: "目标节点"}
@@ -16,7 +17,8 @@ abs_attr_modify:
     - {name: value, type: int, desc: "数值(正=增加,负=减少)"}
 
 spatial_spawn:
-  desc: "空间中生成实体: spatial_spawn(pos, zone, type_ref, visual_look)"
+  expose_to_llm: false
+  desc: "空间中生成实体 — 引擎原语。"
   params:
     - {name: pos, type: pos}
     - {name: zone, type: alias}
@@ -24,22 +26,26 @@ spatial_spawn:
     - {name: visual_look, type: str}
 
 spatial_despawn:
-  desc: "消灭空间实体: spatial_despawn(entity)"
+  expose_to_llm: false
+  desc: "消灭空间实体 — 引擎原语。"
   params:
     - {name: entity, type: alias}
 
 spatial_relocate:
-  desc: "实体改变位置: spatial_relocate(entity, pos)"
+  expose_to_llm: false
+  desc: "实体改变位置 — 引擎原语。"
   params:
     - {name: entity, type: alias}
     - {name: pos, type: pos}
 
 abs_node_add:
-  desc: "节点加入边系统: abs_node_add(node_id)"
+  expose_to_llm: false
+  desc: "节点加入边系统 — 引擎原语。"
   params:
     - {name: node_id, type: alias}
 
 abs_node_remove:
-  desc: "节点从边系统移除: abs_node_remove(node_id)"
+  expose_to_llm: false
+  desc: "节点从边系统移除 — 引擎原语。"
   params:
     - {name: node_id, type: alias}
