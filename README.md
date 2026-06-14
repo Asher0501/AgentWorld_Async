@@ -8,304 +8,332 @@
 
 <p align="center">
   <b>A social emergence laboratory powered by LLMs.<br/>
-  How much social behavior can arise when autonomous agents perceive only atomic facts<br/>
-  — with no engine-level semantics, no priority hierarchies, no pre-programmed social rules?<br/>
-  <sub>一个以 LLM 为实验对象的社会涌现实验室。<br/>
-  当自主代理只能感知原子事实——没有引擎级语义、没有优先级体系、没有硬编码社交规则——<br/>
-  能自发涌现多少社会行为？</sub></b>
+  <sub>一个以 LLM 为实验对象的社会涌现实验室。</sub></b>
 </p>
 
----
-
-## What This Is
-
-This is not a game engine. It is not an agent framework. It is an experimental apparatus for studying one question:
-
-> **Given a population of LLM-based autonomous agents embedded in a physical space with private goals and public resources — and an engine that refuses to interpret anything — what social structures, strategies, and emergent behaviors spontaneously arise from their interactions?**
-
-The architecture is built around a single axiom: **the engine must never perform semantic compression.** All complex behavior — negotiation, social pressure, reciprocal exchange, attention allocation, loop detection — must be derived by the LLMs themselves from raw atomic facts, or it must not exist at all.
+<p align="center"><b>
+  How much social behavior can arise when autonomous agents perceive<br/>
+  only atomic facts — with no engine-level semantics, no priority<br/>
+  hierarchies, no pre-programmed social rules?<br/>
+  <sub>当自主代理只能感知原子事实——没有引擎级语义、没有优先级体系、<br/>
+  没有硬编码社交规则——能自发涌现多少社会行为？</sub>
+</b></p>
 
 ---
 
-## Architecture
+## Core Idea · 核心思想
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                            The Agent (LLM)                                  │
+All AI agent frameworks today work the same way:
+   The developer writes domain logic. The engine knows what "trade" means.
+   The agent is a thin wrapper around an LLM with pre-defined tools.
+
+This project inverts that:
+   The engine knows nothing. It only reports numbers, coordinates, timestamps.
+   The LLM is the sole interpreter. All semantics must be derived at runtime.
+```
+
+```
+今天所有的AI agent框架都一个模式：
+   开发者写领域逻辑。引擎知道"交易"是什么意思。
+   Agent 只是 LLM + 预定义工具的薄壳。
+
+本项目将这个模式反转：
+   引擎一无所知。只报数值、坐标、时间戳。
+   LLM 是唯一的解释者。所有语义必须在运行时推导。
+```
+
+> **Axiom · 公理: The engine must never perform semantic compression.**
+> **引擎不得进行语义压缩。**
+
+There is exactly one invariant enforced across the entire codebase. Every other design decision
+falls out of it as a corollary.
+
+整个代码库只强制一条不变量。所有其他设计决定都是它的推论。
+
+---
+
+## Architecture · 架构
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         THE AGENT (LLM — SOLE INTERPRETER)                 │
+│                         代理 (LLM — 唯一解释者)                              │
 │                                                                            │
-│  Every tick: read facts → complete 4-step cognitive pipeline → act          │
+│  ┌─── COGNITIVE PIPELINE (4-step self-reflection, every tick) ───────────┐│
+│  │   认知管道 (4步自省, 每轮强制)                                           ││
+│  │                                                                        ││
+│  │   ① goal        What am I trying to achieve? · 我要达成什么？            ││
+│  │   ② perception  What do I see/hear right now? · 我此刻感知到什么？        ││
+│  │   ③ assessment  How does perception affect my goal? · 感知如何影响目标？  ││
+│  │   ④ summary     What has been happening recently? · 最近发生了什么？      ││
+│  └──────────────────────────────────────────────────────────────────────┘│
 │                                                                            │
-│  ┌─ Cognitive Pipeline (LLM must self-reflect — no defaults allowed) ────┐ │
-│  │  ① goal             — What am I trying to achieve?                      │ │
-│  │  ② perception       — What do I see, hear, sense right now?             │ │
-│  │  ③ assessment       — How does my perception affect my goal?            │ │
-│  │  ④ summary          — What has been happening recently? (detect loops)  │ │
-│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌─── ENVIRONMENT FACTS (engine reports, never interprets) ──────────────┐│
+│  │   环境事实 (引擎报, 绝不解释)                                              ││
+│  │                                                                        ││
+│  │   7 drives:    hunger · thirst · social · energy · fun · mood           ││
+│  │                social_pressure (peer to hunger — engine decay only)    ││
+│  │   Spatial:     coordinates · zone gates                                ││
+│  │   Visual:      entities within radius                                  ││
+│  │   Auditory:    speech + direction marker ("to you" / background)       ││
+│  │   Inventory:   held items (abstract edges)                             ││
+│  │   Memory:      episodic buffer · conversation history                  ││
+│  └──────────────────────────────────────────────────────────────────────┘│
 │                                                                            │
-│  ┌─ Environment Facts (engine reports, never interprets) ────────────────┐ │
-│  │  · 7 biological/social drives (hunger, social_pressure, ...)            │ │
-│  │  · Spatial coordinates + traversable gates                              │ │
-│  │  · Visual entities within radius                                        │ │
-│  │  · Auditory speech with direction markers ("to you" / background)       │ │
-│  │  · Inventory (held items via abstract edges)                            │ │
-│  │  · Episodic memory buffer                                               │ │
-│  │  · Last action feedback + conversation history                          │ │
-│  └───────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│  ┌─ Output Interface ────────────────────────────────────────────────────┐ │
-│  │  Physical layer (exposed): take_out · hand_over · eat · pick_up         │ │
-│  │  Abstract layer (exposed): abs_attr_modify (modify any drive value)     │ │
-│  │  Engine primitives (hidden): holder_transfer · spawn/despawn · node ops │ │
-│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌─── OUTPUT INTERFACE ──────────────────────────────────────────────────┐│
+│  │   输出接口                                                                ││
+│  │                                                                        ││
+│  │   Physical (exposed): take_out · hand_over · eat · pick_up             ││
+│  │   Abstract (exposed): abs_attr_modify (modify any drive)              ││
+│  │   Engine primitives (hidden): holder_transfer · spawn/despawn · node  ││
+│  └──────────────────────────────────────────────────────────────────────┘│
 └───────────────────────────────┬────────────────────────────────────────────┘
-                                │
-                                ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         The Engine (Zero Semantics)                          │
-│                                                                            │
-│  Never outputs: "trade completed", "A pressures B", "B owes A a response"  │
-│  Only outputs:  numeric values, coordinates, timestamps, counts, entity IDs │
-│                                                                            │
-│  ┌─ Spatial  ─── entity positions, zone grids, visual/auditory layers       │
-│  ├─ Abstract ── ownership edges (holder → item_type → qty)                  │
-│  ├─ Drive   ─── decaying attributes: hunger, thirst, social, mood,          │
-│  │              social_pressure (+0.05/min), energy, fun                     │
-│  └─ Sensory ─── radius-based perception: who is nearby, who spoke,          │
-│                 with speech_target → direction label injection              │
-│                                                                            │
-│  YAML-defined layers · channel auto-registration · alias registry O(1)      │
-│  7 primitives · MCP routing (zero op-name branching) · single source of truth│
+                                │  two-slot dispatch · 双槽路由
+┌───────────────────────────────▼────────────────────────────────────────────┐
+│                           THE ENGINE (ZERO SEMANTICS)                       │
+│                           引擎 (零语义)                                       │
+│                                                                             │
+│   Never says: "trade completed" · "A pressures B" · "B ignores A"          │
+│   从不说: "交易完成" · "A 在施压 B" · "B 忽视了 A"                             │
+│                                                                             │
+│   ┌─ Spatial  ─ entity positions · zone grids · visual/auditory layers     ││
+│   │            空间层                                                         ││
+│   ├─ Abstract ─ ownership edges (holder → item_type → qty)                 ││
+│   │            抽象层                                                         ││
+│   ├─ Drive   ── 7 decaying attributes + per-attr LLM-written notes         ││
+│   │            驱动层                                                         ││
+│   └─ Sensory ── radius-based perception · speech_target → direction label  ││
+│                感官系统                                                       ││
+│                                                                             │
+│   YAML-defined layers · channel auto-registration · alias registry O(1)     │
+│   7 primitives · MCP routing (zero op-name branching)                       │
+│   Single source of truth: abstract_primitives.yaml                          │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key constraint**: The cognitive pipeline slots and drive values are the ONLY channels through which the LLM perceives the world. No slot carries a "priority" annotation — the LLM must decide what matters. No drive value comes with an instruction — the LLM must derive appropriate responses from numeric signals alone.
+### What "No Semantic Compression" Means · "不进行语义压缩"的含义
+
+If the engine ever produced the string `"Geralt is pressuring Tomera"`,
+it would have compressed three atomic facts into one interpretive label.
+The LLM would then reason about the *label*, not the *facts*.
+
+如果引擎产出了 `"杰洛特在施压托蜜拉"`，它就把三个原子事实压缩成了一个标签。
+LLM 就会推理这个*标签*，而不是推理*事实*。
+
+```
+Atomic Facts (引擎知道的事)          Compressed Label (绝不能产出)
+─────────────────────────────       ─────────────────────────
+(a) Geralt spoke × target=Tomera    "Geralt is pressuring Tomera"
+(b) This happened 25 times          "杰洛特在施压托蜜拉"
+(c) Tomera has not responded
+```
+
+The experimental value of the system is destroyed at the moment of semantic compression.
+系统的实验价值在语义压缩发生的那一刻就被摧毁了。
 
 ---
 
-## Core Axiom: The Engine Must Never Perform Semantic Compression
+## Key Mechanisms · 核心机制
 
-The engine knows what coordinates changed, what numbers incremented, who spoke to whom. It does not know — and must not be told — what any of these facts *mean*.
+### 1. The Cognitive Pipeline · 认知管道
 
-| Engine Reports (Atomic Fact) | LLM Must Derive (Cognitive Interpretation) |
-|---|---|
-| `hunger: 85/100` | "I need food" |
-| `social_pressure: 75/100` | "Someone is pressuring me repeatedly" |
-| `speech_target = this_agent_id` | "That person is speaking to me" |
-| Coins appear at position X via spawned entity | "I was paid" |
-| `memory_analysis` repeats same pattern across 10 ticks | "I am stuck in a negotiation loop" |
-| Other agent's `quest_analysis` text (visible to no one) | (Not perceivable — each agent's cognition is private) |
+```
+Every tick, the LLM must pass through 4 fixed self-reflection steps.
+No default text. No skipping.
 
-This is the **only** invariant enforced across the entire codebase. Every other design decision — flat-priority prompts, direction markers, social_pressure as a drive, the cognitive pipeline — is a derived consequence of refusing to let the engine perform this compression.
+每轮 LLM 必须经过 4 步固定自省。不允许默认文本。不允许跳过。
 
-### What "semantic compression" means concretely
+                          LLM writes:           Engine does:
+                             LLM 写:              引擎:
+  ┌─ goal ───────────┐  "Find the sorceress"    Store text · 存文本
+  │ 目标              │  "找术士买家"
+  ├─ perception ─────┤  "Geralt nearby. He      Store text · 存文本
+  │ 感知              │   said 'Where is Yen?'"
+  ├─ assessment ─────┤  "If I ignore him, I     Store text · 存文本
+  │ 评估              │   lose a lead. Respond."
+  ├─ summary ────────┤  "Asked him 10 times.    Store text · 存文本
+  │ 总结              │   Same response. Stuck?"
+  └──────────────────┘
+         │
+         ▼
+  LLM decides action · LLM 决定行动
+```
 
-If the engine ever produced the string `"Geralt is pressuring Tomera"`, it would have compressed three atomic facts — (a) Geralt spoke with target=Tomera, (b) this happened 25 times, (c) Tomera has not responded — into a single interpretive label. The LLM would then reason about the *label*, not the *facts*. The experimental value of the system is destroyed at the moment of compression.
+The pipeline is mounted BEFORE all environment facts in the prompt.
+The LLM must see its own previous reflection before seeing new sensory input.
+认知管道排在所有环境事实之前。LLM 必须先看到自己上轮的反思，再看到新的感官输入。
+
+### 2. Drive System · 驱动系统
+
+```
+7 attributes, all peer-equal. social_pressure is modeled identically to hunger.
+
+7 个属性, 全平级。social_pressure 与 hunger 使用完全相同机制。
+
+  Engine decays:       LLM can modify via abs_attr_modify:
+  引擎衰减:             LLM 可通过 abs_attr_modify 修改:
+
+  hunger    +0.018/min       "I ate" → abs_attr_modify(hunger, -20)
+  social_pressure +0.05/min  "I responded" → abs_attr_modify(social_pressure, -15)
+                              "Being interrogated" → abs_attr_modify(social_pressure, +20)
+
+  ┌─────────────┬──────────┬──────────┬─────────────────────────────┐
+  │ Attribute   │ Value    │ Engine   │ LLM-written Feeling · LLM写 │
+  │ 属性         │ 值       │ Decay    │                              │
+  ├─────────────┼──────────┼──────────┼─────────────────────────────┤
+  │ thirst      │ 55/100   │ +0.022   │ "有点渴"                     │
+  │ hunger      │ 85/100   │ +0.018   │ "饿得胃疼, 得赶紧吃"            │
+  │ social      │ 20/100   │ +0.015   │ "想和人聊聊天"                 │
+  │ energy      │ 85/100   │ −0.01    │                               │
+  │ fun         │ 15/100   │ +0.015   │                               │
+  │ mood        │ 50/100   │ 0.0      │                               │
+  │ social_pressure│75/100│ +0.05    │ "杰洛特在等我回答, 有点着急"       │
+  └─────────────┴──────────┴──────────┴─────────────────────────────┘
+
+No drive value comes with a behavioral instruction.
+The LLM must derive: "hunger: 85 → should eat", "social_pressure: 75 → should respond".
+
+没有任何驱动值附带行为指令。
+LLM 必须自己推导: hunger: 85 → 该吃饭了, social_pressure: 75 → 该回应了。
+```
+
+### 3. Direction Markers · 方向标记
+
+```
+When an NPC speaks, the engine stores `speech_target` alongside the dialogue.
+At sensory render time, this is mechanically injected into the text.
+No semantic interpretation. Pure label injection.
+
+当 NPC 说话时, 引擎存储 `speech_target` 与对话内容。
+渲染感官时, 机械注入方向标签。零语义解释。纯字符串追加。
+
+  Engine stores:                  Sensory render for observer Tomera:
+  引擎存储:                        对观察者托蜜拉的感官渲染:
+
+  auditory.properties = {         ┌─────────────────────────────────┐
+    current_speech: "Where is     │ ## 听觉                         │
+                     Yennefer?"   │ 杰洛特 (3s前) 对你说:            │
+    speech_target:   "Tomera"     │   "Where is Yennefer?"          │
+  }                               │                                 │
+                                  │ 莎拉 (12s前):                    │ ← no "对你说"
+  SensoryMemory.to_prompt():      │   "今天天气不错"                   │    background
+    if speech_target == obs_name  │                                 │    speech
+      → inject "对你说"           └─────────────────────────────────┘
+    else                          
+      → inject ""
+```
+
+### 4. MCP Engine · MCP 引擎
+
+```
+Zero op-name branching. Zero domain vocabulary in engine code.
+Physical interfaces: YAML-defined, world-bound.
+Abstract primitives: YAML-defined, expose_to_llm gating.
+
+零 op-name 分支。零领域词汇。物理接口: YAML 定义, 世界绑定。
+抽象原语: YAML 定义, expose_to_llm 门控。
+
+  MCP.route({"physical": [...], "abstract": [...]}, agent=agent, world=world)
+    │
+    ├─ physical calls → agent.interfaces[name]    (npc_actions.py)
+    │     take_out · hand_over · eat · pick_up
+    │
+    └─ abstract calls → graph.primitives[name]    (graph.py)
+          Only abs_attr_modify exposed to LLM.
+          Engine-internal: holder_transfer · spawn/despawn · node_add/remove
+```
 
 ---
 
-## Why This Architecture Is Interesting
+## Emergent Phenomena · 涌现现象
 
-### 1. No pre-programmed social rules
+All observed in 180-second simulation runs with 12 NPCs. No behavior was pre-programmed.
+全部在 12-NPC 180 秒模拟中观测到。无行为是预编程的。
 
-There is no code path that says "if someone speaks to you, you should respond." There is no reputation system. No obligation tracking. No social graph maintenance by the engine. All social behavior — including reciprocal exchange, sustained negotiation, and persistent ignoring — emerges purely from LLMs reading their own cognitive pipeline history alongside raw environmental facts.
-
-### 2. The LLM is the sole interpreter
-
-Every drive value, every sensory input, every piece of feedback — the LLM must interpret them all without help. The `social_pressure` attribute could mean "I am being interrogated" or "I feel guilty about ignoring someone" or "the crowd is loud today." The engine has no opinion on which interpretation is correct.
-
-### 3. Emergent social phenomena have been observed
-
-| Phenomenon | Description | Mechanism |
+| Phenomenon · 现象 | Description · 描述 | Mechanism · 机制 |
 |---|---|---|
-| Symmetric negotiation deadlock | Two agents independently converge to "respond first, then push my agenda" — producing a 33-round stalemate | Both read the same cognitive pipeline → both derive same strategy → neither breaks symmetry |
-| Strategy escalation | An agent evolves from "ask for a free story" to "pay gold for a story" across 11 rounds with no "buy story" interface | LLM constructs novel use of `hand_over` primitive |
-| Reciprocal intelligence exchange | Agents exchange non-monetary information as a byproduct of a completed trade | No code enforces reciprocity — it self-organizes |
-| Pressure-independent behavior | Social pressure values rise to 100 with zero behavioral change — the LLM perceives but doesn't necessarily respond to numeric pressure alone | Drive values are signals, not commands |
-
-### 4. The cognitive pipeline forces explicitness
-
-The LLM cannot silently ignore a sensory input. It must write — every tick — what it perceives, how that perception affects its goal, and what has been happening recently. If it chooses to ignore someone, that choice is recorded in explicit text that the LLM itself re-reads next tick. The pipeline turns implicit neglect into explicit, revisable cognition.
+| **Symmetric negotiation deadlock**<br/>对称谈判僵局 | Two agents independently converge to the same strategy ("respond first, then push my agenda"), producing a 33-round stalemate.<br/>两个 agent 独立收敛到同一策略("先回应再推自己"), 产生 33 轮僵局 | Both read identical cognitive pipeline structure → both derive same meta-strategy → neither breaks symmetry<br/>两人读到相同的认知管道结构 → 推得相同策略 → 无人打破对称 |
+| **Strategy escalation**<br/>策略升级 | Dandelion evolves from "ask for a free story" to "pay gold for a story" across 11 rounds. No "buy story" interface exists.<br/>丹德里恩 从"免费要故事"进化到"出金币买故事"跨 11 轮。系统里没有"买故事"接口。 | LLM constructs novel use of `hand_over` primitive to transfer coins as story payment<br/>LLM 自创 `hand_over` 的新用法 |
+| **Reciprocal exchange**<br/>互惠交换 | Zoltan and Hattori exchange non-monetary intelligence as a byproduct of a completed ore trade.<br/>卓尔坦和哈托里完成矿石交易后自发性交换了非货币情报。 | No code enforces reciprocity — it self-organizes<br/>无代码强制互惠——自组织产生 |
+| **Pressure-behavior decoupling**<br/>压力-行为脱钩 | Social pressure value reaches 100 with zero behavioral change. The LLM perceives the number but does not necessarily respond.<br/>社交压力涨到 100 行为不变。LLM 感知到数字但不一定响应。 | Drive values are signals, not commands. The LLM retains autonomy over interpretation.<br/>驱动值是信号, 不是命令。LLM 保留解释自主权。 |
 
 ---
 
-## Concrete Example: How a Conversation Works
+## Comparison with Similar Projects · 与同类项目的区别
 
-```
-Tick N:
-  Geralt's LLM writes:  action = "walk toward Tomera"
-                         dialogue = "Have you seen Yennefer?"
-                         target_name = "Tomera"
-  Engine at flush:       → writes speech_target = "Tomera" to Geralt's auditory layer
-                         → writes dialogue to Geralt's auditory layer
-
-Tick N+1:
-  Tomera's prompt renders:
-    ## 感知 (sensory_analysis — LLM reads its own previous analysis)
-    ## 听觉
-    杰洛特 (3s前) 对你说: "Have you seen Yennefer?"
-    ## 评估 (quest_analysis — LLM writes)
-    "Geralt is looking for Yennefer, a sorceress. He is a witcher —
-     his sorceress contact could be the herb buyer I need.
-     If I ignore him now, I may lose this lead."
-
-  Tomera's LLM writes:   action = "turn to face Geralt"
-                         dialogue = "I've heard of her. She was in Novigrad."
-```
-
-No engine component ever decided that Tomera "should" respond. The `"对你说"` marker was injected mechanically — `SensoryMemory.to_prompt()` compared `speech_target` with the observer's name and appended a string. The quest analysis text was written by the LLM itself in the previous tick. The decision to engage was entirely the LLM's.
+| Dimension · 维度 | Typical Agent Framework<br/>典型 Agent 框架 | AgentWorld Async |
+|---|---|---|
+| **Semantic ownership**<br/>语义主权 | Developer writes "when hungry, find food." Engine knows what "hungry" means.<br/>开发者写"饿了就找吃的"。引擎知道"饿"是什么意思。 | Engine only reports `hunger: 85`. LLM must decide what "85" means and what to do.<br/>引擎只报 `hunger: 85`。LLM 自己决定"85"意味着什么、该做什么。 |
+| **Social rules**<br/>社交规则 | Hardcoded: "if spoken to, respond." Reputation systems, obligation tracking built into engine.<br/>硬编码: "如果别人对你说话, 就回应"。声誉系统、义务追踪内置于引擎。 | Zero hardcoded social rules. All social behavior emerges from LLMs reading facts.<br/>零硬编码社交规则。所有社交行为从 LLM 读事实中涌现。 |
+| **Priority system**<br/>优先级体系 | Hand-tuned weights: main quest > survival > social. Static hierarchy.<br/>手调权重: 主线 > 生存 > 社交。静态层级。 | Flat-priority: all slots equal. LLM allocates attention autonomously each tick.<br/>平权: 所有 slot 等重。LLM 每轮自主分配注意力。 |
+| **Self-reflection**<br/>自省 | LLM sees current state → outputs action. No explicit reasoning trace fed back.<br/>LLM 看到当前状态 → 输出 action。无显式推理痕迹回馈。 | 4-step cognitive pipeline written by LLM every tick, re-read next tick.<br/>4 步认知管道每轮由 LLM 写, 下轮重读。 |
+| **World model**<br/>世界模型 | Centralized state management. The engine "knows" what happened.<br/>中心化状态管理。引擎"知道"发生了什么。 | Distributed perception. Each agent sees a private sensory window. No agent sees the full state.<br/>分布式感知。每个 agent 只看到私有的感官窗口。无 agent 看到全态。 |
+| **Experimental value**<br/>实验价值 | Tests whether the agent follows instructions correctly.<br/>测试 agent 是否按指令正确执行。 | Tests what emerges when no instructions are given at the semantic level.<br/>测试当语义层面零指令时能涌现出什么。 |
 
 ---
 
-## Quick Start
+## Value · 价值
+
+### As a research apparatus · 作为研究装置
+
+The system answers a question that is difficult to ask in any existing framework:
+**"What are the minimal architectural constraints necessary for social behavior to emerge between autonomous LLM-based agents?"**
+
+这个系统回答一个在任何现有框架中都难以提出的问题:
+**"基于 LLM 的自主代理之间涌现社会行为, 最小架构约束是什么？"**
+
+By strictly separating atomic fact reporting (engine) from semantic interpretation (LLM),
+the system creates a controlled environment where:
+
+- Any observed social pattern can be traced back to a specific combination of engine-provided facts and LLM cognition
+- The absence of a social pattern is equally informative — it means the current fact set is insufficient
+- Each architectural component (cognitive pipeline, drive system, direction markers) can be independently ablated to measure its contribution
+
+通过严格分离原子事实报告(引擎)和语义解释(LLM), 系统创造了一个受控环境:
+- 任何观察到的社会模式都可以追溯到特定的引擎事实+LLM认知组合
+- 社会模式的缺失同样具有信息量——意味着当前事实集合不足
+- 每个架构组件(认知管道、驱动系统、方向标记)可以独立消融以测量其贡献
+
+### As a design philosophy · 作为设计哲学
+
+The project demonstrates that **refusing to encode domain knowledge into the engine**
+is not a limitation — it is a generative constraint. The less the engine "understands,"
+the more the LLM is forced to derive, and the more surprising the resulting behavior.
+
+This is the inverse of standard software engineering — where we add features to increase capability.
+Here, we subtract engine-level interpretation to increase emergent complexity.
+
+项目证明**拒绝将领域知识编码进引擎**不是限制——而是生成性约束。
+引擎"理解"得越少, LLM 被迫推导得越多, 产生的行为越出乎意料。
+这与标准软件工程相反——标准做法是加功能以提高能力。这里是减引擎层解释以增加涌现复杂度。
+
+---
+
+## Potential Applications · 潜在应用
+
+| Area · 领域 | Application · 应用 |
+|---|---|
+| **Multi-agent simulation**<br/>多代理模拟 | Economic systems, crowd behavior, organizational dynamics — with agents that derive their own strategies rather than executing pre-scripted behaviors.<br/>经济系统、人群行为、组织动态——代理自己推导策略而非执行预编脚本。 |
+| **LLM evaluation**<br/>LLM 评估 | Measure an LLM's ability to detect social patterns, negotiate, and self-reflect under minimal environmental scaffolding.<br/>测量 LLM 在最小环境支架下检测社会模式、谈判、自省的能力。 |
+| **Game design**<br/>游戏设计 | Autonomous NPCs whose social behavior is not scripted but genuinely responsive to accumulated interaction history.<br/>自主 NPC 的社交行为不是脚本固定而是真正响应累积的交互历史。 |
+| **Cognitive architecture research**<br/>认知架构研究 | Test the effect of specific architectural components (self-reflection pipelines, drive models, attention mechanisms) on emergent agent behavior.<br/>测试特定架构组件(自省管道、驱动模型、注意力机制)对涌现 agent 行为的影响。 |
+| **Social science modeling**<br/>社会科学建模 | Study how negotiation dynamics, trust formation, and cooperation emerge under controlled information constraints.<br/>研究在受控信息约束下谈判动态、信任形成与合作如何涌现。 |
+
+---
+
+## Quick Start · 快速开始
 
 ```bash
 pip install -r requirements.txt
-python main.py --validate-config             # validate YAML configs
+python main.py --validate-config             # Validate YAML configs · 验证配置
 python main.py --runtime 180 \
-    --world config/world_trade.yaml          # 12-NPC trade world, 180s
-python -m pytest tests/ -q                   # 176 tests, ~10s
+    --world config/world_trade.yaml          # 12-NPC trade world · 12人交易世界
+python -m pytest tests/ -q                   # 176 tests · 176 测试
 ```
 
 ---
 
-## 这是什么
-
-这不是游戏引擎，也不是 agent 框架。这是一个实验装置，用来研究一个问题：
-
-> **当一群基于 LLM 的自主代理被嵌入物理空间，各自持有私有目标和公共资源——并且引擎拒绝做任何语义解释时——它们的交互中能自发涌现出怎样的社会结构、策略和行为？**
-
-整个架构围绕一条公理构建：**引擎不得进行语义压缩。** 所有复杂行为——谈判、社交压力、互惠交换、注意力分配、loop 检测——必须由 LLM 自己从原始原子事实中推导出来，否则就不存在。
-
-## 架构
-
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         代理 (LLM)                                          │
-│                                                                            │
-│  每轮: 读取事实 → 完成 4 步认知管道 → 行动                                    │
-│                                                                            │
-│  ┌─ 认知管道 (LLM 必须自省 — 不允许默认文本) ─────────────────────────────┐ │
-│  │  ① 目标     — 我要达成什么？                                             │ │
-│  │  ② 感知     — 我现在看到了什么、听到了什么？                                │ │
-│  │  ③ 评估     — 感知如何影响我的目标？                                      │ │
-│  │  ④ 总结     — 最近发生了什么？（检测重复模式）                              │ │
-│  └──────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│  ┌─ 环境事实 (引擎报，绝不解释) ──────────────────────────────────────────┐ │
-│  │  · 7 个生物/社交驱动 (饥饿, 社交压力, ...)                                │ │
-│  │  · 空间坐标 + 可穿越的门                                                  │ │
-│  │  · 视觉范围内的实体                                                       │ │
-│  │  · 听觉对话 + 方向标记 ("对你说" / 背景)                                   │ │
-│  │  · 持有物 (抽象层边)                                                       │ │
-│  │  · 情景记忆缓冲                                                           │ │
-│  │  · 上轮行动反馈 + 对话历史                                                 │ │
-│  └──────────────────────────────────────────────────────────────────────┘ │
-│                                                                            │
-│  ┌─ 输出接口 ────────────────────────────────────────────────────────────┐ │
-│  │  物理层 (暴露): take_out · hand_over · eat · pick_up                     │ │
-│  │  抽象层 (暴露): abs_attr_modify (修改任意驱动值)                           │ │
-│  │  引擎原语 (隐藏): holder_transfer · spawn/despawn · node ops             │ │
-│  └──────────────────────────────────────────────────────────────────────┘ │
-└───────────────────────────────┬────────────────────────────────────────────┘
-                                │
-                                ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                       引擎 (零语义)                                          │
-│                                                                            │
-│  从不说: "交易完成", "A在施压B", "B欠A一个回应"                               │
-│  只说:   数值, 坐标, 时间戳, 计数, 实体ID                                    │
-│                                                                            │
-│  ┌─ 空间层  ── 实体位置, 区域网格, 视觉/听觉层                                │
-│  ├─ 抽象层  ── 所有权边 (holder → item_type → qty)                          │
-│  ├─ 驱动层  ── 衰减属性: hunger, thirst, social, mood,                      │
-│  │            social_pressure (+0.05/min), energy, fun                      │
-│  └─ 感官系统 ── 半径感知 + speech_target → direction label 注入              │
-│                                                                            │
-│  YAML定义层 · channel自动注册 · alias注册表O(1)                              │
-│  7原语 · MCP路由(零 op-name 分支) · 单一事实来源                                │
-└────────────────────────────────────────────────────────────────────────────┘
-```
-
-## 核心公理：引擎不得进行语义压缩
-
-引擎知道什么坐标变了、哪个数值涨了、谁对谁说了话。引擎不知道——也不能被告知——这些事实*意味着*什么。
-
-| 引擎报 (原子事实) | LLM 必须推导 (认知解释) |
-|---|---|
-| `hunger: 85/100` | "需要进食" |
-| `social_pressure: 75/100` | "有人在反复对我施压" |
-| `speech_target = 此 agent 的 ID` | "那个人在对我说重要的话" |
-| 金币通过 spawn 实体出现在坐标 X | "他付了钱" |
-| `memory_analysis` 连续 10 轮同样模式 | "我 stuck 在谈判 loop 里了" |
-| 其他 agent 的 `quest_analysis`（无人可见） | （不可感知——每个 agent 的认知是私有的） |
-
-### "语义压缩"具体指什么
-
-如果引擎产出了字符串 `"杰洛特在施压托蜜拉"`，它就把三个原子事实——(a) 杰洛特对托蜜拉说了话，(b) 说了 25 次，(c) 托蜜拉没回应——压缩成了一个解释性标签。LLM 接下来就会推理这个*标签*，而不是推理*事实*。压缩发生的那一刻，整个系统的实验价值就没了。
-
-## 为什么这个架构有价值
-
-### 1. 零硬编码社交规则
-
-代码里没有任何地方说"如果别人对你说话，你就该回应"。没有声誉系统、没有义务追踪、没有引擎维护的社交图。所有社会行为——互惠、持续谈判、持续性忽视——全都是 LLM 读自己认知管道历史 + 原始环境事实后自发产生的。
-
-### 2. LLM 是唯一的解释者
-
-每个驱动值、每条感官输入、每条反馈——LLM 都必须自己解释。`social_pressure` 这个属性可以意味着"我被审问了"，也可以是"我因为忽视了某个人而感到内疚"，也可以是"今天市场太吵了"。引擎不对哪个解释是正确的发表意见。
-
-### 3. 已观测到涌现社会现象
-
-| 现象 | 描述 | 机制 |
-|---|---|---|
-| 对称谈判僵局 | 两个 agent 同时收敛到"先回应对方再推自己目标"——产生 33 轮僵局 | 两人读到同一个认知管道 → 推导同一策略 → 无人打破对称 |
-| 策略升级 | 一个 agent 从"求免费故事"进化到"出金币买故事"，跨 11 轮 | LLM 自创了 `hand_over` 原语的新用法 |
-| 互惠情报交换 | agent 在完成矿石交易后额外交换了非货币情报 | 无代码强制互惠——自组织产生 |
-| 压力-行为脱钩 | social_pressure 涨到 100 而行为没变——LLM 感知到但不一定响应 | 驱动值是信号，不是命令 |
-
-### 4. 认知管道强制显式化
-
-LLM 不能默默忽视一条感官输入。它必须写——每轮都写——感知到了什么、感知如何影响目标、最近发生了什么。如果它选择忽视某人，这个选择被记录为一段显式文本，LLM 自己下轮会重新读到。管道把隐性忽视变成了显性的、可修正的认知。
-
----
-
-## 具体例子：对话如何工作
-
-```
-Tick N:
-  杰洛特 LLM 写:    action = "走向托蜜拉"
-                    dialogue = "你见过叶奈法吗？"
-                    target_name = "托蜜拉"
-  引擎 flush 时:     → 将 speech_target = "托蜜拉" 写入杰洛特的 auditory 层
-                    → 将 dialogue 写入杰洛特的 auditory 层
-
-Tick N+1:
-  托蜜拉 prompt 渲染:
-    ## 感知
-    ## 听觉
-    杰洛特 (3s前) 对你说: "你见过叶奈法吗？"
-    ## 评估 (quest_analysis — LLM 自己写)
-    "杰洛特在问叶奈法，她是女术士——他的术士联系人
-     可能就是我需要的草药买家。如果无视他，可能失去这条线。"
-
-  托蜜拉 LLM 写:    action = "转向杰洛特"
-                    dialogue = "听说过。她在诺维格瑞出现过。"
-```
-
-没有任何引擎组件决定托蜜拉"应该"回应。`"对你说"` 标记是机械注入的——`SensoryMemory.to_prompt()` 比较了 `speech_target` 和 observer 的名字，追加了一个字符串。quest_analysis 文本是 LLM 自己上轮写的。回应的决定完全是 LLM 的。
-
----
-
-## Quick Start
-
-```bash
-pip install -r requirements.txt
-python main.py --validate-config
-python main.py --runtime 180 --world config/world_trade.yaml
-python -m pytest tests/ -q       # 176 tests
-```
-
----
-
-## License
+## License · 许可证
 
 MIT
