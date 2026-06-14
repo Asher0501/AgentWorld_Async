@@ -220,6 +220,18 @@ async def run_agent(agent, world, brain, assembler, systems,
             if decision.get("main_thread"):
                 al.main_thread = decision["main_thread"]
 
+            # ── Drive attribute notes: LLM writes per-attr感受 text ──
+            if "attr_notes" in decision and al.drives:
+                al.drives._attr_notes = decision["attr_notes"]
+
+            # ── Event check + temperament: LLM self-reflection ──
+            if "sensory_analysis_text" in decision:
+                al._sensory_analysis = decision["sensory_analysis_text"]
+            if "quest_analysis_text" in decision:
+                al._quest_analysis = decision["quest_analysis_text"]
+            if "memory_analysis_text" in decision:
+                al._memory_analysis = decision["memory_analysis_text"]
+
             # ═══════════════════════════════════════════
             #  PHASE 4: ENQUEUE — store action for delayed execution
             # ═══════════════════════════════════════════

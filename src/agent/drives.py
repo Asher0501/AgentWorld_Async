@@ -7,6 +7,7 @@ class DriveSystem:
     attr_cfg: dict = field(default_factory=dict)
     drive_min: float = 0.0
     drive_max: float = 100.0
+    _attr_notes: dict[str, str] = field(default_factory=dict)
 
     def decay(self, elapsed_minutes: float) -> None:
         for name, cfg in self.attr_cfg.items():
@@ -20,11 +21,21 @@ class DriveSystem:
     def to_prompt(self) -> str:
         if not self.attrs:
             return ""
-        lines = ["| 属性 | 数值 | 描述 |", "|------|------|------|"]
+        notes = getattr(self, "_attr_notes", {})
+        has_notes = any(notes.get(n, "") for n in self.attr_cfg)
+        hdr = "| 属性 | 数值 | 描述 |"
+        if has_notes:
+            hdr += " 感受 |"
+        lines = [hdr, "|------|------|------|------|" if has_notes else "|------|------|------|"]
         for name, cfg in self.attr_cfg.items():
             val = self.attrs.get(name)
-            if val is None: continue
+            if val is None:
+                continue
             hi = cfg.get("max", self.drive_max)
             desc = cfg.get("description", "")
-            lines.append(f"| {name} | {val:.0f}/{hi:.0f} | {desc} |")
+            row = f"| {name} | {val:.0f}/{hi:.0f} | {desc} |"
+            if has_notes:
+                note = notes.get(name, "")
+                row += f" {note} |"
+            lines.append(row)
         return "\n".join(lines)

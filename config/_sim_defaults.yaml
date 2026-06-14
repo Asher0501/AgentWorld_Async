@@ -39,6 +39,11 @@ simulation:
         min: 0
         max: 100
         decay: 0.0
+      social_pressure:
+        min: 0
+        max: 100
+        decay: 0.05
+        description: 社交压力。100=有未回应的社交债务。0=完全无压力。
   validation:
     delta_max: 30
   text:

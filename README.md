@@ -1,230 +1,297 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square">
   <img src="https://img.shields.io/badge/tests-176-brightgreen?style=flat-square">
-  <img src="https://img.shields.io/badge/primitives-7-orange?style=flat-square">
   <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square">
 </p>
 
 <h1 align="center">AgentWorld Async</h1>
 
 <p align="center">
-  <b>Two-Layer Architecture · MCP Interface Engine · 7 Primitives<br/>
-  Engine reports facts. LLM provides cognition.<br/>
-  <sub>双层架构 · MCP 接口引擎 · 7 原语 · 引擎报事实，LLM 做认知</sub></b>
+  <b>A social emergence laboratory powered by LLMs.<br/>
+  How much social behavior can arise when autonomous agents perceive only atomic facts<br/>
+  — with no engine-level semantics, no priority hierarchies, no pre-programmed social rules?<br/>
+  <sub>一个以 LLM 为实验对象的社会涌现实验室。<br/>
+  当自主代理只能感知原子事实——没有引擎级语义、没有优先级体系、没有硬编码社交规则——<br/>
+  能自发涌现多少社会行为？</sub></b>
 </p>
 
 ---
 
+## What This Is
+
+This is not a game engine. It is not an agent framework. It is an experimental apparatus for studying one question:
+
+> **Given a population of LLM-based autonomous agents embedded in a physical space with private goals and public resources — and an engine that refuses to interpret anything — what social structures, strategies, and emergent behaviors spontaneously arise from their interactions?**
+
+The architecture is built around a single axiom: **the engine must never perform semantic compression.** All complex behavior — negotiation, social pressure, reciprocal exchange, attention allocation, loop detection — must be derived by the LLMs themselves from raw atomic facts, or it must not exist at all.
+
+---
+
+## Architecture
+
 ```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                           LLM Layer (Cognition · 认知)                        │
-│                                                                              │
-│   Sensory channels: 视觉 / 听觉 / 可交互 / 持有                               │
-│   MCP Tool List → LLM Decision (only physical interfaces + abs_attr_modify)   │
-│   {  physical_calls: [{interface: "hand_over", params: {entity, to, qty}}],  │
-│     abstract_calls:  [{interface: "abs_attr_modify", params: {entity, attr,  │
-│                        value}}] }                                            │
-└───────────────────────────────┬──────────────────────────────────────────────┘
-                                │ two-slot dispatch
-┌───────────────────────────────▼──────────────────────────────────────────────┐
-│                         MCP Engine (Routing · 路由)                            │
-│                                                                              │
-│   interact(entity, interface, params) — single write entry                    │
-│   Inject caller context — validate params — route to handler                  │
-│   Physical layer: agent.interfaces[name]    (world-bound YAML)                 │
-│   Abstract layer: graph.primitives[name]    (expose_to_llm controlled)         │
-│   Channel auto-registration · GraphSource · Alias Registry O(1)               │
-└───────────────────────────────┬──────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│                            The Agent (LLM)                                  │
+│                                                                            │
+│  Every tick: read facts → complete 4-step cognitive pipeline → act          │
+│                                                                            │
+│  ┌─ Cognitive Pipeline (LLM must self-reflect — no defaults allowed) ────┐ │
+│  │  ① goal             — What am I trying to achieve?                      │ │
+│  │  ② perception       — What do I see, hear, sense right now?             │ │
+│  │  ③ assessment       — How does my perception affect my goal?            │ │
+│  │  ④ summary          — What has been happening recently? (detect loops)  │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│  ┌─ Environment Facts (engine reports, never interprets) ────────────────┐ │
+│  │  · 7 biological/social drives (hunger, social_pressure, ...)            │ │
+│  │  · Spatial coordinates + traversable gates                              │ │
+│  │  · Visual entities within radius                                        │ │
+│  │  · Auditory speech with direction markers ("to you" / background)       │ │
+│  │  · Inventory (held items via abstract edges)                            │ │
+│  │  · Episodic memory buffer                                               │ │
+│  │  · Last action feedback + conversation history                          │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│  ┌─ Output Interface ────────────────────────────────────────────────────┐ │
+│  │  Physical layer (exposed): take_out · hand_over · eat · pick_up         │ │
+│  │  Abstract layer (exposed): abs_attr_modify (modify any drive value)     │ │
+│  │  Engine primitives (hidden): holder_transfer · spawn/despawn · node ops │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────┬────────────────────────────────────────────┘
                                 │
-          ┌─────────────────────┼─────────────────────┐
-          │                     │                     │
-┌─────────▼──────────┐ ┌────────▼──────────┐ ┌────────▼──────────────────────┐
-│  Spatial Layer     │ │  Abstract Layer   │ │  Interface Layer              │
-│  (memory)          │ │  (edges/SQL)      │ │  (world-bound YAML)           │
-│                    │ │                   │ │                               │
-│  spatial_spawn     │ │ abs_holder_transfer│ │  npc_interfaces.yaml:          │
-│  spatial_despawn   │ │ abs_attr_modify   │ │    take_out → hand_over → eat │
-│  spatial_relocate  │ │ abs_node_add      │ │    pick_up (no direct transfer)│
-│                    │ │ abs_node_remove   │ │                               │
-│  Entities + pos    │ │                   │ │  npc_actions.py: impl           │
-│  SpatialGrid       │ │ type_node × N     │ │  Item appears in space →       │
-│  visual/auditory   │ │ edges: npc↔type   │ │    sensory → pick_up → done    │
-│                    │ │        zone↔type   │ │  No npc↔npc direct transfer    │
-└────────────────────┘ └───────────────────┘ └───────────────────────────────┘
-
-  Single source of truth:  abstract_primitives.yaml  (expose_to_llm gates)
-  World-bound config:       npc_interfaces.yaml           (physical tools)
-  Layer attachment:         layer_registry.yaml            (YAML-driven)
-  Channel definitions:      channels.yaml                  (auto-registered)
+                                ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         The Engine (Zero Semantics)                          │
+│                                                                            │
+│  Never outputs: "trade completed", "A pressures B", "B owes A a response"  │
+│  Only outputs:  numeric values, coordinates, timestamps, counts, entity IDs │
+│                                                                            │
+│  ┌─ Spatial  ─── entity positions, zone grids, visual/auditory layers       │
+│  ├─ Abstract ── ownership edges (holder → item_type → qty)                  │
+│  ├─ Drive   ─── decaying attributes: hunger, thirst, social, mood,          │
+│  │              social_pressure (+0.05/min), energy, fun                     │
+│  └─ Sensory ─── radius-based perception: who is nearby, who spoke,          │
+│                 with speech_target → direction label injection              │
+│                                                                            │
+│  YAML-defined layers · channel auto-registration · alias registry O(1)      │
+│  7 primitives · MCP routing (zero op-name branching) · single source of truth│
+└────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Key constraint**: The cognitive pipeline slots and drive values are the ONLY channels through which the LLM perceives the world. No slot carries a "priority" annotation — the LLM must decide what matters. No drive value comes with an instruction — the LLM must derive appropriate responses from numeric signals alone.
 
 ---
 
-# 中文版
+## Core Axiom: The Engine Must Never Perform Semantic Compression
 
-## 核心思想
+The engine knows what coordinates changed, what numbers incremented, who spoke to whom. It does not know — and must not be told — what any of these facts *mean*.
 
-### 1. 双层模型
-
-| | 空间层 | 抽象层 |
-|---|---|---|
-| 职责 | "在哪 / 长什么样" | "谁持有多少" |
-| 原语 | `spatial_spawn` / `despawn` / `relocate` | `abs_holder_transfer` / `abs_attr_modify` / `abs_node_add` / `abs_node_remove` |
-| 感官 | 视觉 / 听觉 / 可交互 | 持有（npc 的一阶邻居子图） |
-
-NPC 和物品是同一个 `Entity` class。`type_ref` 连接两层。
-
-### 2. MCP 接口引擎
-
-LLM 只能在 tool list 中看到暴露的接口。引擎原语对 LLM 不可见。
-
-```
-物理层（physical_calls — exposed to LLM）:
-  take_out   · 从持有中拿出到空间
-  hand_over  · 放到目标位置（不是转给某人——物品在空间中出现）
-  eat        · 消耗食物
-  pick_up    · 从空间中捡起走
-
-抽象层（abstract_calls — exposed to LLM）:
-  abs_attr_modify  · 自身属性变更（唯一暴露的抽象原语）
-
-引擎原语（expose_to_llm: false — LLM 不可见）:
-  abs_holder_transfer · 边数值转移
-  spatial_spawn / despawn / relocate · 空间实体操作
-  abs_node_add / abs_node_remove · 节点管理
-```
-
-### 3. 原则：物品必须先出现在空间中——禁止直接 NPC↔NPC 转账
-
-```
-A 拿出金币:   take_out → spawn("A 手中的金币") at A.pos
-B 感官看到:   视觉: "A 手中的金币 (4 格)"
-B 捡走:       pick_up("A 手中的金币") → despawn + 持有的边转移
-
-永远没有: "A 直接把金币转给 B"
-```
-
-引擎不知道"交易"是什么——只知道实体在空间中诞生和消失。
-
-### 4. 7 引擎原语
-
-| 原语 | 层 | 做什么 |
-|---|---|---|
-| `abs_holder_transfer` | 抽象 | 边上数值转移。caller 验证：src 必须是 caller 自身或 zone |
-| `abs_attr_modify` | 抽象 | 实体属性变更 |
-| `spatial_spawn` | 空间 | 实体诞生——层附加通过 layer_registry YAML 驱动 |
-| `spatial_despawn` | 空间 | 实体消失 + alias 清理 |
-| `spatial_relocate` | 空间 | 实体改变位置 |
-| `abs_node_add` | 抽象 | 节点加入边系统 |
-| `abs_node_remove` | 抽象 | 节点脱离 + 关联边清理 |
-
-### 5. YAML 驱动变体——全部
-
-| 文件 | 内容 |
+| Engine Reports (Atomic Fact) | LLM Must Derive (Cognitive Interpretation) |
 |---|---|
-| `abstract_primitives.yaml` | 原语定义 + `expose_to_llm` 开关 |
-| `item_registry.yaml` | 物品类型注册 |
-| `layer_registry.yaml` | layer type → class 映射 + spawn 配置 |
-| `npc_interfaces.yaml` | 物理接口注册（世界绑定） |
-| `channels.yaml` | channel 定义 |
-| `slot_groups.yaml` | slot 矩阵 + dimensions 列表 |
+| `hunger: 85/100` | "I need food" |
+| `social_pressure: 75/100` | "Someone is pressuring me repeatedly" |
+| `speech_target = this_agent_id` | "That person is speaking to me" |
+| Coins appear at position X via spawned entity | "I was paid" |
+| `memory_analysis` repeats same pattern across 10 ticks | "I am stuck in a negotiation loop" |
+| Other agent's `quest_analysis` text (visible to no one) | (Not perceivable — each agent's cognition is private) |
 
-### 6. 单一事实来源
+This is the **only** invariant enforced across the entire codebase. Every other design decision — flat-priority prompts, direction markers, social_pressure as a drive, the cognitive pipeline — is a derived consequence of refusing to let the engine perform this compression.
 
-- 抽象原语定义：`abstract_primitives.yaml` — engine 加载 + LLM tool list 由此自动生成
-- 物理接口定义：`npc_interfaces.yaml` — 切换世界观只需换此文件
-- Prompt tool list：`{tool_list}` 占位符 — GraphSource 从 MCP Engine 自动生成
+### What "semantic compression" means concretely
 
----
-
-## 完整交易场景
-
-```
-Tick N — 杰洛特:
-  感官: 持有 金币×80 草药×6
-  LLM: {physical_calls: [{interface:"hand_over", params:{entity:"金币", to:"托蜜ラ", qty:15}}]}
-  引擎: abs_holder_transfer(geralt, type_金币, -15, caller=geralt) ✅
-        spatial_spawn(pos=tomerra.pos, "杰洛特放在托蜜ラ的金币")
-        abs_holder_transfer(village, type_金币, +15)
-
-Tick N+1 — 托蜜ラ:
-  感官: 视觉 "杰洛特放在托蜜ラ的金币 (4 格)" | 持有 金币×30
-  LLM: {physical_calls: [{interface:"pick_up", params:{entity:"杰洛特放在托蜜ラ的金币", qty:15}}]}
-  引擎: abs_holder_transfer(village, type_金币, -15)
-        abs_holder_transfer(tomerra, type_金币, +15)
-        spatial_despawn("杰洛特放在托蜜ラ的金币")
-```
+If the engine ever produced the string `"Geralt is pressuring Tomera"`, it would have compressed three atomic facts — (a) Geralt spoke with target=Tomera, (b) this happened 25 times, (c) Tomera has not responded — into a single interpretive label. The LLM would then reason about the *label*, not the *facts*. The experimental value of the system is destroyed at the moment of compression.
 
 ---
 
-## 快速开始
+## Why This Architecture Is Interesting
+
+### 1. No pre-programmed social rules
+
+There is no code path that says "if someone speaks to you, you should respond." There is no reputation system. No obligation tracking. No social graph maintenance by the engine. All social behavior — including reciprocal exchange, sustained negotiation, and persistent ignoring — emerges purely from LLMs reading their own cognitive pipeline history alongside raw environmental facts.
+
+### 2. The LLM is the sole interpreter
+
+Every drive value, every sensory input, every piece of feedback — the LLM must interpret them all without help. The `social_pressure` attribute could mean "I am being interrogated" or "I feel guilty about ignoring someone" or "the crowd is loud today." The engine has no opinion on which interpretation is correct.
+
+### 3. Emergent social phenomena have been observed
+
+| Phenomenon | Description | Mechanism |
+|---|---|---|
+| Symmetric negotiation deadlock | Two agents independently converge to "respond first, then push my agenda" — producing a 33-round stalemate | Both read the same cognitive pipeline → both derive same strategy → neither breaks symmetry |
+| Strategy escalation | An agent evolves from "ask for a free story" to "pay gold for a story" across 11 rounds with no "buy story" interface | LLM constructs novel use of `hand_over` primitive |
+| Reciprocal intelligence exchange | Agents exchange non-monetary information as a byproduct of a completed trade | No code enforces reciprocity — it self-organizes |
+| Pressure-independent behavior | Social pressure values rise to 100 with zero behavioral change — the LLM perceives but doesn't necessarily respond to numeric pressure alone | Drive values are signals, not commands |
+
+### 4. The cognitive pipeline forces explicitness
+
+The LLM cannot silently ignore a sensory input. It must write — every tick — what it perceives, how that perception affects its goal, and what has been happening recently. If it chooses to ignore someone, that choice is recorded in explicit text that the LLM itself re-reads next tick. The pipeline turns implicit neglect into explicit, revisable cognition.
+
+---
+
+## Concrete Example: How a Conversation Works
+
+```
+Tick N:
+  Geralt's LLM writes:  action = "walk toward Tomera"
+                         dialogue = "Have you seen Yennefer?"
+                         target_name = "Tomera"
+  Engine at flush:       → writes speech_target = "Tomera" to Geralt's auditory layer
+                         → writes dialogue to Geralt's auditory layer
+
+Tick N+1:
+  Tomera's prompt renders:
+    ## 感知 (sensory_analysis — LLM reads its own previous analysis)
+    ## 听觉
+    杰洛特 (3s前) 对你说: "Have you seen Yennefer?"
+    ## 评估 (quest_analysis — LLM writes)
+    "Geralt is looking for Yennefer, a sorceress. He is a witcher —
+     his sorceress contact could be the herb buyer I need.
+     If I ignore him now, I may lose this lead."
+
+  Tomera's LLM writes:   action = "turn to face Geralt"
+                         dialogue = "I've heard of her. She was in Novigrad."
+```
+
+No engine component ever decided that Tomera "should" respond. The `"对你说"` marker was injected mechanically — `SensoryMemory.to_prompt()` compared `speech_target` with the observer's name and appended a string. The quest analysis text was written by the LLM itself in the previous tick. The decision to engage was entirely the LLM's.
+
+---
+
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
-python main.py --validate-config
-python main.py --runtime 60 --world config/world_trade.yaml   # 12 NPC 交易世界
-python main.py --runtime 180 --world config/world.yaml         # 25 NPC Witcher
-python -m pytest tests/ -q   # 176 tests, ~10s
+python main.py --validate-config             # validate YAML configs
+python main.py --runtime 180 \
+    --world config/world_trade.yaml          # 12-NPC trade world, 180s
+python -m pytest tests/ -q                   # 176 tests, ~10s
 ```
 
 ---
 
-## 设计原则
+## 这是什么
 
-| 原则 | 体现 |
+这不是游戏引擎，也不是 agent 框架。这是一个实验装置，用来研究一个问题：
+
+> **当一群基于 LLM 的自主代理被嵌入物理空间，各自持有私有目标和公共资源——并且引擎拒绝做任何语义解释时——它们的交互中能自发涌现出怎样的社会结构、策略和行为？**
+
+整个架构围绕一条公理构建：**引擎不得进行语义压缩。** 所有复杂行为——谈判、社交压力、互惠交换、注意力分配、loop 检测——必须由 LLM 自己从原始原子事实中推导出来，否则就不存在。
+
+## 架构
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         代理 (LLM)                                          │
+│                                                                            │
+│  每轮: 读取事实 → 完成 4 步认知管道 → 行动                                    │
+│                                                                            │
+│  ┌─ 认知管道 (LLM 必须自省 — 不允许默认文本) ─────────────────────────────┐ │
+│  │  ① 目标     — 我要达成什么？                                             │ │
+│  │  ② 感知     — 我现在看到了什么、听到了什么？                                │ │
+│  │  ③ 评估     — 感知如何影响我的目标？                                      │ │
+│  │  ④ 总结     — 最近发生了什么？（检测重复模式）                              │ │
+│  └──────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│  ┌─ 环境事实 (引擎报，绝不解释) ──────────────────────────────────────────┐ │
+│  │  · 7 个生物/社交驱动 (饥饿, 社交压力, ...)                                │ │
+│  │  · 空间坐标 + 可穿越的门                                                  │ │
+│  │  · 视觉范围内的实体                                                       │ │
+│  │  · 听觉对话 + 方向标记 ("对你说" / 背景)                                   │ │
+│  │  · 持有物 (抽象层边)                                                       │ │
+│  │  · 情景记忆缓冲                                                           │ │
+│  │  · 上轮行动反馈 + 对话历史                                                 │ │
+│  └──────────────────────────────────────────────────────────────────────┘ │
+│                                                                            │
+│  ┌─ 输出接口 ────────────────────────────────────────────────────────────┐ │
+│  │  物理层 (暴露): take_out · hand_over · eat · pick_up                     │ │
+│  │  抽象层 (暴露): abs_attr_modify (修改任意驱动值)                           │ │
+│  │  引擎原语 (隐藏): holder_transfer · spawn/despawn · node ops             │ │
+│  └──────────────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────┬────────────────────────────────────────────┘
+                                │
+                                ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                       引擎 (零语义)                                          │
+│                                                                            │
+│  从不说: "交易完成", "A在施压B", "B欠A一个回应"                               │
+│  只说:   数值, 坐标, 时间戳, 计数, 实体ID                                    │
+│                                                                            │
+│  ┌─ 空间层  ── 实体位置, 区域网格, 视觉/听觉层                                │
+│  ├─ 抽象层  ── 所有权边 (holder → item_type → qty)                          │
+│  ├─ 驱动层  ── 衰减属性: hunger, thirst, social, mood,                      │
+│  │            social_pressure (+0.05/min), energy, fun                      │
+│  └─ 感官系统 ── 半径感知 + speech_target → direction label 注入              │
+│                                                                            │
+│  YAML定义层 · channel自动注册 · alias注册表O(1)                              │
+│  7原语 · MCP路由(零 op-name 分支) · 单一事实来源                                │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 核心公理：引擎不得进行语义压缩
+
+引擎知道什么坐标变了、哪个数值涨了、谁对谁说了话。引擎不知道——也不能被告知——这些事实*意味着*什么。
+
+| 引擎报 (原子事实) | LLM 必须推导 (认知解释) |
 |---|---|
-| 引擎报事实，LLM 做认知 | alias 事实映射。7 原语纯操作。LLM 从 tool list 决策 |
-| 删除不添加 | 删 constraints 目录、ops_registry、pocket entity、r=-1 filter |
-| 零领域词 | 引擎代码：abs_holder_transfer/spatial_spawn — 0 世界名词 |
-| YAML 驱动变体 | 所有注册表均 YAML 定义——换世界 = 换 YAML |
-| 引擎单入口 | `interact(entity, interface, params)` |
-| 世界绑定接口 | 物理接口在世界 YAML 中——换世界 = 换 tool list |
-| 物品先出现在空间 | 禁止直接 npc↔npc 持有层转账 |
-| 单一事实来源 | `abstract_primitives.yaml` — engine + LLM tool list 同源 |
+| `hunger: 85/100` | "需要进食" |
+| `social_pressure: 75/100` | "有人在反复对我施压" |
+| `speech_target = 此 agent 的 ID` | "那个人在对我说重要的话" |
+| 金币通过 spawn 实体出现在坐标 X | "他付了钱" |
+| `memory_analysis` 连续 10 轮同样模式 | "我 stuck 在谈判 loop 里了" |
+| 其他 agent 的 `quest_analysis`（无人可见） | （不可感知——每个 agent 的认知是私有的） |
+
+### "语义压缩"具体指什么
+
+如果引擎产出了字符串 `"杰洛特在施压托蜜拉"`，它就把三个原子事实——(a) 杰洛特对托蜜拉说了话，(b) 说了 25 次，(c) 托蜜拉没回应——压缩成了一个解释性标签。LLM 接下来就会推理这个*标签*，而不是推理*事实*。压缩发生的那一刻，整个系统的实验价值就没了。
+
+## 为什么这个架构有价值
+
+### 1. 零硬编码社交规则
+
+代码里没有任何地方说"如果别人对你说话，你就该回应"。没有声誉系统、没有义务追踪、没有引擎维护的社交图。所有社会行为——互惠、持续谈判、持续性忽视——全都是 LLM 读自己认知管道历史 + 原始环境事实后自发产生的。
+
+### 2. LLM 是唯一的解释者
+
+每个驱动值、每条感官输入、每条反馈——LLM 都必须自己解释。`social_pressure` 这个属性可以意味着"我被审问了"，也可以是"我因为忽视了某个人而感到内疚"，也可以是"今天市场太吵了"。引擎不对哪个解释是正确的发表意见。
+
+### 3. 已观测到涌现社会现象
+
+| 现象 | 描述 | 机制 |
+|---|---|---|
+| 对称谈判僵局 | 两个 agent 同时收敛到"先回应对方再推自己目标"——产生 33 轮僵局 | 两人读到同一个认知管道 → 推导同一策略 → 无人打破对称 |
+| 策略升级 | 一个 agent 从"求免费故事"进化到"出金币买故事"，跨 11 轮 | LLM 自创了 `hand_over` 原语的新用法 |
+| 互惠情报交换 | agent 在完成矿石交易后额外交换了非货币情报 | 无代码强制互惠——自组织产生 |
+| 压力-行为脱钩 | social_pressure 涨到 100 而行为没变——LLM 感知到但不一定响应 | 驱动值是信号，不是命令 |
+
+### 4. 认知管道强制显式化
+
+LLM 不能默默忽视一条感官输入。它必须写——每轮都写——感知到了什么、感知如何影响目标、最近发生了什么。如果它选择忽视某人，这个选择被记录为一段显式文本，LLM 自己下轮会重新读到。管道把隐性忽视变成了显性的、可修正的认知。
 
 ---
 
-# English
-
-## Core Concepts
-
-### 1. Two-Layer Model
-
-| | Spatial Layer | Abstract Layer |
-|---|---|---|
-| Responsibility | Where / What it looks like | Who holds how many |
-| Primitives | `spatial_spawn/despawn/relocate` | `abs_holder_transfer/abs_attr_modify/abs_node_add/abs_node_remove` |
-| Sensory | Visual / Auditory / Interactable | Inventory (NPC's 1-hop subgraph) |
-
-### 2. MCP Interface Engine
-
-LLM sees only exposed interfaces. Engine primitives are hidden.
+## 具体例子：对话如何工作
 
 ```
-Physical (exposed):  take_out · hand_over · eat · pick_up
-Abstract (exposed):  abs_attr_modify  (only one)
-Engine (hidden):     abs_holder_transfer · spatial_* · abs_node_*
+Tick N:
+  杰洛特 LLM 写:    action = "走向托蜜拉"
+                    dialogue = "你见过叶奈法吗？"
+                    target_name = "托蜜拉"
+  引擎 flush 时:     → 将 speech_target = "托蜜拉" 写入杰洛特的 auditory 层
+                    → 将 dialogue 写入杰洛特的 auditory 层
+
+Tick N+1:
+  托蜜拉 prompt 渲染:
+    ## 感知
+    ## 听觉
+    杰洛特 (3s前) 对你说: "你见过叶奈法吗？"
+    ## 评估 (quest_analysis — LLM 自己写)
+    "杰洛特在问叶奈法，她是女术士——他的术士联系人
+     可能就是我需要的草药买家。如果无视他，可能失去这条线。"
+
+  托蜜拉 LLM 写:    action = "转向杰洛特"
+                    dialogue = "听说过。她在诺维格瑞出现过。"
 ```
 
-### 3. Rule: Items must appear in space — no direct NPC↔NPC transfer
-
-All item movement goes through spatial layer. A puts item down → B sees it → B picks it up. Never "A transfers directly to B."
-
-### 4. 7 Engine Primitives
-
-| Primitive | Layer | Action |
-|---|---|---|
-| `abs_holder_transfer` | Abstract | Edge quantity transfer with caller auth |
-| `abs_attr_modify` | Abstract | Entity attribute modification |
-| `spatial_spawn` | Spatial | Entity birth — layer attachment via YAML |
-| `spatial_despawn` | Spatial | Entity death + alias cleanup |
-| `spatial_relocate` | Spatial | Entity reposition |
-| `abs_node_add` | Abstract | Node enters edge system |
-| `abs_node_remove` | Abstract | Node leaves + edge cleanup |
-
-### 5. YAML-Driven Configuration
-
-All registries are YAML. Swap worlds = swap YAML files. `abstract_primitives.yaml` is the single source of truth for engine primitive definitions and LLM tool list generation.
+没有任何引擎组件决定托蜜拉"应该"回应。`"对你说"` 标记是机械注入的——`SensoryMemory.to_prompt()` 比较了 `speech_target` 和 observer 的名字，追加了一个字符串。quest_analysis 文本是 LLM 自己上轮写的。回应的决定完全是 LLM 的。
 
 ---
 
@@ -233,9 +300,8 @@ All registries are YAML. Swap worlds = swap YAML files. `abstract_primitives.yam
 ```bash
 pip install -r requirements.txt
 python main.py --validate-config
-python main.py --runtime 60 --world config/world_trade.yaml   # 12-NPC trade world
-python main.py --runtime 180 --world config/world.yaml         # 25-NPC Witcher
-python -m pytest tests/ -q   # 176 tests, ~10s
+python main.py --runtime 180 --world config/world_trade.yaml
+python -m pytest tests/ -q       # 176 tests
 ```
 
 ---

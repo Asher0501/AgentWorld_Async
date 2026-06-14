@@ -23,6 +23,7 @@ class PromptAssembler:
         tpl = self.loader.get_template(template_name)
         all_slots = self.loader.data.get("slots", {})
         parts = []
+
         for name in tpl.get("slots", []):
             if slot_mask is not None and not slot_mask.get(name, 1):
                 continue

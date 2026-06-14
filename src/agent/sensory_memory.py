@@ -19,7 +19,7 @@ class SensoryMemory:
         for ch in self.channels.values():
             ch.clear()
 
-    def to_prompt(self, layer_name: str, cfg: dict) -> str:
+    def to_prompt(self, layer_name: str, cfg: dict, observer_name: str = "") -> str:
         """Template-driven channel rendering. cfg from YAML sensory_prompts."""
         ch = self.channels.get(layer_name, {})
         if not ch:
@@ -28,6 +28,11 @@ class SensoryMemory:
         slot_keys = [k for k in cfg if k != "header" and isinstance(cfg.get(k), str)]
         for r in ch.values():
             ctx = {**r.data, "name": r.name, "distance": r.distance}
+            # Direction marker: who is this speech directed at?
+            if observer_name and r.data.get("speech_target") == observer_name:
+                ctx["direction"] = " 对你说"
+            else:
+                ctx["direction"] = ""
             for key in slot_keys:
                 tpl = cfg.get(key, "")
                 if tpl:

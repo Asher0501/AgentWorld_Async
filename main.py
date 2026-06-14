@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument("--api-port", type=int, default=0)
     parser.add_argument("--dashboard", type=int, default=0, dest="dashboard_port")
     parser.add_argument("--visual", type=int, default=0, dest="visual_port")
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose engine logging")
+    parser.add_argument("--verbose", nargs="?", const="data/logs/cli_verbose.sqlite3", default=None, help="Enable verbose engine logging (optional custom path)")
     return parser.parse_args()
 
 

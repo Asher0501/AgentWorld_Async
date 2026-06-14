@@ -82,9 +82,12 @@ class AgentLayerSource:
                 result[f] = al._last_target_name or ""
             elif f == "conversation_text":
                 result[f] = self._conversation_text(al)
-            elif f == "item_narrative":
-                result[f] = al._pending_narrative or ""
-                al._pending_narrative = ""
+            elif f == "sensory_analysis_text":
+                result[f] = al._sensory_analysis
+            elif f == "quest_analysis_text":
+                result[f] = al._quest_analysis
+            elif f == "memory_analysis_text":
+                result[f] = al._memory_analysis
         return result
 
     def _conversation_text(self, al) -> str:
@@ -145,10 +148,6 @@ class DriveSource:
         for f in fields:
             if f == "drives_table":
                 result[f] = al.drives.to_prompt()
-            elif f == "drive_min":
-                result[f] = 0
-            elif f == "drive_max":
-                result[f] = 100
         return result
 
 
@@ -158,11 +157,12 @@ class SensorySource:
     def __init__(self, labels=None, graph=None):
         self._labels = labels or {}
 
-    def collect(self, fields: list[str], *, sensory, **opts):
+    def collect(self, fields: list[str], *, sensory, agent=None, **opts):
         result = {}
         if "sensory_text" in fields:
             sp = self._labels.get("sensory_prompts", {})
-            parts = [t for ch, cfg in sp.items() if (t := sensory.to_prompt(ch, cfg))]
+            observer_name = agent.name if agent else ""
+            parts = [t for ch, cfg in sp.items() if (t := sensory.to_prompt(ch, cfg, observer_name))]
             result["sensory_text"] = "\n\n".join(parts)
         return result
 

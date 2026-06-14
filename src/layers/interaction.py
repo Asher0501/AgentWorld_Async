@@ -13,7 +13,6 @@ class InteractionLayer(Layer):
     drive_max: float = 100.0
     attr_bounds: dict = field(default_factory=dict)
     readonly: bool = False
-    filepath: str = ""
 
     def __post_init__(self):
         if self.interaction_radius:

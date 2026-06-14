@@ -26,9 +26,9 @@ async def cmd_test(args):
 
     from core.clock import DecisionClock
     telemetry = cfg["telemetry"]
-    if getattr(args, 'verbose', False):
+    if getattr(args, 'verbose', None):
         from logger import enable
-        enable("data/logs/cli_verbose.sqlite3")
+        enable(args.verbose)
     max_cc = max((g.limit for g in cfg["concurrency_gates"].values()), default=1)
     if telemetry.warmed_up:
         measured_tick = telemetry.median_latency * len(agents) / max(max_cc, 1)

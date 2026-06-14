@@ -42,3 +42,6 @@ class AgentLayer(Layer):
 
     # ── Intent tracking ──
     _last_intent: str = ""
+    _sensory_analysis: str = ""  # LLM writes: what I perceive this round
+    _quest_analysis: str = ""    # LLM writes: how perception affects my goal
+    _memory_analysis: str = ""   # LLM writes: relevant past lessons

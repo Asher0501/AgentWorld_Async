@@ -107,13 +107,13 @@ class InteractionSystem:
                 if value:
                     layer.properties[prop] = value
                     if field == "dialogue":
-                        layer.properties.setdefault("speech_ts", time.time())
-
-        if dialogue and agent_layer:
-            agent_layer._conversation_buffer.append(
-                {"speaker": agent.name, "text": dialogue, "ts": time.time()})
-            if len(agent_layer._conversation_buffer) > 8:
-                agent_layer._conversation_buffer.pop(0)
+                        layer.properties["speech_ts"] = time.time()
+                        layer.properties["speech_target"] = decision.get("target_name", "")
+                        if agent_layer:
+                            agent_layer._conversation_buffer.append(
+                                {"speaker": agent.name, "text": value, "ts": time.time()})
+                            if len(agent_layer._conversation_buffer) > 8:
+                                agent_layer._conversation_buffer.pop(0)
         if agent_layer and decision.get("remember"):
             mem = decision.get("story", "") or decision.get("action", "")
             if mem:
@@ -175,11 +175,3 @@ class InteractionSystem:
         if not entity.has("interaction"):
             return
         entity.get("interaction").apply_deltas(deltas)
-        from core.verification import verify
-        inter = entity.get("interaction")
-        issues = verify(entity, deltas, inter.currency_key,
-                        inter.drive_min, inter.drive_max)
-        if issues:
-            from logger import log
-            log.warning(agent=entity.id, module="verification",
-                        message=f"{'; '.join(issues)}")

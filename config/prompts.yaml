@@ -15,18 +15,17 @@ templates:
     temperature: 0.7
     system_prompt_ref: agent_decision
     slots:
-      - action_feedback
-      - persona
-      - behavioral_traits
-      - delta_gate
+      - main_thread
+      - sensory_analysis
+      - quest_analysis
+      - memory_analysis
+      - feedback
+      - identity
       - drive_values
-      - drive_context
-      - spatial_context
+      - spatial
       - sensory_section
       - inventory_section
-      - gate_highlight
       - recent_memory
-      - main_thread
       - action_scope
       - output_contract
     output_schema: decision_output
@@ -45,23 +44,47 @@ slots:
   main_thread:
     condition: main_thread
     template: |
-      ## 主线
+      ## 主线目标
       {main_thread}
-      完成标"✓完成"。环境变就更新。null=维持。
+      每轮根据行动结果更新：
+      - 推进了 → 写当前进度
+      - 完成了 → "✓完成" + thread_completed=true + 新目标
+      - 禁止 null。
 
-  persona:
-    condition: name
-    template: "## 身份\n{name}。{personality}"
-
-  behavioral_traits:
-    condition: traits_text
-    template: "{traits_text}"
-
-  delta_gate:
-    condition: delta_text
+  sensory_analysis:
     template: |
-      ## 变化
+      ## 感官分析
+      本轮你感知到了什么。谁在附近。听到什么话。对你说的是什么。
+      {sensory_analysis_text}
+
+  quest_analysis:
+    template: |
+      ## 目标评估
+      你的当前目标是什么。上述感知如何影响你的目标。
+      如果无视关键感知，后果是什么。当前决策打算。
+      {quest_analysis_text}
+
+  memory_analysis:
+    template: |
+      ## 近期总结
+      根据记忆和当前输入，总结过去一段时间发生了什么。
+      {memory_analysis_text}
+
+  feedback:
+    condition: last_intent
+    template: |
+      ## 上轮
+      意图: {last_intent} → {last_target}
+      {conversation_text}
       {delta_text}
+
+  identity:
+    condition: name
+    template: |
+      ## 身份
+      {name}。{personality}
+
+      {traits_text}
 
   drive_values:
     condition: drives_table
@@ -69,16 +92,14 @@ slots:
       ## 状态
       {drives_table}
 
-  drive_context:
-    condition: drive_min
-    template: |
-      ## 边界参考
-      最小值: {drive_min}
-      最大值: {drive_max}
-
-  spatial_context:
+  spatial:
     condition: zone_name
-    template: "## 位置\n{zone_name} ({pos_x}, {pos_y})"
+    template: |
+      ## 位置
+      {zone_name} ({pos_x},{pos_y})
+
+      可穿越:
+      {gate_text}
 
   sensory_section:
     condition: sensory_text
@@ -90,24 +111,11 @@ slots:
       ## 持有
       {inventory_lines}
 
-  gate_highlight:
-    condition: gate_text
-    template: |
-      ## 可穿越
-      {gate_text}
-
   recent_memory:
     condition: memory_text
     template: |
       ## 记忆
       {memory_text}
-
-  action_feedback:
-    condition: last_intent
-    template: |
-      ## 上轮行动
-      意图: {last_intent} → {last_target}
-      {conversation_text}
 
   action_scope:
     template: |
@@ -149,14 +157,25 @@ slots:
         "internal": "内心活动" 或 null,
         "physical_calls": [{"interface": "eat", "params": {"entity": "食物", "qty": 1}}],
         "abstract_calls": [{"interface":"abs_holder_transfer","params":{"src":"杰洛特","tgt":"金币","qty":-15}},{"interface":"abs_attr_modify","params":{"entity":"杰洛特","attr":"thirst","value":-10}}],
-        "remember": true/false
+        "main_thread": "每轮更新目标进度。禁止 null。",
+        "thread_completed": false,
+        "remember": true/false,
+        "input_attention": {"drives": 0.3, "auditory": 0.1}
       }
       - physical_calls: 物理层操作。无操作写 []。
       - abstract_calls: 抽象层操作。无操作写 []。
       - 两层都必须输出，至少写 []。
-      - main_thread: 更新长期目标。完成标"✓完成"。null=维持
+      - main_thread: 每轮更新目标进度。完成了写 ✓完成+新目标，未完成写当前进度。禁止 null。
       - thread_completed: 目标刚完成则 true
       - remember: 重要事件记入记忆(true)
+      - input_attention: 本轮在10个信息模块上的注意力比例（0-1小数，总和不必为1）
+        模块: drives, identity, goal, spatial, visual, auditory, interaction, inventory, memory, feedback
+        仅用于系统测量——不影响任何行为。
+      - attr_notes: 各属性当前感受。格式 {"hunger": "饿得胃疼", "social_pressure": "杰洛特在逼我"}。
+        只写有感受的属性。
+      - sensory_analysis_text: 本轮感官分析。谁在附近。听到什么。对你说的是什么。
+      - quest_analysis_text: 目标评估。感知如何影响目标。无视后果。处理打算。
+      - memory_analysis_text: 近期总结。根据记忆和当前输入，总结过去一段时间发生了什么。
 
   # ── Interact Narrative ──
   interact_context:
@@ -230,15 +249,6 @@ traits:
       - 有目标时，行动自然围绕它——但不是每个行动都必须服务于此。
       - 目标影响优先级，但不剥夺自发性。
 
-  # 消融对照用
-  world_rules_classic:
-    template: |
-      ## 世界法则
-      1. 边际递减: 重复交互降低回报。
-      2. 满意即止: 欲望降到 30 以下就足够了。
-      3. 探索优先: 有未去过的区域，优先尝试新事物。
-      4. 互惠社交: 单向付出不可持续。
-
 # ═══════════════════════════════════════
 output_schemas:
   decision_output:
@@ -256,6 +266,14 @@ output_schemas:
         physical_calls: {type: array}
         abstract_calls: {type: array}
         remember: {type: boolean}
+        main_thread: {type: string}
+        thread_completed: {type: boolean}
+        input_attention: {type: object}
+        attr_notes: {type: object}
+        sensory_analysis_text: {type: string}
+        quest_analysis_text: {type: string}
+        memory_analysis_text: {type: string}
+      required: [thinking, action, duration, physical_calls, abstract_calls, main_thread, thread_completed]
 
   interact_output:
     type: json_object
@@ -277,7 +295,7 @@ sensory_prompts:
   auditory:
     header: "## 听觉"
     window_seconds: 300
-    state: "{name} ({speech_age})"
+    state: "{name} ({speech_age}){direction}"
     content: '"{current_speech}"'
   interaction:
     header: "## 可交互"

@@ -11,7 +11,7 @@
 
 channels:
   - source: agent_layer
-    fields: [personality, name, main_thread, conversation_text, item_narrative]
+    fields: [personality, name, main_thread, sensory_analysis_text, quest_analysis_text, memory_analysis_text, conversation_text]
 
   - source: agent_layer
     fields: [last_intent, last_target]
@@ -20,7 +20,7 @@ channels:
     fields: [zone_name, zone_width, zone_height, pos_x, pos_y, gate_text]
 
   - source: drives
-    fields: [drives_table, drive_min, drive_max]
+    fields: [drives_table]
 
   - source: sensory
     fields: [sensory_text]

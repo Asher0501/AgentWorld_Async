@@ -1,5 +1,5 @@
 world:
-  name: 猎魔人世界 - 交易经济
+  name: 猎魔人世界 - 交易经济 (低衰减)
   time_scale: 60
   start_time: 08:00
   world-group: full
@@ -20,27 +20,27 @@ world:
         thirst:
           min: 0
           max: 100
-          decay: 0.022
+          decay: 0.007
           description: 口渴
         hunger:
           min: 0
           max: 100
-          decay: 0.018
+          decay: 0.006
           description: 饥饿
         social:
           min: 0
           max: 100
-          decay: 0.015
+          decay: 0.005
           description: 社交
         energy:
           min: 0
           max: 100
-          decay: -0.01
+          decay: -0.003
           description: 体力
         fun:
           min: 0
           max: 100
-          decay: 0.015
+          decay: 0.005
           description: 娱乐
         mood:
           min: 0

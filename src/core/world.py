@@ -266,7 +266,6 @@ class World:
                 il.hidden = inter_cfg.get("hidden", {})
                 il.private_attrs = inter_cfg.get("private_attrs", {})
                 il.readonly = inter_cfg.get("readonly", False)
-                il.filepath = inter_cfg.get("filepath", "")
 
             # ── Agent-specific wiring ──
             if "agent" in ent_def:
