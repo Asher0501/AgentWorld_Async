@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="shadow-sm" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1a1a2e" flood-opacity="0.06"/>
+    </filter>
+    <filter id="shadow-md" x="-6%" y="-4%" width="112%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#1a1a2e" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-down" viewBox="0 0 8 10" refX="4" refY="9" markerWidth="6" markerHeight="8" orient="auto">
+      <path d="M0,0 L4,10 L8,0 L5,0 L5,0" fill="#8899AA"/>
+    </marker>
+    <marker id="arrow-down-blue" viewBox="0 0 8 10" refX="4" refY="9" markerWidth="6" markerHeight="8" orient="auto">
+      <path d="M0,0 L4,10 L8,0 L5,0 L5,0" fill="#5B7FBF"/>
+    </marker>
+    <linearGradient id="grad-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FAFBFC"/>
+      <stop offset="100%" stop-color="#F5F7FA"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="900" fill="url(#grad-bg)"/>
+
+  <!-- Title -->
+  <text x="480" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#1A2332" letter-spacing="0.5">NPC Agent Loop — Phase Pipeline (per tick)</text>
+  <line x1="360" y1="46" x2="600" y2="46" stroke="#D0D5DD" stroke-width="1"/>
+
+  <!-- Legend -->
+  <rect x="620" y="56" width="10" height="10" rx="2" fill="#5B7FBF" opacity="0.7"/>
+  <text x="635" y="65" font-size="9" fill="#667788">Engine phase</text>
+  <rect x="730" y="56" width="10" height="10" rx="2" fill="#D4893A" opacity="0.7"/>
+  <text x="745" y="65" font-size="9" fill="#667788">Decision gate</text>
+  <rect x="840" y="56" width="10" height="10" rx="2" fill="#4A8A4A" opacity="0.7"/>
+  <text x="855" y="65" font-size="9" fill="#667788">LLM call</text>
+
+  <!-- ===== LEFT COLUMN: Input annotations ===== -->
+  <rect x="30" y="82" width="155" height="28" rx="6" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.8"/>
+  <text x="107" y="100" text-anchor="middle" font-size="9" font-weight="600" fill="#4A6FA5">Input (per tick)</text>
+
+  <!-- Input items -->
+  <text x="45" y="128" font-size="8" fill="#667788">World state</text>
+  <line x1="135" y1="132" x2="178" y2="132" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="45" y="232" font-size="8" fill="#667788">Pending action</text>
+  <line x1="135" y1="236" x2="178" y2="236" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="45" y="328" font-size="8" fill="#667788">Elapsed sim-time</text>
+  <line x1="135" y1="332" x2="178" y2="332" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="45" y="410" font-size="8" fill="#667788">Previous P snapshot</text>
+  <line x1="135" y1="414" x2="178" y2="414" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="45" y="558" font-size="8" fill="#667788">Context + slot mask</text>
+  <line x1="135" y1="562" x2="178" y2="562" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="45" y="658" font-size="8" fill="#667788">Decision JSON</text>
+  <line x1="135" y1="662" x2="178" y2="662" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <!-- ===== RIGHT COLUMN: Output annotations ===== -->
+  <rect x="775" y="82" width="155" height="28" rx="6" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.8"/>
+  <text x="852" y="100" text-anchor="middle" font-size="9" font-weight="600" fill="#4A6FA5">Output / Side Effect</text>
+
+  <text x="790" y="258" font-size="8" fill="#667788">Log result + dashboard</text>
+  <line x1="790" y1="270" x2="778" y2="270" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="790" y="352" font-size="8" fill="#667788">Sensory update + dashboard</text>
+  <line x1="790" y1="364" x2="778" y2="364" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="790" y="432" font-size="8" fill="#667788">External order executed</text>
+  <line x1="790" y1="444" x2="778" y2="444" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="790" y="478" font-size="8" fill="#667788">Log: gate triggered + reason</text>
+  <line x1="790" y1="490" x2="778" y2="490" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="790" y="580" font-size="8" fill="#667788">Dashboard decision event</text>
+  <line x1="790" y1="592" x2="778" y2="592" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <text x="790" y="682" font-size="8" fill="#667788">Log: decide + tokens/latency</text>
+  <line x1="790" y1="694" x2="778" y2="694" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <!-- ===== PHASE 0: FREEZE CHECK ===== -->
+  <rect x="175" y="112" width="610" height="34" rx="7" fill="#F8F9FB" stroke="#D0D5DD" stroke-width="0.8" stroke-dasharray="4,3" filter="url(#shadow-sm)"/>
+  <text x="195" y="126" font-size="10" font-weight="600" fill="#8899AA">FREEZE</text>
+  <text x="260" y="126" font-size="9" fill="#8899AA">check &#160; → &#160;</text>
+  <text x="325" y="126" font-size="9" fill="#8899AA">if Director.frozen: sleep(poll_interval), repeat</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="146" x2="480" y2="170" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 0.5: FLUSH ===== -->
+  <rect x="175" y="174" width="610" height="72" rx="8" fill="#FFFFFF" stroke="#C8D6E8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="175" y="174" width="38" height="72" rx="8" fill="#5B7FBF" opacity="0.12"/>
+  <text x="194" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#4A6FA5">0.5</text>
+
+  <text x="228" y="194" font-size="10" font-weight="600" fill="#3B5998">FLUSH</text>
+  <text x="280" y="194" font-size="8" fill="#667788">Execute Pending Action</text>
+
+  <text x="228" y="214" font-size="8" fill="#556677">if pending_action ≠ null ∧ wall-clock ≥ action_complete_at:</text>
+  <rect x="228" y="222" width="250" height="16" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="353" y="234" text-anchor="middle" font-size="8" fill="#5A8A5A">InteractionSystem.interact(agent, target, decision)</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="246" x2="480" y2="270" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 1: SENSE ===== -->
+  <rect x="175" y="274" width="610" height="68" rx="8" fill="#FFFFFF" stroke="#C8D6E8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="175" y="274" width="38" height="68" rx="8" fill="#5B7FBF" opacity="0.12"/>
+  <text x="194" y="300" text-anchor="middle" font-size="12" font-weight="700" fill="#4A6FA5">1</text>
+
+  <text x="228" y="294" font-size="10" font-weight="600" fill="#3B5998">SENSE</text>
+  <text x="280" y="294" font-size="8" fill="#667788">Decay + Sensory Collection</text>
+
+  <rect x="228" y="306" width="270" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="363" y="316" text-anchor="middle" font-size="8" fill="#5B7FBF">decay.tick() → update all drive values by elapsed time</text>
+
+  <rect x="228" y="324" width="270" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="363" y="334" text-anchor="middle" font-size="8" fill="#5B7FBF">sensory.update() → collect visual + auditory + proximity</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="342" x2="480" y2="366" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== DIRECTOR BYPASS ===== -->
+  <rect x="175" y="370" width="610" height="58" rx="8" fill="#F8F5FC" stroke="#D0C0E8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="175" y="370" width="38" height="58" rx="8" fill="#7E5BA8" opacity="0.12"/>
+  <text x="194" y="396" text-anchor="middle" font-size="12" font-weight="700" fill="#7E5BA8">DIR</text>
+
+  <text x="228" y="390" font-size="10" font-weight="600" fill="#6B48A0">DIRECTOR</text>
+  <text x="295" y="390" font-size="8" fill="#8A6DA0">External Control Bypass</text>
+
+  <text x="228" y="412" font-size="8" fill="#556677">if is_controlled(agent_id):</text>
+  <rect x="228" y="418" width="235" height="14" rx="3" fill="#F5F0FA" stroke="#D8C8F0" stroke-width="0.5"/>
+  <text x="345" y="428" text-anchor="middle" font-size="8" fill="#7E5BA8">pending order? → execute / sleep − skip rest of tick</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="428" x2="480" y2="452" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 2: GATE ===== -->
+  <rect x="175" y="456" width="610" height="72" rx="8" fill="#FFFAF0" stroke="#E8C870" stroke-width="1.2" filter="url(#shadow-md)"/>
+  <rect x="175" y="456" width="38" height="72" rx="8" fill="#D4893A" opacity="0.12"/>
+  <text x="194" y="482" text-anchor="middle" font-size="12" font-weight="700" fill="#D4893A">2</text>
+
+  <text x="228" y="476" font-size="10" font-weight="600" fill="#B87820">GATE</text>
+  <text x="270" y="476" font-size="8" fill="#8A6D3B">P/Q Delta Detection</text>
+  <text x="390" y="476" font-size="8" font-weight="600" fill="#D4893A">← core mechanism</text>
+
+  <rect x="228" y="488" width="520" height="14" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
+  <text x="488" y="498" text-anchor="middle" font-size="8" fill="#B87820">total_delta(P, Q) = Σ channel_delta + state_delta + stale_check</text>
+
+  <text x="228" y="516" font-size="8" fill="#B87820">Δ = ∅ → sleep(poll_interval), skip to next tick</text>
+  <text x="228" y="528" font-size="8" fill="#B87820">Δ ≠ ∅ → proceed to Phase 3</text>
+
+  <!-- Branch: skip -->
+  <line x1="175" y1="492" x2="145" y2="492" stroke="#D4893A" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="145" y1="492" x2="145" y2="135" stroke="#D4893A" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="145" y1="135" x2="175" y2="135" stroke="#D4893A" stroke-width="0.8" stroke-dasharray="4,3" marker-end="url(#arrow-down)"/>
+  <text x="138" y="320" font-size="7" fill="#D4893A" transform="rotate(-90, 138, 320)">Δ = ∅ → sleep</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="528" x2="480" y2="552" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 2.5: RATE LIMIT ===== -->
+  <rect x="175" y="556" width="610" height="42" rx="7" fill="#F8F9FB" stroke="#D0D5DD" stroke-width="0.8" filter="url(#shadow-sm)"/>
+  <rect x="175" y="556" width="38" height="42" rx="7" fill="#8899AA" opacity="0.12"/>
+  <text x="194" y="578" text-anchor="middle" font-size="11" font-weight="700" fill="#667788">2.5</text>
+
+  <text x="228" y="577" font-size="10" font-weight="600" fill="#556677">RATE LIMIT</text>
+  <text x="310" y="577" font-size="8" fill="#8899AA">TokenBucket.try_acquire()</text>
+  <rect x="440" y="570" width="175" height="16" rx="3" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.5"/>
+  <text x="527" y="582" text-anchor="middle" font-size="8" fill="#8899AA">if blocked → rollback P snapshot, sleep</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="598" x2="480" y2="622" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 3: DECIDE ===== -->
+  <rect x="175" y="626" width="610" height="72" rx="8" fill="#FFFFFF" stroke="#A8D0A8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="175" y="626" width="38" height="72" rx="8" fill="#4A8A4A" opacity="0.12"/>
+  <text x="194" y="652" text-anchor="middle" font-size="12" font-weight="700" fill="#4A8A4A">3</text>
+
+  <text x="228" y="646" font-size="10" font-weight="600" fill="#3A6B3A">DECIDE</text>
+  <text x="285" y="646" font-size="8" fill="#667788">LLM Call</text>
+  <text x="340" y="646" font-size="8" font-weight="600" fill="#4A8A4A">← only point where LLM is invoked</text>
+
+  <rect x="228" y="656" width="350" height="14" rx="3" fill="#EDF5ED" stroke="#C8D8C8" stroke-width="0.5"/>
+  <text x="403" y="666" text-anchor="middle" font-size="8" fill="#5A8A5A">ChannelCollector → build ctx from YAML-defined channels</text>
+
+  <rect x="228" y="674" width="350" height="14" rx="3" fill="#EDF5ED" stroke="#C8D8C8" stroke-width="0.5"/>
+  <text x="403" y="684" text-anchor="middle" font-size="8" fill="#5A8A5A">Brain.decide(ctx, template, slot_mask) → parse JSON response</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="698" x2="480" y2="720" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-down)"/>
+
+  <!-- ===== PHASE 4: ENQUEUE ===== -->
+  <rect x="175" y="724" width="610" height="68" rx="8" fill="#FFFFFF" stroke="#C8D6E8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="175" y="724" width="38" height="68" rx="8" fill="#5B7FBF" opacity="0.12"/>
+  <text x="194" y="750" text-anchor="middle" font-size="12" font-weight="700" fill="#4A6FA5">4</text>
+
+  <text x="228" y="744" font-size="10" font-weight="600" fill="#3B5998">ENQUEUE</text>
+  <text x="300" y="744" font-size="8" fill="#667788">Store Action for Delayed Execution</text>
+
+  <text x="228" y="766" font-size="8" fill="#556677">if target in interaction range:</text>
+  <rect x="360" y="758" width="310" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="515" y="768" text-anchor="middle" font-size="8" fill="#5B7FBF">store (decision, target) → action_complete_at = now + duration</text>
+
+  <text x="228" y="784" font-size="8" fill="#556677">else: move toward target, update sensory, skip enqueue</text>
+
+  <!-- Arrow back to top -->
+  <line x1="480" y1="792" x2="480" y2="820" stroke="#8899AA" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="480" y1="820" x2="800" y2="820" stroke="#8899AA" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="800" y1="820" x2="800" y2="128" stroke="#8899AA" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="800" y1="128" x2="785" y2="128" stroke="#8899AA" stroke-width="0.8" stroke-dasharray="4,3" marker-end="url(#arrow-down)"/>
+  <text x="810" y="480" font-size="8" fill="#8899AA" transform="rotate(-90, 810, 480)">next tick</text>
+
+  <!-- ===== P SNAPSHOT UPDATE ANNOTATIONS ===== -->
+  <rect x="175" y="808" width="610" height="26" rx="6" fill="#F8F9FB" stroke="#D0D5DD" stroke-width="0.6" stroke-dasharray="3,2"/>
+  <text x="480" y="825" text-anchor="middle" font-size="8" fill="#8899AA">snapshot_p() called at end of Flush, Director, and Enqueue — updates P ← Q for next tick</text>
+
+  <!-- Data flow arrows: P snapshot propagation -->
+  <line x1="560" y1="240" x2="560" y2="240" stroke="#8899AA" stroke-width="0.6"/>
+  <text x="565" y="424" font-size="7" fill="#8899AA" transform="rotate(-90, 565, 424)">P snapshot (p_channels, p_state, p_stale) flows to Gate</text>
+
+  <!-- Sensory data flow arrow -->
+  <text x="560" y="370" font-size="7" fill="#8899AA" transform="rotate(-90, 560, 370)">sensory channels (Q) flow to Gate</text>
+
+  <!-- Bottom note -->
+  <rect x="175" y="848" width="610" height="32" rx="7" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.8"/>
+  <text x="480" y="863" text-anchor="middle" font-size="9" fill="#4A6FA5">Each NPC runs this loop <tspan font-weight="700">asynchronously</tspan> — independent async tasks with per-agent TokenBucket + global ConcurrencyGate</text>
+  <text x="480" y="876" text-anchor="middle" font-size="8" fill="#667788">All phases except Decide are purely computational. The LLM is only called when the Gate detects meaningful change.</text>
+
+</svg>

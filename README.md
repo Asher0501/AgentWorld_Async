@@ -20,6 +20,14 @@
 
 The architecture is organized around an **ontological boundary**: the Engine Layer knows only quantities — positions, values, timestamps. The Agent Layer, consisting of independent LLM instances with strictly isolated context windows, interprets those quantities into meaning. No engine component carries semantic awareness. No labels. No summaries. No judgments.
 
+### NPC Pipeline
+
+<p align="center">
+  <img src="doc/npc-pipeline.svg" alt="NPC Agent Loop Pipeline" width="960">
+</p>
+
+Each NPC runs an independent async loop through seven phases per tick. The LLM is invoked **only at Phase 3 (Decide)**, and only when Phase 2 (Gate) detects a meaningful change in the agent's perception.
+
 ---
 
 ## Core Question
