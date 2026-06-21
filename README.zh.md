@@ -1,87 +1,73 @@
 # AgentWorld Async
 
 <p align="center">
-  <b>A Social Emergence Laboratory Powered by Language Models</b><br/>
-  <sub>以语言模型为实验对象的社交涌现实验室</sub>
+  <b>以语言模型为实验对象的社交涌现实验室</b><br/>
+  <sub>A Social Emergence Laboratory Powered by Language Models</sub>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square">
   <img src="https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square">
-  <a href="README.zh.md"><img src="https://img.shields.io/badge/中文-简体-red?style=flat-square"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/English-README-blue?style=flat-square"></a>
 </p>
 
 ---
 
-## Architecture · 架构
+## 架构
 
 <p align="center">
-  <img src="doc/architecture.svg" alt="AgentWorld Async Architecture" width="960">
+  <img src="doc/architecture.svg" alt="AgentWorld Async 架构图" width="960">
 </p>
 
-架构围绕一条**本体论边界**展开：引擎层只知道量（位置、数值、时间戳）。代理层由独立的 LLM 实例组成，上下文窗口严格物理隔离，将量解释为意义。引擎组件不携带任何语义意识——没有标签、没有摘要、没有判断。Engine knows only quantities; Agent Layer interprets them into meaning.
+架构围绕一条**本体论边界**展开：引擎层只知道量（位置、数值、时间戳）。代理层由独立的 LLM 实例组成，上下文窗口严格物理隔离，将量解释为意义。引擎组件不携带任何语义意识——没有标签、没有摘要、没有判断。
 
 ---
 
-## Core Question · 核心问题
+## 核心问题
 
 > 如果基础设施什么都不理解——不理解"合作"，不理解"谈判"，不理解"信任"——这些行为还能从自主代理解读原始事实中涌现吗？
->
-> If the infrastructure understood nothing — not "cooperation," not "negotiation," not "trust" — could these behaviors still arise from autonomous agents interpreting raw facts?
 
-所有现有 AI 系统将意义分布在技术栈的各层：数据库知道什么是"用户"，API 知道什么是"认证"，Agent 框架知道什么是"委派"。AgentWorld 做了相反的选择：**所有意义仅存在于 LLM 中**。
+所有现有 AI 系统将意义分布在技术栈的各层：数据库知道什么是"用户"，API 知道什么是"认证"，Agent 框架知道什么是"委派"。
 
-引擎——整个非 LLM 基础设施——只追踪数字、位置和事件计数。它从不产出标签、摘要或判断。它是**事实的物理引擎**，不是行动的平台。这个唯一的架构决策使其他框架无法提出的问题成为可能。
-
-Every AI system today distributes meaning across its stack. AgentWorld makes the opposite choice: **all meaning lives exclusively in the LLM**. The engine tracks numbers, positions, and event counts. It never produces a label, a summary, or a judgment. It is a **physics engine for facts**, not a platform for actions.
+AgentWorld 做了相反的选择：**所有意义仅存在于 LLM 中**。引擎——整个非 LLM 基础设施——只追踪数字、位置和事件计数。它从不产出标签、摘要或判断。它是**事实的物理引擎**，不是行动的平台。这个唯一的架构决策使其他框架无法提出的问题成为可能。
 
 ---
 
-## Key Mechanisms · 核心机制
+## 核心机制
 
-### P/Q Delta Gate — Information-Theoretic Adaptive Cognition · 信息论自适应认知
+### P/Q Delta Gate — 信息论自适应认知
 
 每个 agent 维护一个先验快照 **P**，每轮与当前感官状态 **Q** 进行比较。仅当 `Δ(P, Q) ≠ ∅`（即感知中确实发生了变化）或过期超时触发时，才调用 LLM。
 
 这是**内容驱动**而非时间驱动的。静态环境下，LLM 调用次数受限于变化事件数，而非 agent 数量 × 时间步数。这保证了随环境活动量的线性扩展——这是现有任何 agent 框架都不具备的属性。
 
-Each agent maintains a prior-state snapshot **P** and compares it against current sensory state **Q** on every tick. The LLM is invoked only when `Δ(P, Q) ≠ ∅` — something actually changed — or when a staleness timeout fires. **Content-driven**, not time-driven. In a static environment, LLM call count is bounded by change events, not agent count × time steps.
-
-### Spatial Affordance — Gibsonian Perception as Architectural Constraint · 吉布森可供性
+### Spatial Affordance — 吉布森可供性
 
 Agent 只能感知其可配置感官半径内的实体（视觉、听觉、交互）。Agent 之间的信息流不是消息路由——它是**受空间约束的**。两个 agent 只有同时处于对方的交互半径内才能交互。
 
 空间不是装饰——它是**塑造社会动力学的结构变量**。改变区域拓扑或感知半径即改变交互密度，进而改变涌现行为。这为研究物理约束如何塑造社会结构提供了可控实验装置。
 
-Agents perceive only within configurable sensory radii (visual, auditory, interaction). Information flow is **spatially constrained**, not message-routed. Space is a **structural variable** that shapes social dynamics — change zone topology or radii, change emergent behavior.
-
-### Homeostatic Autonomy — Drive-Driven Continuous Behavior · 内稳态自主行为
+### Homeostatic Autonomy — 内稳态自主行为
 
 每个 agent 维护需求向量（口渴、饥饿、社交、体力、娱乐、心情），各维度有独立衰变率。数值作为上下文暴露给 LLM，而非命令式规则——引擎从不暗示高饥饿值应该做什么。LLM 执行**自主注意力分配**：面对原始数字，它必须决定哪个需求值得行动。
 
 关键设计：所有需求在结构上完全平等——相同的衰减机制、相同的值域、相同的修改接口。没有引擎级的优先级层级。这迫使 agent 每轮自行构建价值排序，使优先级构建本身成为可观察的行为变量。
 
-All drives are structurally identical — same decay, same range, same interface. No engine-level priority hierarchy. The LLM performs **autonomous attention allocation** every tick, making priority construction itself an observable behavioral variable.
-
-### Causal Hierarchy — Seven Primitives, Composable Actions · 七原语因果层级
+### Causal Hierarchy — 七原语因果层级
 
 所有状态变更必须经过恰好 **7 个抽象原语**：`edge_delta`、`attr_delta`、`spatial_spawn`、`spatial_despawn`、`spatial_relocate`、`abs_node_add`、`abs_node_remove`。这是语义为空的图操作。领域特定动作（吃、锻造、交易）是这些原语的**组合**，通过 YAML 声明，引擎用纯名称路由执行，零操作名分支。
 
 这构成了**双层因果结构**：宏观层（LLM 理解的有意义动作）确定性地编译为微观层（原语图变更）。换一个世界就是换一组宏观层定义，引擎不变。
 
-All state mutations pass through exactly **7 abstract primitives** — semantically null graph operations. Domain-specific actions (eat, forge, trade) are **compositions** of these primitives, declared in YAML, executed with zero operation-name branching. **Two-layer causal structure**: macro layer compiles deterministically to micro layer.
+### Cognitive Heterogeneity — 槽位认知异质性
 
-### Cognitive Heterogeneity — Slot-Masked Prompt Assembly · 槽位认知异质性
-
-每个 agent 的 prompt 模板由可配置槽位组装而成，可通过 YAML 定义的槽位组按 agent 单独启用或禁用。一个 agent 可能收到一致性检查槽位，另一个不会。一个看到追求新奇特质，另一个看到谨慎特质。
+每个 agent 的 prompt 模板由可配置槽位组装而成，可通过 YAML 定义的槽位组按 agent 单独启用或禁用。一个 agent 可能收到一致性检查槽位，另一个不会；一个看到追求新奇特质，另一个看到谨慎特质。
 
 这从相同的引擎基础设施中创造了**异质认知画像**——使受控实验成为可能，其中认知多样性是独立变量。
 
-Prompt templates assembled from configurable slots, individually enabled/disabled per agent via YAML-defined slot groups. Creates **heterogeneous cognitive profiles** from identical engine infrastructure — controlled experiments with cognitive diversity as the independent variable.
-
 ---
 
-## Comparison with Existing Frameworks · 同类对比
+## 同类对比
 
 | 属性 | AutoGen / CrewAI | LangGraph | Generative Agents (Park et al.) | AgentWorld |
 |---|---|---|---|---|
@@ -96,26 +82,22 @@ Prompt templates assembled from configurable slots, individually enabled/disable
 
 根本的不对称性：现有框架将社会语义编码进协调层；AgentWorld 研究的恰恰是当协调层**没有**社会语义时会发生什么。这不是限制——这是实验变量。
 
-The fundamental asymmetry: existing frameworks encode social semantics into coordination; AgentWorld studies what happens when coordination has **no** social semantics. This is the experimental variable, not a limitation.
-
 ---
 
-## Causal Traceability · 因果可追溯性
+## 因果可追溯性
 
 每个架构组件可独立开关。这使**消融研究**成为可能——单一 LLM 或紧耦合框架无法做到：
 
 - **移除自我反思管道**：比较有/无四步自省的行为，保持其他条件不变
-- **缩小感知半径**：从 10 格缩小到 3 格，直接操作实际信息流，而非叙事性地描述有限感知
+- **缩小感知半径**：从 10 格缩小到 3 格，直接操作实际信息流，而非叙事描述
 - **去除方向标记**：从语音事件中剥离"对你说"标签，测量 agent 区分定向沟通与环境噪音的能力
 - **改变认知画像**：在相同世界中比较同质 vs. 异质槽位配置
 
 观察到的行为变化只能来自你改变的变量——这是实验科学的基本条件。单一 LLM 不满足，因为其"组件"是 LLM 自身推理的产物，不是可独立操作的变量。
 
-Observed behavioral changes can only come from the variable changed — the basic condition of experimental science. A single LLM cannot satisfy this because its "components" are products of its own reasoning, not independently manipulable variables.
-
 ---
 
-## Project Structure · 项目结构
+## 项目结构
 
 ```
 ├── main.py                     单一入口 — 世界无关
@@ -169,7 +151,7 @@ Observed behavioral changes can only come from the variable changed — the basi
 
 ---
 
-## Quick Start · 快速开始
+## 快速开始
 
 ```bash
 pip install -r requirements.txt
@@ -190,9 +172,9 @@ python main.py --visual 8767
 python main.py --eval-report data/logs/trace.sqlite3 --output report.json
 ```
 
-**CLI Options · 命令行选项:**
+**命令行选项:**
 
-| Option | Description · 说明 |
+| 选项 | 说明 |
 |---|---|
 | `--runtime N` | 模拟时长 (秒) |
 | `--world PATH` | 世界配置文件路径 |
@@ -205,11 +187,11 @@ python main.py --eval-report data/logs/trace.sqlite3 --output report.json
 
 ---
 
-## Configuration · 配置
+## 配置
 
 所有系统行为通过 `config/` 下的 YAML 文件配置。引擎无任何硬编码值。
 
-| File · 文件 | Purpose · 用途 |
+| 文件 | 用途 |
 |---|---|
 | `world.yaml` | 世界区域、实体、层、特质、驱动属性、时间尺度 |
 | `prompts.yaml` | 提示模板（可组合槽位）、系统提示、输出 JSON schema |
@@ -221,6 +203,6 @@ python main.py --eval-report data/logs/trace.sqlite3 --output report.json
 
 ---
 
-## License · 许可证
+## 许可证
 
 MIT
