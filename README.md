@@ -1,8 +1,7 @@
 # AgentWorld Async
 
 <p align="center">
-  <b>A Social Emergence Laboratory Powered by Language Models</b><br/>
-  <sub>以语言模型为实验对象的社交涌现实验室</sub>
+  <b>A Social Emergence Laboratory Powered by Language Models</b>
 </p>
 
 <p align="center">
@@ -13,214 +12,194 @@
 
 ---
 
-## Architecture · 架构
+## Architecture
 
 <p align="center">
   <img src="doc/architecture.svg" alt="AgentWorld Async Architecture" width="960">
 </p>
 
-架构围绕一条**本体论边界**展开：引擎层只知道量（位置、数值、时间戳）。代理层由独立的 LLM 实例组成，上下文窗口严格物理隔离，将量解释为意义。引擎组件不携带任何语义意识——没有标签、没有摘要、没有判断。Engine knows only quantities; Agent Layer interprets them into meaning.
+The architecture is organized around an **ontological boundary**: the Engine Layer knows only quantities — positions, values, timestamps. The Agent Layer, consisting of independent LLM instances with strictly isolated context windows, interprets those quantities into meaning. No engine component carries semantic awareness. No labels. No summaries. No judgments.
 
 ---
 
-## Core Question · 核心问题
+## Core Question
 
-> 如果基础设施什么都不理解——不理解"合作"，不理解"谈判"，不理解"信任"——这些行为还能从自主代理解读原始事实中涌现吗？
->
 > If the infrastructure understood nothing — not "cooperation," not "negotiation," not "trust" — could these behaviors still arise from autonomous agents interpreting raw facts?
 
-所有现有 AI 系统将意义分布在技术栈的各层：数据库知道什么是"用户"，API 知道什么是"认证"，Agent 框架知道什么是"委派"。AgentWorld 做了相反的选择：**所有意义仅存在于 LLM 中**。
+Every AI system today distributes meaning across its stack: the database knows what a "user" is, the API knows what "authentication" means, the agent framework knows what "delegation" implies.
 
-引擎——整个非 LLM 基础设施——只追踪数字、位置和事件计数。它从不产出标签、摘要或判断。它是**事实的物理引擎**，不是行动的平台。这个唯一的架构决策使其他框架无法提出的问题成为可能。
-
-Every AI system today distributes meaning across its stack. AgentWorld makes the opposite choice: **all meaning lives exclusively in the LLM**. The engine tracks numbers, positions, and event counts. It never produces a label, a summary, or a judgment. It is a **physics engine for facts**, not a platform for actions.
+AgentWorld makes the opposite choice: **all meaning lives exclusively in the LLM**. The engine — the entire non-LLM infrastructure — tracks numbers, positions, and event counts. It never produces a label, a summary, or a judgment. It is a **physics engine for facts**, not a platform for actions. This single architectural decision enables questions that other frameworks cannot ask.
 
 ---
 
-## Key Mechanisms · 核心机制
+## Key Mechanisms
 
-### P/Q Delta Gate — Information-Theoretic Adaptive Cognition · 信息论自适应认知
+### P/Q Delta Gate — Information-Theoretic Adaptive Cognition
 
-每个 agent 维护一个先验快照 **P**，每轮与当前感官状态 **Q** 进行比较。仅当 `Δ(P, Q) ≠ ∅`（即感知中确实发生了变化）或过期超时触发时，才调用 LLM。
+Each agent maintains a prior-state snapshot **P** and compares it against current sensory state **Q** on every tick. The LLM is invoked only when `Δ(P, Q) ≠ ∅` — something in the agent's perception has actually changed — or when a staleness timeout fires.
 
-这是**内容驱动**而非时间驱动的。静态环境下，LLM 调用次数受限于变化事件数，而非 agent 数量 × 时间步数。这保证了随环境活动量的线性扩展——这是现有任何 agent 框架都不具备的属性。
+This is **content-driven**, not time-driven. In a static environment, LLM call count is bounded by the number of change events, not by agent count × time steps. The system scales with environmental activity, not with simulation duration — a property no existing agent framework pursues.
 
-Each agent maintains a prior-state snapshot **P** and compares it against current sensory state **Q** on every tick. The LLM is invoked only when `Δ(P, Q) ≠ ∅` — something actually changed — or when a staleness timeout fires. **Content-driven**, not time-driven. In a static environment, LLM call count is bounded by change events, not agent count × time steps.
+### Spatial Affordance — Gibsonian Perception as Architectural Constraint
 
-### Spatial Affordance — Gibsonian Perception as Architectural Constraint · 吉布森可供性
+Agents perceive only entities within configurable sensory radii. Information flow between agents is not message-routed — it is **spatially constrained**. Two agents can interact only if they are within each other's interaction radius. Space is a **structural variable** that shapes social dynamics: change zone topology or perception radii, and emergent behavior changes accordingly.
 
-Agent 只能感知其可配置感官半径内的实体（视觉、听觉、交互）。Agent 之间的信息流不是消息路由——它是**受空间约束的**。两个 agent 只有同时处于对方的交互半径内才能交互。
+### Homeostatic Autonomy — Drive-Driven Continuous Behavior
 
-空间不是装饰——它是**塑造社会动力学的结构变量**。改变区域拓扑或感知半径即改变交互密度，进而改变涌现行为。这为研究物理约束如何塑造社会结构提供了可控实验装置。
+Each agent maintains a need vector with per-dimension decay rates. These values are exposed to the LLM as context, not as imperative rules — the engine never suggests what to do about a high drive value. The LLM performs **autonomous attention allocation**: given raw numbers, it must determine which need deserves action.
 
-Agents perceive only within configurable sensory radii (visual, auditory, interaction). Information flow is **spatially constrained**, not message-routed. Space is a **structural variable** that shapes social dynamics — change zone topology or radii, change emergent behavior.
+All drives are structurally identical — same decay mechanism, same value range, same interface. There is no engine-level priority hierarchy. The agent must construct its own value ordering every tick, making priority construction itself an observable behavioral variable.
 
-### Homeostatic Autonomy — Drive-Driven Continuous Behavior · 内稳态自主行为
+### Causal Hierarchy — Seven Primitives, Composable Actions
 
-每个 agent 维护需求向量（口渴、饥饿、社交、体力、娱乐、心情），各维度有独立衰变率。数值作为上下文暴露给 LLM，而非命令式规则——引擎从不暗示高饥饿值应该做什么。LLM 执行**自主注意力分配**：面对原始数字，它必须决定哪个需求值得行动。
+All state mutations pass through exactly **7 abstract primitives**: `edge_delta`, `attr_delta`, `spatial_spawn`, `spatial_despawn`, `spatial_relocate`, `abs_node_add`, `abs_node_remove`. These are semantically null graph operations. Domain-specific actions (eat, forge, trade) are **compositions** of these primitives, declared in YAML, executed via name-based routing with zero operation-name branching in engine code.
 
-关键设计：所有需求在结构上完全平等——相同的衰减机制、相同的值域、相同的修改接口。没有引擎级的优先级层级。这迫使 agent 每轮自行构建价值排序，使优先级构建本身成为可观察的行为变量。
+This constitutes a **two-layer causal structure**: the macro layer (physical actions meaningful to the LLM) compiles deterministically to the micro layer (primitive graph mutations). Changing worlds means changing the macro-layer definitions, not the engine.
 
-All drives are structurally identical — same decay, same range, same interface. No engine-level priority hierarchy. The LLM performs **autonomous attention allocation** every tick, making priority construction itself an observable behavioral variable.
+### Cognitive Heterogeneity — Slot-Masked Prompt Assembly
 
-### Causal Hierarchy — Seven Primitives, Composable Actions · 七原语因果层级
+Each agent's prompt template is assembled from configurable slots, individually enabled or disabled per agent via YAML-defined slot groups. One agent might receive a consistency-check slot; another might not. One might see a novelty-seeking trait; another might see a caution trait.
 
-所有状态变更必须经过恰好 **7 个抽象原语**：`edge_delta`、`attr_delta`、`spatial_spawn`、`spatial_despawn`、`spatial_relocate`、`abs_node_add`、`abs_node_remove`。这是语义为空的图操作。领域特定动作（吃、锻造、交易）是这些原语的**组合**，通过 YAML 声明，引擎用纯名称路由执行，零操作名分支。
-
-这构成了**双层因果结构**：宏观层（LLM 理解的有意义动作）确定性地编译为微观层（原语图变更）。换一个世界就是换一组宏观层定义，引擎不变。
-
-All state mutations pass through exactly **7 abstract primitives** — semantically null graph operations. Domain-specific actions (eat, forge, trade) are **compositions** of these primitives, declared in YAML, executed with zero operation-name branching. **Two-layer causal structure**: macro layer compiles deterministically to micro layer.
-
-### Cognitive Heterogeneity — Slot-Masked Prompt Assembly · 槽位认知异质性
-
-每个 agent 的 prompt 模板由可配置槽位组装而成，可通过 YAML 定义的槽位组按 agent 单独启用或禁用。一个 agent 可能收到一致性检查槽位，另一个不会。一个看到追求新奇特质，另一个看到谨慎特质。
-
-这从相同的引擎基础设施中创造了**异质认知画像**——使受控实验成为可能，其中认知多样性是独立变量。
-
-Prompt templates assembled from configurable slots, individually enabled/disabled per agent via YAML-defined slot groups. Creates **heterogeneous cognitive profiles** from identical engine infrastructure — controlled experiments with cognitive diversity as the independent variable.
+This creates **heterogeneous cognitive profiles** from identical engine infrastructure — enabling controlled experiments where cognitive diversity is the independent variable.
 
 ---
 
-## Comparison with Existing Frameworks · 同类对比
+## Comparison with Existing Frameworks
 
-| 属性 | AutoGen / CrewAI | LangGraph | Generative Agents (Park et al.) | AgentWorld |
+| Property | AutoGen / CrewAI | LangGraph | Generative Agents (Park et al.) | AgentWorld |
 |---|---|---|---|---|
-| **范式** | 任务编排 | DAG 工作流 | 模拟小镇 | 涌现实验室 |
-| **LLM 调用** | 每轮全量 | 图驱动 | 固定间隔 | Δ 驱动（变化时） |
-| **空间约束** | 无 | 无 | 沙盒引擎 | 可配置半径 |
-| **信息不对称** | 提示约定 | 无 | 基于邻近 | 架构保证 |
-| **动作模型** | 扁平工具调用 | 节点函数 | 预定义动作 | 7原语因果层级 |
-| **消融实验** | 不支持 | 不支持 | 不支持 | 逐组件开关 |
-| **外部干预** | 无 | 人工断点 | 无 | Director (5 权限级) |
-| **协调语义** | 内建 | 图语义 | 无 | 零（无协调层） |
+| **Paradigm** | Task orchestration | DAG workflow | Simulated town | Emergence laboratory |
+| **LLM invocation** | Every turn | Graph-driven | Fixed interval | Δ-driven (on change) |
+| **Spatial constraint** | None | None | Sandbox engine | Configurable radii |
+| **Info asymmetry** | Prompt convention | None | Proximity-based | Architecturally guaranteed |
+| **Action model** | Flat tool calls | Node functions | Predefined verbs | 7-primitive causal hierarchy |
+| **Ablation support** | No | No | No | Per-component toggle |
+| **External intervention** | No | Human breakpoints | No | Director (5 permission levels) |
+| **Coordination semantics** | Built-in | Graph semantics | None | Zero (no coordination layer) |
 
-根本的不对称性：现有框架将社会语义编码进协调层；AgentWorld 研究的恰恰是当协调层**没有**社会语义时会发生什么。这不是限制——这是实验变量。
-
-The fundamental asymmetry: existing frameworks encode social semantics into coordination; AgentWorld studies what happens when coordination has **no** social semantics. This is the experimental variable, not a limitation.
+Existing frameworks encode social semantics into coordination; AgentWorld studies what happens when coordination has **no** social semantics. This is not a limitation — it is the experimental variable.
 
 ---
 
-## Causal Traceability · 因果可追溯性
+## Causal Traceability
 
-每个架构组件可独立开关。这使**消融研究**成为可能——单一 LLM 或紧耦合框架无法做到：
+Each architectural component is independently toggleable, enabling **ablation studies** that no single-LLM or tightly-coupled framework can support:
 
-- **移除自我反思管道**：比较有/无四步自省的行为，保持其他条件不变
-- **缩小感知半径**：从 10 格缩小到 3 格，直接操作实际信息流，而非叙事性地描述有限感知
-- **去除方向标记**：从语音事件中剥离"对你说"标签，测量 agent 区分定向沟通与环境噪音的能力
-- **改变认知画像**：在相同世界中比较同质 vs. 异质槽位配置
+- **Remove self-reflection**: compare behavior with and without the multi-step introspection pipeline, holding all else constant
+- **Constrain perception**: reduce sensory radii to limit information flow — a direct manipulation of structural parameters, not a narrative instruction
+- **Strip direction markers**: remove speech-addressee labels, measuring whether agents distinguish directed communication from ambient noise
+- **Vary cognitive profiles**: compare homogeneous vs. heterogeneous slot configurations across identical worlds
 
-观察到的行为变化只能来自你改变的变量——这是实验科学的基本条件。单一 LLM 不满足，因为其"组件"是 LLM 自身推理的产物，不是可独立操作的变量。
-
-Observed behavioral changes can only come from the variable changed — the basic condition of experimental science. A single LLM cannot satisfy this because its "components" are products of its own reasoning, not independently manipulable variables.
+Observed behavioral changes can only come from the variable changed — the basic condition of experimental science.
 
 ---
 
-## Project Structure · 项目结构
+## Project Structure
 
 ```
-├── main.py                     单一入口 — 世界无关
-├── config/                     全部 YAML 配置（引擎零硬编码值）
-│   ├── world.yaml              世界定义 (实体、区域、驱动)
-│   ├── prompts.yaml            提示模板、槽位、输出模式
-│   ├── abstract_primitives.yaml 引擎原语定义
-│   ├── channels.yaml           提示装配的数据通道定义
-│   ├── layer_registry.yaml     实体层类型注册
-│   ├── item_registry.yaml      物品类型定义
-│   ├── slot_groups.yaml        注意力槽位组配置
-│   └── worlds/                 世界特定接口定义
+├── main.py                     Single entry point — world-agnostic
+├── config/                     YAML-driven configuration (zero hardcoded engine values)
+│   ├── world.yaml              World definition (entities, zones, drives)
+│   ├── prompts.yaml            Prompt templates, slots, output schemas
+│   ├── abstract_primitives.yaml Engine primitive definitions
+│   ├── channels.yaml           Data channel definitions for prompt assembly
+│   ├── layer_registry.yaml     Entity layer type registry
+│   ├── item_registry.yaml      Item type definitions
+│   ├── slot_groups.yaml        Attention slot group configuration
+│   └── worlds/                 World-specific interface definitions
 ├── src/
-│   ├── core/                   引擎基础设施 (零语义状态机)
-│   │   ├── world.py            世界模型、实体加载、生命周期
-│   │   ├── graph.py            抽象图引擎 (7 原语)
-│   │   ├── mcp_engine.py       接口路由 (零操作名分支)
-│   │   ├── delta_gate.py       门控变化检测
-│   │   ├── clock.py            模拟时钟
-│   │   ├── spatial_grid.py     空间哈希网格
-│   │   ├── lifecycle.py        实体生成/消灭管理
-│   │   ├── alias_registry.py   O(1) 名称到 ID 解析
-│   │   ├── affinity.py         Agent 间有向边图
-│   │   ├── director.py         外部 Agent 控制接口
-│   │   ├── session.py          会话管理与记忆持久化
-│   │   └── persistence.py      状态持久化
-│   ├── agent/                  代理认知系统
-│   │   ├── brain.py            LLM 决策接口
-│   │   ├── drives.py           驱动属性模型
-│   │   ├── memory.py           情节记忆缓冲
-│   │   └── sensory_memory.py   感官通道存储
-│   ├── layers/                 可组合实体层 (视觉/听觉/交互/代理)
-│   ├── systems/                引擎系统 (衰减/交互/感官)
-│   ├── prompt/                 提示装配 (assembler, loader)
-│   ├── channel.py              通道驱动上下文采集
-│   ├── loop.py                 主代理循环 (阶段管道)
-│   ├── worlds/                 世界特定逻辑 (如 Witcher NPC 动作)
-│   ├── llm/                    LLM 客户端抽象 + 并发控制
-│   ├── gateway/                外部通信网关
-│   ├── cli/                    CLI 命令实现
-│   ├── frontend_shared/        共享前端数据结构
-│   ├── eval/                   评估框架 (插件式指标)
-│   ├── logger/                 结构化日志
-│   └── telemetry/              可观测性
-├── dashboard/                  Web 监控仪表盘
-├── visual/                     像素可视化前端
-├── studio/                     Studio 工具
-├── experiments/                实验配置
-└── tests/                      测试套件
+│   ├── core/                   Engine infrastructure (zero-semantics state machines)
+│   │   ├── world.py            World model, entity loading, lifecycle
+│   │   ├── graph.py            Abstract graph engine (7 primitives)
+│   │   ├── mcp_engine.py       Interface routing (zero op-name branching)
+│   │   ├── delta_gate.py       Gating change detection
+│   │   ├── clock.py            Simulation clock
+│   │   ├── spatial_grid.py     Spatial hash grid
+│   │   ├── lifecycle.py        Entity spawn/despawn management
+│   │   ├── alias_registry.py   O(1) name-to-ID resolution
+│   │   ├── affinity.py         Agent-to-agent directed edge graph
+│   │   ├── director.py         External agent control interface
+│   │   ├── session.py          Session management with memory persistence
+│   │   └── persistence.py      State persistence
+│   ├── agent/                  Agent cognitive systems
+│   │   ├── brain.py            LLM decision interface
+│   │   ├── drives.py           Drive attribute model
+│   │   ├── memory.py           Episodic memory buffer
+│   │   └── sensory_memory.py   Sensory channel storage
+│   ├── layers/                 Composable entity layers (visual, auditory, interaction, agent)
+│   ├── systems/                Engine systems (decay, interaction, sensory)
+│   ├── prompt/                 Prompt assembly (assembler, loader)
+│   ├── channel.py              Channel-driven context collection
+│   ├── loop.py                 Main agent loop (phase pipeline)
+│   ├── worlds/                 World-specific logic (e.g., Witcher NPC actions)
+│   ├── llm/                    LLM client abstraction + concurrency control
+│   ├── gateway/                External communication gateway
+│   ├── cli/                    CLI command implementation
+│   ├── frontend_shared/        Shared frontend data structures
+│   ├── eval/                   Evaluation framework with plugin metrics
+│   ├── logger/                 Structured logging
+│   └── telemetry/              Observability
+├── dashboard/                  Web monitoring dashboard
+├── visual/                     Pixel visualization frontend
+├── studio/                     Studio tooling
+├── experiments/                Experiment configurations
+└── tests/                      Test suite
 ```
 
 ---
 
-## Quick Start · 快速开始
+## Quick Start
 
 ```bash
 pip install -r requirements.txt
 
-# 验证配置
+# Validate configuration
 python main.py --validate-config
 
-# 运行模拟 (180 秒)
+# Run simulation
 python main.py --runtime 180 --world config/world.yaml
 
-# 带 Web 仪表盘运行
+# Run with web dashboard
 python main.py --dashboard 8766
 
-# 带可视化前端运行
+# Run with visualization
 python main.py --visual 8767
 
-# 生成评估报告
+# Generate evaluation report
 python main.py --eval-report data/logs/trace.sqlite3 --output report.json
 ```
 
-**CLI Options · 命令行选项:**
+**CLI Options:**
 
-| Option | Description · 说明 |
+| Option | Description |
 |---|---|
-| `--runtime N` | 模拟时长 (秒) |
-| `--world PATH` | 世界配置文件路径 |
-| `--validate-config` | 仅验证 YAML 配置，不运行 |
-| `--dashboard PORT` | 启动 Web 监控仪表盘 |
-| `--visual PORT` | 启动像素可视化前端 |
-| `--eval-report FILE` | 从 trace 生成评估报告 |
-| `--output PATH` | 保存评估输出 |
-| `--verbose [PATH]` | 启用详细引擎日志 |
+| `--runtime N` | Simulation duration (seconds) |
+| `--world PATH` | World configuration file path |
+| `--validate-config` | Validate YAML configuration without running |
+| `--dashboard PORT` | Launch web monitoring dashboard |
+| `--visual PORT` | Launch pixel visualization frontend |
+| `--eval-report FILE` | Generate evaluation report from trace |
+| `--output PATH` | Save evaluation output |
+| `--verbose [PATH]` | Enable verbose engine logging |
 
 ---
 
-## Configuration · 配置
+## Configuration
 
-所有系统行为通过 `config/` 下的 YAML 文件配置。引擎无任何硬编码值。
+All system behavior is configured through YAML files in `config/`. The engine has no hardcoded values.
 
-| File · 文件 | Purpose · 用途 |
+| File | Purpose |
 |---|---|
-| `world.yaml` | 世界区域、实体、层、特质、驱动属性、时间尺度 |
-| `prompts.yaml` | 提示模板（可组合槽位）、系统提示、输出 JSON schema |
-| `abstract_primitives.yaml` | 引擎原语定义，含参数规约和 `expose_to_llm` 可见性门控 |
-| `channels.yaml` | 引擎与提示装配之间的数据通道定义 |
-| `layer_registry.yaml` | 实体层类型，Python 类映射与默认值 |
-| `slot_groups.yaml` | 注意力槽位分组，实现异质 agent 认知画像 |
-| `llm.yaml` | LLM 提供商配置（模型、端点、API 密钥） |
+| `world.yaml` | World zones, entities, layers, traits, drive attributes, time scale |
+| `prompts.yaml` | Prompt templates as composable slots, system prompts, output JSON schemas |
+| `abstract_primitives.yaml` | Engine primitives with parameter specs and `expose_to_llm` visibility gating |
+| `channels.yaml` | Communication channel definitions between engine and prompt assembly |
+| `layer_registry.yaml` | Entity layer types with Python class mappings and defaults |
+| `slot_groups.yaml` | Attention slot groupings enabling heterogeneous agent cognitive profiles |
+| `llm.yaml` | LLM provider configuration (models, endpoints, API keys) |
 
 ---
 
-## License · 许可证
+## License
 
 MIT
