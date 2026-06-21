@@ -45,14 +45,14 @@
   <rect width="960" height="720" fill="#FAFBFC" rx="0"/>
 
   <!-- ═══════════ TITLE ═══════════ -->
-  <text x="480" y="36" text-anchor="middle" font-size="16" font-weight="700" fill="#1A2332" letter-spacing="0.5">AgentWorld Async — Architecture Overview</text>
+  <text x="480" y="36" text-anchor="middle" font-size="16" font-weight="700" fill="#1A2332" letter-spacing="0.5">AgentWorld Async — 架构总览</text>
   <line x1="380" y1="46" x2="580" y2="46" stroke="#D0D5DD" stroke-width="1"/>
 
   <!-- ═══════════ LEGEND ═══════════ -->
   <rect x="720" y="54" width="12" height="12" rx="3" fill="#5B7FBF" opacity="0.85"/>
-  <text x="738" y="64" font-size="10" fill="#556677">Agent Layer</text>
+  <text x="738" y="64" font-size="10" fill="#556677">代理层</text>
   <rect x="810" y="54" width="12" height="12" rx="3" fill="#6B8E6B" opacity="0.85"/>
-  <text x="828" y="64" font-size="10" fill="#556677">Engine Layer</text>
+  <text x="828" y="64" font-size="10" fill="#556677">引擎层</text>
   <rect x="900" y="54" width="12" height="12" rx="3" fill="#D4893A" opacity="0.85"/>
   <text x="918" y="64" font-size="10" fill="#556677">Gate</text>
 
@@ -61,12 +61,12 @@
 
   <!-- Section label -->
   <rect x="30" y="76" width="900" height="32" rx="10" fill="#4270B8" opacity="0.08"/>
-  <text x="50" y="96" font-size="12" font-weight="700" fill="#3B5998" letter-spacing="0.3">Agent Layer — Meaning Engine (independent LLMs, context-window isolated)</text>
+  <text x="50" y="96" font-size="12" font-weight="700" fill="#3B5998" letter-spacing="0.3">代理层 — Meaning Engine (独立 LLM 实例, 上下文窗口物理隔离)</text>
 
   <!-- NPC Instance 1 -->
   <rect x="52" y="122" width="260" height="168" rx="8" fill="#FFFFFF" stroke="#D4DEF0" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="52" y="122" width="260" height="28" rx="8" fill="#4270B8" opacity="0.06"/>
-  <text x="182" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC Instance (per agent)</text>
+  <text x="182" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC 实例（每个代理）</text>
   <rect x="52" y="150" width="260" height="1" fill="#E8EDF5"/>
 
   <!-- Phase boxes -->
@@ -86,26 +86,26 @@
   <text x="278" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#7E5BA8">Flush</text>
 
   <!-- Internal components -->
-  <text x="66" y="206" font-size="9" fill="#667788">Brain</text>
+  <text x="66" y="206" font-size="9" fill="#667788">大脑</text>
   <rect x="100" y="198" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="200" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM decision (structured JSON output)</text>
+  <text x="200" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM 决策（结构化 JSON 输出）</text>
 
-  <text x="66" y="230" font-size="9" fill="#667788">Memory</text>
+  <text x="66" y="230" font-size="9" fill="#667788">记忆</text>
   <rect x="100" y="222" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="200" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">Episodic buffer (FIFO, recoverable)</text>
+  <text x="200" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">情节缓冲（FIFO，可恢复）</text>
 
-  <text x="66" y="254" font-size="9" fill="#667788">Drives</text>
+  <text x="66" y="254" font-size="9" fill="#667788">需求</text>
   <rect x="100" y="246" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="200" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">thirst / hunger / social / energy / fun / mood</text>
+  <text x="200" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">口渴 · 饥饿 · 社交 · 体力 · 娱乐 · 心情</text>
 
-  <text x="66" y="278" font-size="9" fill="#667788">Slot Mask</text>
+  <text x="66" y="278" font-size="9" fill="#667788">槽位掩码</text>
   <rect x="100" y="270" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="200" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">YAML-driven cognitive heterogeneity</text>
+  <text x="200" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">YAML 驱动的认知异质性</text>
 
   <!-- NPC Instance 2 -->
   <rect x="350" y="122" width="260" height="168" rx="8" fill="#FFFFFF" stroke="#D4DEF0" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="350" y="122" width="260" height="28" rx="8" fill="#4270B8" opacity="0.06"/>
-  <text x="480" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC Instance (per agent)</text>
+  <text x="480" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC 实例（每个代理）</text>
   <rect x="350" y="150" width="260" height="1" fill="#E8EDF5"/>
 
   <rect x="362" y="160" width="54" height="28" rx="5" fill="#E8F0FE" stroke="#B8D0F0" stroke-width="0.8"/>
@@ -123,29 +123,29 @@
   <rect x="554" y="160" width="44" height="28" rx="5" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.8"/>
   <text x="576" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#7E5BA8">Flush</text>
 
-  <text x="364" y="206" font-size="9" fill="#667788">Brain</text>
+  <text x="364" y="206" font-size="9" fill="#667788">大脑</text>
   <rect x="398" y="198" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="498" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM decision (multi-provider routing)</text>
+  <text x="498" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM 决策（多提供商路由）</text>
 
-  <text x="364" y="230" font-size="9" fill="#667788">Memory</text>
+  <text x="364" y="230" font-size="9" fill="#667788">记忆</text>
   <rect x="398" y="222" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="498" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">Episodic buffer (persist across sessions)</text>
+  <text x="498" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">情节缓冲（跨会话持久化）</text>
 
-  <text x="364" y="254" font-size="9" fill="#667788">Drives</text>
+  <text x="364" y="254" font-size="9" fill="#667788">需求</text>
   <rect x="398" y="246" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="498" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">Autonomous attention allocation</text>
+  <text x="498" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">自主注意力分配</text>
 
-  <text x="364" y="278" font-size="9" fill="#667788">Slot Mask</text>
+  <text x="364" y="278" font-size="9" fill="#667788">槽位掩码</text>
   <rect x="398" y="270" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
-  <text x="498" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">Per-agent prompt segment control</text>
+  <text x="498" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">按代理的提示段控制</text>
 
   <!-- Director panel (right side) -->
   <rect x="650" y="122" width="266" height="168" rx="8" fill="#F8F5FC" stroke="#D0C0E8" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="650" y="122" width="266" height="28" rx="8" fill="#7E5BA8" opacity="0.08"/>
-  <text x="783" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#6B48A0">Director — External Control</text>
+  <text x="783" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#6B48A0">Director — 外部控制</text>
   <rect x="650" y="150" width="266" height="1" fill="#E8DCF5"/>
 
-  <text x="662" y="172" font-size="9" fill="#667788">Permission Levels:</text>
+  <text x="662" y="172" font-size="9" fill="#667788">权限级别:</text>
   <rect x="662" y="180" width="48" height="18" rx="4" fill="#F0E8F8" stroke="#D0C0E8" stroke-width="0.5"/>
   <text x="686" y="192" text-anchor="middle" font-size="8" fill="#7E5BA8">observer</text>
   <rect x="716" y="180" width="48" height="18" rx="4" fill="#E8DCF5" stroke="#C8B8E0" stroke-width="0.5"/>
@@ -157,50 +157,50 @@
   <rect x="870" y="180" width="34" height="18" rx="4" fill="#C498E0" stroke="#A878C8" stroke-width="0.5"/>
   <text x="887" y="192" text-anchor="middle" font-size="8" fill="#FFFFFF">super</text>
 
-  <text x="662" y="220" font-size="9" fill="#667788">freeze / unfreeze</text>
+  <text x="662" y="220" font-size="9" fill="#667788">冻结 / 解冻</text>
   <rect x="662" y="226" width="242" height="12" rx="3" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.5"/>
-  <text x="783" y="235" text-anchor="middle" font-size="8" fill="#7E5BA8">Pause world — all NPC loops sleep at Phase 1</text>
+  <text x="783" y="235" text-anchor="middle" font-size="8" fill="#7E5BA8">暂停世界 — 所有 NPC 循环在阶段 1 休眠</text>
 
-  <text x="662" y="254" font-size="9" fill="#667788">snap / order / set</text>
+  <text x="662" y="254" font-size="9" fill="#667788">快照 / 指令 / 写入</text>
   <rect x="662" y="260" width="242" height="12" rx="3" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.5"/>
-  <text x="783" y="269" text-anchor="middle" font-size="8" fill="#7E5BA8">Inject decisions — do-calculus intervention platform</text>
+  <text x="783" y="269" text-anchor="middle" font-size="8" fill="#7E5BA8">注入决策 — do-calculus 干预平台</text>
 
-  <text x="662" y="286" font-size="8" fill="#9988AA" font-style="italic">SessionManager: join/leave + memory persistence</text>
+  <text x="662" y="286" font-size="8" fill="#9988AA" font-style="italic">SessionManager: 加入/离开 + 记忆持久化</text>
 
   <!-- ... dots between NPC instances -->
   <text x="328" y="200" font-size="16" fill="#8899AA" font-weight="300">…</text>
 
   <!-- ═══════════ P/Q DELTA GATE — BRIDGE ═══════════ -->
   <rect x="70" y="320" width="820" height="52" rx="8" fill="url(#grad-gate)" stroke="#E8C870" stroke-width="1.2" filter="url(#shadow-md)"/>
-  <text x="90" y="340" font-size="11" font-weight="700" fill="#B87820">P/Q Delta Gate</text>
+  <text x="90" y="340" font-size="11" font-weight="700" fill="#B87820">P/Q 变化门控</text>
   <text x="90" y="356" font-size="9" fill="#8A6D3B">Δ(P, Q) = ∪ δ_c(P[c], Q[c])</text>
 
-  <text x="300" y="340" font-size="9" fill="#8A6D3B">channel_delta</text>
+  <text x="300" y="340" font-size="9" fill="#8A6D3B">通道变化检测</text>
   <rect x="300" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
-  <text x="350" y="358" text-anchor="middle" font-size="8" fill="#B87820">entity enter/leave/change</text>
+  <text x="350" y="358" text-anchor="middle" font-size="8" fill="#B87820">实体 进入/离开/变化</text>
 
-  <text x="420" y="340" font-size="9" fill="#8A6D3B">state_delta</text>
+  <text x="420" y="340" font-size="9" fill="#8A6D3B">状态变化检测</text>
   <rect x="420" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
-  <text x="470" y="358" text-anchor="middle" font-size="8" fill="#B87820">threshold cross (30/60/80)</text>
+  <text x="470" y="358" text-anchor="middle" font-size="8" fill="#B87820">阈值穿越（30/60/80）</text>
 
-  <text x="540" y="340" font-size="9" fill="#8A6D3B">stale_check</text>
+  <text x="540" y="340" font-size="9" fill="#8A6D3B">过期检测</text>
   <rect x="540" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
-  <text x="590" y="358" text-anchor="middle" font-size="8" fill="#B87820">timeout fallback (~30s)</text>
+  <text x="590" y="358" text-anchor="middle" font-size="8" fill="#B87820">超时回退（~30s）</text>
 
   <rect x="670" y="335" width="200" height="24" rx="6" fill="#FFF0D4" stroke="#E8C870" stroke-width="0.8"/>
-  <text x="770" y="344" text-anchor="middle" font-size="8" fill="#B87820">Δ ≠ ∅ → invoke LLM</text>
-  <text x="770" y="356" text-anchor="middle" font-size="8" fill="#B87820">Δ = ∅ → sleep (no LLM cost)</text>
+  <text x="770" y="344" text-anchor="middle" font-size="8" fill="#B87820">Δ ≠ ∅ → 调用 LLM</text>
+  <text x="770" y="356" text-anchor="middle" font-size="8" fill="#B87820">Δ = ∅ → 休眠（无 LLM 开销）</text>
 
   <!-- Flow arrows to/from gate -->
   <line x1="280" y1="310" x2="280" y2="320" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-gray)" stroke-dasharray="4,2"/>
-  <text x="268" y="308" font-size="7" fill="#8899AA">sensory Q</text>
+  <text x="268" y="308" font-size="7" fill="#8899AA">感官 Q</text>
   <line x1="680" y1="310" x2="680" y2="320" stroke="#D4893A" stroke-width="1.2" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
-  <text x="688" y="308" font-size="7" fill="#D4893A">delta</text>
+  <text x="688" y="308" font-size="7" fill="#D4893A">变化信号</text>
 
   <!-- ═══════════ MCP ROUTING — BRIDGE ═══════════ -->
   <rect x="200" y="388" width="560" height="42" rx="8" fill="url(#grad-mcp)" stroke="#C8B0E0" stroke-width="1" filter="url(#shadow-sm)"/>
-  <text x="220" y="406" font-size="10" font-weight="600" fill="#6B48A0">MCP Engine — Dual-Layer Interface Routing (zero op-name branching)</text>
-  <text x="220" y="421" font-size="8" fill="#8A6DA0">LLM → {interface, params} → physical handler (eat/forge/gather) | abstract primitive (edge_delta/spatial_spawn/attr_delta)</text>
+  <text x="220" y="406" font-size="10" font-weight="600" fill="#6B48A0">MCP 引擎 — 双层接口路由（零操作名分支）</text>
+  <text x="220" y="421" font-size="8" fill="#8A6DA0">LLM → {interface, params} → physical handler (eat/forge/gather) | abstract primitive (edge_变化信号/spatial_spawn/attr_delta)</text>
 
   <!-- Flow arrow from gate to MCP -->
   <line x1="480" y1="372" x2="480" y2="388" stroke="#7E5BA8" stroke-width="1" marker-end="url(#arrow-gray)"/>
@@ -209,93 +209,93 @@
   <rect x="30" y="444" width="900" height="230" rx="10" fill="url(#grad-engine)" stroke="#C8D0DA" stroke-width="1.2" filter="url(#shadow-sm)"/>
 
   <rect x="30" y="444" width="900" height="32" rx="10" fill="#5A8A5A" opacity="0.08"/>
-  <text x="50" y="464" font-size="12" font-weight="700" fill="#3A6B3A" letter-spacing="0.3">Engine Layer — Physics Engine (zero semantics: tracks quantities and coordinates only)</text>
+  <text x="50" y="464" font-size="12" font-weight="700" fill="#3A6B3A" letter-spacing="0.3">引擎层 — Physics Engine (零语义: 只知道数量和坐标, 不知道任何概念)</text>
 
   <!-- Subsystem 1: Spatial -->
   <rect x="48" y="490" width="210" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="48" y="490" width="210" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
-  <text x="153" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Spatial</text>
+  <text x="153" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Spatial · 空间层</text>
 
   <rect x="58" y="524" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="153" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">SpatialGrid: O(k) proximity queries</text>
+  <text x="153" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">空间网格: O(k) 邻近查询</text>
   <rect x="58" y="544" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="153" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">Zone partitioning + entity lifecycle</text>
+  <text x="153" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">区域分区 + 实体生命周期</text>
   <rect x="58" y="564" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="153" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Movement &amp; proximity constraints</text>
+  <text x="153" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">移动与邻近约束</text>
   <rect x="58" y="584" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="153" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">SimClock: wall → sim time mapping</text>
+  <text x="153" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">模拟时钟: 墙上时间 → 模拟时间映射</text>
 
-  <text x="58" y="616" font-size="8" fill="#889988">Perception Layers:</text>
+  <text x="58" y="616" font-size="8" fill="#889988">感知层:</text>
   <rect x="58" y="622" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
-  <text x="88" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">visual (r)</text>
+  <text x="88" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">视觉（半径）</text>
   <rect x="124" y="622" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
-  <text x="154" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">auditory (r)</text>
+  <text x="154" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">听觉（半径）</text>
   <rect x="58" y="640" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
-  <text x="88" y="650" text-anchor="middle" font-size="7" fill="#5A8A5A">interaction (r)</text>
+  <text x="88" y="650" text-anchor="middle" font-size="7" fill="#5A8A5A">交互（半径）</text>
 
   <!-- Subsystem 2: Drive -->
   <rect x="278" y="490" width="205" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="278" y="490" width="205" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
-  <text x="380" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Drive</text>
+  <text x="380" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Drive · 驱动层</text>
 
   <rect x="288" y="524" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="380" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">Numerical attribute decay over sim-time</text>
+  <text x="380" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">数值属性随模拟时间衰减</text>
   <rect x="288" y="544" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="380" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">Flat priority — no engine-level ordering</text>
+  <text x="380" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">平权 — 无引擎级优先级</text>
   <rect x="288" y="564" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="380" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Configurable decay rates per attribute</text>
+  <text x="380" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">每个属性独立可配置衰减率</text>
   <rect x="288" y="584" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="380" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">Thresh: 30/60/80 → delta signal</text>
+  <text x="380" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">阈值: 30/60/80 → 变化信号 signal</text>
 
   <text x="288" y="616" font-size="8" fill="#889988">Attributes:</text>
   <rect x="288" y="622" width="185" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
   <text x="380" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">thirst · hunger · social · energy · fun · mood</text>
 
-  <text x="288" y="652" font-size="8" fill="#889988">No concept of "need" or "urgency"</text>
+  <text x="288" y="652" font-size="8" fill="#889988">无"需求"或"紧迫"概念</text>
 
   <!-- Subsystem 3: Sensory -->
   <rect x="503" y="490" width="195" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="503" y="490" width="195" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
-  <text x="600" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Sensory</text>
+  <text x="600" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Sensory · 感官层</text>
 
   <rect x="513" y="524" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="600" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">Radius-based data collection</text>
+  <text x="600" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">基于半径的数据采集</text>
   <rect x="513" y="544" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="600" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">SensorRecord: name, distance, data, ts</text>
+  <text x="600" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">感知记录: 名称、距离、数据、时间戳</text>
   <rect x="513" y="564" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="600" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Direction markers (mechanical append)</text>
+  <text x="600" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">方向标记（机械附加）</text>
   <rect x="513" y="584" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="600" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">Speech routing via proximity</text>
+  <text x="600" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">语音通过邻近路由</text>
 
-  <text x="513" y="616" font-size="8" fill="#889988">Channel-agnostic delta detection</text>
+  <text x="513" y="616" font-size="8" fill="#889988">Channel-agnostic 变化信号 detection</text>
   <rect x="513" y="624" width="175" height="10" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
-  <text x="600" y="631" text-anchor="middle" font-size="7" fill="#B87820">new channel = zero gate code change</text>
+  <text x="600" y="631" text-anchor="middle" font-size="7" fill="#B87820">新增通道 = 门控代码零修改</text>
 
-  <text x="513" y="652" font-size="8" fill="#889988">No "conversation" or "addressing" concept</text>
+  <text x="513" y="652" font-size="8" fill="#889988">无"对话"或"寻址"概念</text>
 
   <!-- Subsystem 4: Abstract / Graph -->
   <rect x="718" y="490" width="198" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
   <rect x="718" y="490" width="198" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
-  <text x="817" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Graph</text>
+  <text x="817" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Graph · 抽象层</text>
 
   <rect x="728" y="524" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="817" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">7 primitives (all mut. through these)</text>
+  <text x="817" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">7 原语（所有变更必经此处）</text>
 
-  <text x="728" y="556" font-size="8" fill="#667788">Directed edges:</text>
+  <text x="728" y="556" font-size="8" fill="#667788">有向边:</text>
   <rect x="728" y="562" width="84" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
-  <text x="770" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_delta (hold)</text>
+  <text x="770" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_变化信号 (hold)</text>
   <rect x="818" y="562" width="88" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
-  <text x="862" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_delta (affinity)</text>
+  <text x="862" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_变化信号 (affinity)</text>
 
   <rect x="728" y="584" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="817" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">spatial_spawn / despawn / relocate</text>
+  <text x="817" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">空间生成 / 销毁 / 移动</text>
   <rect x="728" y="604" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="817" y="614" text-anchor="middle" font-size="8" fill="#5A8A5A">attr_delta (generic layer traversal)</text>
+  <text x="817" y="614" text-anchor="middle" font-size="8" fill="#5A8A5A">attr_变化信号 (generic layer traversal)</text>
   <rect x="728" y="624" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
-  <text x="817" y="634" text-anchor="middle" font-size="8" fill="#5A8A5A">abs_node_add / abs_node_remove</text>
+  <text x="817" y="634" text-anchor="middle" font-size="8" fill="#5A8A5A">抽象节点加入 / 移除</text>
 
-  <text x="728" y="652" font-size="7" fill="#889988">AffinityTracker: decay, range, directed</text>
-  <text x="728" y="663" font-size="7" fill="#889988">AliasRegistry: O(1) name→ID lookup</text>
+  <text x="728" y="652" font-size="7" fill="#889988">好感度追踪器: 衰减、范围、有向</text>
+  <text x="728" y="663" font-size="7" fill="#889988">别名注册表: O(1) 名称→ID 查询</text>
 
   <!-- Connection arrows between subsystems -->
   <line x1="258" y1="556" x2="278" y2="556" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
@@ -305,17 +305,17 @@
   <!-- ═══════════ BOTTOM ANNOTATIONS ═══════════ -->
   <!-- Concurrency -->
   <rect x="30" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
-  <text x="44" y="702" font-size="9" font-weight="600" fill="#556677">Concurrency:</text>
-  <text x="130" y="702" font-size="8" fill="#667788">TokenBucket (rate limit) + AIMD ConcurrencyGate (adaptive)</text>
+  <text x="44" y="702" font-size="9" font-weight="600" fill="#556677">并发控制:</text>
+  <text x="130" y="702" font-size="8" fill="#667788">令牌桶（速率限制）+ AIMD 并发放行器（自适应）</text>
 
   <!-- Eval -->
   <rect x="340" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
-  <text x="354" y="702" font-size="9" font-weight="600" fill="#556677">Evaluation:</text>
-  <text x="430" y="702" font-size="8" fill="#667788">Plugin metrics via @register_metric — zero engine coupling</text>
+  <text x="354" y="702" font-size="9" font-weight="600" fill="#556677">评估:</text>
+  <text x="430" y="702" font-size="8" fill="#667788">插件式指标 via @register_metric — 零引擎耦合</text>
 
   <!-- Config -->
   <rect x="650" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
-  <text x="664" y="702" font-size="9" font-weight="600" fill="#556677">Config:</text>
-  <text x="714" y="702" font-size="8" fill="#667788">All YAML-driven — zero hardcoded values in engine</text>
+  <text x="664" y="702" font-size="9" font-weight="600" fill="#556677">配置:</text>
+  <text x="714" y="702" font-size="8" fill="#667788">全 YAML 驱动 — 引擎零硬编码值</text>
 
 </svg>
