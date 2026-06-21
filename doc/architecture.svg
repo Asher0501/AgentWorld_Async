@@ -1,0 +1,321 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <!-- Shadows -->
+    <filter id="shadow-sm" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#1a1a2e" flood-opacity="0.06"/>
+    </filter>
+    <filter id="shadow-md" x="-6%" y="-6%" width="112%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#1a1a2e" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-lg" x="-8%" y="-8%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1a1a2e" flood-opacity="0.10"/>
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="grad-agent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F0F4FF"/>
+      <stop offset="100%" stop-color="#E4ECFA"/>
+    </linearGradient>
+    <linearGradient id="grad-engine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5F7FA"/>
+      <stop offset="100%" stop-color="#EDF1F5"/>
+    </linearGradient>
+    <linearGradient id="grad-gate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF8EC"/>
+      <stop offset="100%" stop-color="#FFF0D4"/>
+    </linearGradient>
+    <linearGradient id="grad-mcp" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F2E8F9"/>
+      <stop offset="100%" stop-color="#EDE2F5"/>
+    </linearGradient>
+
+    <!-- Arrowheads -->
+    <marker id="arrow-blue" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,4 L0,8 L2,4 Z" fill="#5B7FBF"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,4 L0,8 L2,4 Z" fill="#8899AA"/>
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,4 L0,8 L2,4 Z" fill="#D4893A"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="720" fill="#FAFBFC" rx="0"/>
+
+  <!-- ═══════════ TITLE ═══════════ -->
+  <text x="480" y="36" text-anchor="middle" font-size="16" font-weight="700" fill="#1A2332" letter-spacing="0.5">AgentWorld Async — Architecture Overview</text>
+  <line x1="380" y1="46" x2="580" y2="46" stroke="#D0D5DD" stroke-width="1"/>
+
+  <!-- ═══════════ LEGEND ═══════════ -->
+  <rect x="720" y="54" width="12" height="12" rx="3" fill="#5B7FBF" opacity="0.85"/>
+  <text x="738" y="64" font-size="10" fill="#556677">Agent Layer</text>
+  <rect x="810" y="54" width="12" height="12" rx="3" fill="#6B8E6B" opacity="0.85"/>
+  <text x="828" y="64" font-size="10" fill="#556677">Engine Layer</text>
+  <rect x="900" y="54" width="12" height="12" rx="3" fill="#D4893A" opacity="0.85"/>
+  <text x="918" y="64" font-size="10" fill="#556677">Gate</text>
+
+  <!-- ═══════════ AGENT LAYER — TOP SECTION ═══════════ -->
+  <rect x="30" y="76" width="900" height="230" rx="10" fill="url(#grad-agent)" stroke="#C5D3EB" stroke-width="1.2" filter="url(#shadow-sm)"/>
+
+  <!-- Section label -->
+  <rect x="30" y="76" width="900" height="32" rx="10" fill="#4270B8" opacity="0.08"/>
+  <text x="50" y="96" font-size="12" font-weight="700" fill="#3B5998" letter-spacing="0.3">Agent Layer — Meaning Engine (独立 LLM 实例, 上下文窗口物理隔离)</text>
+
+  <!-- NPC Instance 1 -->
+  <rect x="52" y="122" width="260" height="168" rx="8" fill="#FFFFFF" stroke="#D4DEF0" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="52" y="122" width="260" height="28" rx="8" fill="#4270B8" opacity="0.06"/>
+  <text x="182" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC Instance (per agent)</text>
+  <rect x="52" y="150" width="260" height="1" fill="#E8EDF5"/>
+
+  <!-- Phase boxes -->
+  <rect x="64" y="160" width="54" height="28" rx="5" fill="#E8F0FE" stroke="#B8D0F0" stroke-width="0.8"/>
+  <text x="91" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#4A7CC9">Sense</text>
+  <text x="121" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="128" y="160" width="54" height="28" rx="5" fill="#FFF8EC" stroke="#F0D090" stroke-width="0.8"/>
+  <text x="155" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#D4893A">Gate</text>
+  <text x="185" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="192" y="160" width="54" height="28" rx="5" fill="#EDF5ED" stroke="#B8D8B8" stroke-width="0.8"/>
+  <text x="219" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#4A8A4A">Decide</text>
+  <text x="249" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="256" y="160" width="44" height="28" rx="5" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.8"/>
+  <text x="278" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#7E5BA8">Flush</text>
+
+  <!-- Internal components -->
+  <text x="66" y="206" font-size="9" fill="#667788">Brain</text>
+  <rect x="100" y="198" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="200" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM decision (structured JSON output)</text>
+
+  <text x="66" y="230" font-size="9" fill="#667788">Memory</text>
+  <rect x="100" y="222" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="200" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">Episodic buffer (FIFO, recoverable)</text>
+
+  <text x="66" y="254" font-size="9" fill="#667788">Drives</text>
+  <rect x="100" y="246" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="200" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">thirst / hunger / social / energy / fun / mood</text>
+
+  <text x="66" y="278" font-size="9" fill="#667788">Slot Mask</text>
+  <rect x="100" y="270" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="200" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">YAML-driven cognitive heterogeneity</text>
+
+  <!-- NPC Instance 2 -->
+  <rect x="350" y="122" width="260" height="168" rx="8" fill="#FFFFFF" stroke="#D4DEF0" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="350" y="122" width="260" height="28" rx="8" fill="#4270B8" opacity="0.06"/>
+  <text x="480" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#3B5998">NPC Instance (per agent)</text>
+  <rect x="350" y="150" width="260" height="1" fill="#E8EDF5"/>
+
+  <rect x="362" y="160" width="54" height="28" rx="5" fill="#E8F0FE" stroke="#B8D0F0" stroke-width="0.8"/>
+  <text x="389" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#4A7CC9">Sense</text>
+  <text x="419" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="426" y="160" width="54" height="28" rx="5" fill="#FFF8EC" stroke="#F0D090" stroke-width="0.8"/>
+  <text x="453" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#D4893A">Gate</text>
+  <text x="483" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="490" y="160" width="54" height="28" rx="5" fill="#EDF5ED" stroke="#B8D8B8" stroke-width="0.8"/>
+  <text x="517" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#4A8A4A">Decide</text>
+  <text x="547" y="178" font-size="9" fill="#8899AA">→</text>
+
+  <rect x="554" y="160" width="44" height="28" rx="5" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.8"/>
+  <text x="576" y="178" text-anchor="middle" font-size="9" font-weight="600" fill="#7E5BA8">Flush</text>
+
+  <text x="364" y="206" font-size="9" fill="#667788">Brain</text>
+  <rect x="398" y="198" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="498" y="208" text-anchor="middle" font-size="8" fill="#5B7FBF">LLM decision (multi-provider routing)</text>
+
+  <text x="364" y="230" font-size="9" fill="#667788">Memory</text>
+  <rect x="398" y="222" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="498" y="232" text-anchor="middle" font-size="8" fill="#5B7FBF">Episodic buffer (persist across sessions)</text>
+
+  <text x="364" y="254" font-size="9" fill="#667788">Drives</text>
+  <rect x="398" y="246" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="498" y="256" text-anchor="middle" font-size="8" fill="#5B7FBF">Autonomous attention allocation</text>
+
+  <text x="364" y="278" font-size="9" fill="#667788">Slot Mask</text>
+  <rect x="398" y="270" width="200" height="14" rx="3" fill="#F0F4FF" stroke="#D4DEF0" stroke-width="0.5"/>
+  <text x="498" y="280" text-anchor="middle" font-size="8" fill="#5B7FBF">Per-agent prompt segment control</text>
+
+  <!-- Director panel (right side) -->
+  <rect x="650" y="122" width="266" height="168" rx="8" fill="#F8F5FC" stroke="#D0C0E8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="650" y="122" width="266" height="28" rx="8" fill="#7E5BA8" opacity="0.08"/>
+  <text x="783" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#6B48A0">Director — External Control</text>
+  <rect x="650" y="150" width="266" height="1" fill="#E8DCF5"/>
+
+  <text x="662" y="172" font-size="9" fill="#667788">Permission Levels:</text>
+  <rect x="662" y="180" width="48" height="18" rx="4" fill="#F0E8F8" stroke="#D0C0E8" stroke-width="0.5"/>
+  <text x="686" y="192" text-anchor="middle" font-size="8" fill="#7E5BA8">observer</text>
+  <rect x="716" y="180" width="48" height="18" rx="4" fill="#E8DCF5" stroke="#C8B8E0" stroke-width="0.5"/>
+  <text x="740" y="192" text-anchor="middle" font-size="8" fill="#7E5BA8">controller</text>
+  <rect x="770" y="180" width="48" height="18" rx="4" fill="#DCC8F0" stroke="#C0A8D8" stroke-width="0.5"/>
+  <text x="794" y="192" text-anchor="middle" font-size="8" fill="#6B48A0">moderator</text>
+  <rect x="824" y="180" width="40" height="18" rx="4" fill="#D0B0E8" stroke="#B898D0" stroke-width="0.5"/>
+  <text x="844" y="192" text-anchor="middle" font-size="8" fill="#6B48A0">admin</text>
+  <rect x="870" y="180" width="34" height="18" rx="4" fill="#C498E0" stroke="#A878C8" stroke-width="0.5"/>
+  <text x="887" y="192" text-anchor="middle" font-size="8" fill="#FFFFFF">super</text>
+
+  <text x="662" y="220" font-size="9" fill="#667788">freeze / unfreeze</text>
+  <rect x="662" y="226" width="242" height="12" rx="3" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.5"/>
+  <text x="783" y="235" text-anchor="middle" font-size="8" fill="#7E5BA8">Pause world — all NPC loops sleep at Phase 1</text>
+
+  <text x="662" y="254" font-size="9" fill="#667788">snap / order / set</text>
+  <rect x="662" y="260" width="242" height="12" rx="3" fill="#F5F0FA" stroke="#D0C0E8" stroke-width="0.5"/>
+  <text x="783" y="269" text-anchor="middle" font-size="8" fill="#7E5BA8">Inject decisions — do-calculus intervention platform</text>
+
+  <text x="662" y="286" font-size="8" fill="#9988AA" font-style="italic">SessionManager: join/leave + memory persistence</text>
+
+  <!-- ... dots between NPC instances -->
+  <text x="328" y="200" font-size="16" fill="#8899AA" font-weight="300">…</text>
+
+  <!-- ═══════════ P/Q DELTA GATE — BRIDGE ═══════════ -->
+  <rect x="70" y="320" width="820" height="52" rx="8" fill="url(#grad-gate)" stroke="#E8C870" stroke-width="1.2" filter="url(#shadow-md)"/>
+  <text x="90" y="340" font-size="11" font-weight="700" fill="#B87820">P/Q Delta Gate</text>
+  <text x="90" y="356" font-size="9" fill="#8A6D3B">Δ(P, Q) = ∪ δ_c(P[c], Q[c])</text>
+
+  <text x="300" y="340" font-size="9" fill="#8A6D3B">channel_delta</text>
+  <rect x="300" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
+  <text x="350" y="358" text-anchor="middle" font-size="8" fill="#B87820">entity enter/leave/change</text>
+
+  <text x="420" y="340" font-size="9" fill="#8A6D3B">state_delta</text>
+  <rect x="420" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
+  <text x="470" y="358" text-anchor="middle" font-size="8" fill="#B87820">threshold cross (30/60/80)</text>
+
+  <text x="540" y="340" font-size="9" fill="#8A6D3B">stale_check</text>
+  <rect x="540" y="346" width="100" height="16" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
+  <text x="590" y="358" text-anchor="middle" font-size="8" fill="#B87820">timeout fallback (~30s)</text>
+
+  <rect x="670" y="335" width="200" height="24" rx="6" fill="#FFF0D4" stroke="#E8C870" stroke-width="0.8"/>
+  <text x="770" y="344" text-anchor="middle" font-size="8" fill="#B87820">Δ ≠ ∅ → invoke LLM</text>
+  <text x="770" y="356" text-anchor="middle" font-size="8" fill="#B87820">Δ = ∅ → sleep (no LLM cost)</text>
+
+  <!-- Flow arrows to/from gate -->
+  <line x1="280" y1="310" x2="280" y2="320" stroke="#8899AA" stroke-width="1.2" marker-end="url(#arrow-gray)" stroke-dasharray="4,2"/>
+  <text x="268" y="308" font-size="7" fill="#8899AA">sensory Q</text>
+  <line x1="680" y1="310" x2="680" y2="320" stroke="#D4893A" stroke-width="1.2" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+  <text x="688" y="308" font-size="7" fill="#D4893A">delta</text>
+
+  <!-- ═══════════ MCP ROUTING — BRIDGE ═══════════ -->
+  <rect x="200" y="388" width="560" height="42" rx="8" fill="url(#grad-mcp)" stroke="#C8B0E0" stroke-width="1" filter="url(#shadow-sm)"/>
+  <text x="220" y="406" font-size="10" font-weight="600" fill="#6B48A0">MCP Engine — Dual-Layer Interface Routing (零操作名分支)</text>
+  <text x="220" y="421" font-size="8" fill="#8A6DA0">LLM → {interface, params} → physical handler (eat/forge/gather) | abstract primitive (edge_delta/spatial_spawn/attr_delta)</text>
+
+  <!-- Flow arrow from gate to MCP -->
+  <line x1="480" y1="372" x2="480" y2="388" stroke="#7E5BA8" stroke-width="1" marker-end="url(#arrow-gray)"/>
+
+  <!-- ═══════════ ENGINE LAYER — BOTTOM SECTION ═══════════ -->
+  <rect x="30" y="444" width="900" height="230" rx="10" fill="url(#grad-engine)" stroke="#C8D0DA" stroke-width="1.2" filter="url(#shadow-sm)"/>
+
+  <rect x="30" y="444" width="900" height="32" rx="10" fill="#5A8A5A" opacity="0.08"/>
+  <text x="50" y="464" font-size="12" font-weight="700" fill="#3A6B3A" letter-spacing="0.3">Engine Layer — Physics Engine (零语义: 只知道数量和坐标, 不知道任何概念)</text>
+
+  <!-- Subsystem 1: Spatial -->
+  <rect x="48" y="490" width="210" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="48" y="490" width="210" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
+  <text x="153" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Spatial · 空间层</text>
+
+  <rect x="58" y="524" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="153" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">SpatialGrid: O(k) proximity queries</text>
+  <rect x="58" y="544" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="153" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">Zone partitioning + entity lifecycle</text>
+  <rect x="58" y="564" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="153" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Movement &amp; proximity constraints</text>
+  <rect x="58" y="584" width="190" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="153" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">SimClock: wall → sim time mapping</text>
+
+  <text x="58" y="616" font-size="8" fill="#889988">Perception Layers:</text>
+  <rect x="58" y="622" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
+  <text x="88" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">visual (r)</text>
+  <rect x="124" y="622" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
+  <text x="154" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">auditory (r)</text>
+  <rect x="58" y="640" width="60" height="14" rx="3" fill="#E8F0E8" stroke="#C0D8C0" stroke-width="0.5"/>
+  <text x="88" y="650" text-anchor="middle" font-size="7" fill="#5A8A5A">interaction (r)</text>
+
+  <!-- Subsystem 2: Drive -->
+  <rect x="278" y="490" width="205" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="278" y="490" width="205" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
+  <text x="380" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Drive · 驱动层</text>
+
+  <rect x="288" y="524" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="380" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">Numerical attribute decay over sim-time</text>
+  <rect x="288" y="544" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="380" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">Flat priority — no engine-level ordering</text>
+  <rect x="288" y="564" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="380" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Configurable decay rates per attribute</text>
+  <rect x="288" y="584" width="185" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="380" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">Thresh: 30/60/80 → delta signal</text>
+
+  <text x="288" y="616" font-size="8" fill="#889988">Attributes:</text>
+  <rect x="288" y="622" width="185" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
+  <text x="380" y="632" text-anchor="middle" font-size="7" fill="#5A8A5A">thirst · hunger · social · energy · fun · mood</text>
+
+  <text x="288" y="652" font-size="8" fill="#889988">No concept of "need" or "urgency"</text>
+
+  <!-- Subsystem 3: Sensory -->
+  <rect x="503" y="490" width="195" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="503" y="490" width="195" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
+  <text x="600" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Sensory · 感官层</text>
+
+  <rect x="513" y="524" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="600" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">Radius-based data collection</text>
+  <rect x="513" y="544" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="600" y="554" text-anchor="middle" font-size="8" fill="#5A8A5A">SensorRecord: name, distance, data, ts</text>
+  <rect x="513" y="564" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="600" y="574" text-anchor="middle" font-size="8" fill="#5A8A5A">Direction markers (mechanical append)</text>
+  <rect x="513" y="584" width="175" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="600" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">Speech routing via proximity</text>
+
+  <text x="513" y="616" font-size="8" fill="#889988">Channel-agnostic delta detection</text>
+  <rect x="513" y="624" width="175" height="10" rx="3" fill="#FFF8EC" stroke="#E8C870" stroke-width="0.5"/>
+  <text x="600" y="631" text-anchor="middle" font-size="7" fill="#B87820">new channel = zero gate code change</text>
+
+  <text x="513" y="652" font-size="8" fill="#889988">No "conversation" or "addressing" concept</text>
+
+  <!-- Subsystem 4: Abstract / Graph -->
+  <rect x="718" y="490" width="198" height="170" rx="8" fill="#FFFFFF" stroke="#C8D8C8" stroke-width="1" filter="url(#shadow-sm)"/>
+  <rect x="718" y="490" width="198" height="26" rx="8" fill="#5A8A5A" opacity="0.06"/>
+  <text x="817" y="507" text-anchor="middle" font-size="10" font-weight="600" fill="#3A6B3A">Graph · 抽象层</text>
+
+  <rect x="728" y="524" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="817" y="534" text-anchor="middle" font-size="8" fill="#5A8A5A">7 primitives (all mut. through these)</text>
+
+  <text x="728" y="556" font-size="8" fill="#667788">Directed edges:</text>
+  <rect x="728" y="562" width="84" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
+  <text x="770" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_delta (hold)</text>
+  <rect x="818" y="562" width="88" height="14" rx="3" fill="#F0F7F0" stroke="#C8D8C8" stroke-width="0.5"/>
+  <text x="862" y="572" text-anchor="middle" font-size="7" fill="#5A8A5A">edge_delta (affinity)</text>
+
+  <rect x="728" y="584" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="817" y="594" text-anchor="middle" font-size="8" fill="#5A8A5A">spatial_spawn / despawn / relocate</text>
+  <rect x="728" y="604" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="817" y="614" text-anchor="middle" font-size="8" fill="#5A8A5A">attr_delta (generic layer traversal)</text>
+  <rect x="728" y="624" width="178" height="14" rx="3" fill="#F5F9F5" stroke="#D0E0D0" stroke-width="0.5"/>
+  <text x="817" y="634" text-anchor="middle" font-size="8" fill="#5A8A5A">abs_node_add / abs_node_remove</text>
+
+  <text x="728" y="652" font-size="7" fill="#889988">AffinityTracker: decay, range, directed</text>
+  <text x="728" y="663" font-size="7" fill="#889988">AliasRegistry: O(1) name→ID lookup</text>
+
+  <!-- Connection arrows between subsystems -->
+  <line x1="258" y1="556" x2="278" y2="556" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+  <line x1="483" y1="556" x2="503" y2="556" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+  <line x1="698" y1="556" x2="718" y2="556" stroke="#8899AA" stroke-width="0.6" stroke-dasharray="3,2"/>
+
+  <!-- ═══════════ BOTTOM ANNOTATIONS ═══════════ -->
+  <!-- Concurrency -->
+  <rect x="30" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
+  <text x="44" y="702" font-size="9" font-weight="600" fill="#556677">Concurrency:</text>
+  <text x="130" y="702" font-size="8" fill="#667788">TokenBucket (rate limit) + AIMD ConcurrencyGate (adaptive)</text>
+
+  <!-- Eval -->
+  <rect x="340" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
+  <text x="354" y="702" font-size="9" font-weight="600" fill="#556677">Evaluation:</text>
+  <text x="430" y="702" font-size="8" fill="#667788">Plugin metrics via @register_metric — zero engine coupling</text>
+
+  <!-- Config -->
+  <rect x="650" y="684" width="280" height="28" rx="6" fill="#F5F7FA" stroke="#D0D5DD" stroke-width="0.8"/>
+  <text x="664" y="702" font-size="9" font-weight="600" fill="#556677">Config:</text>
+  <text x="714" y="702" font-size="8" fill="#667788">All YAML-driven — zero hardcoded values in engine</text>
+
+</svg>
